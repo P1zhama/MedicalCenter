@@ -1,1 +1,8 @@
-<Solution />
+<Solution>
+  <Folder Name="/Элементы решения/">
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Элементы решения/Gateway/">
+    <Project Path="Gateway.API/Gateway.API.csproj" Id="8e7175b4-45d5-4819-8399-5a0801a7ffcb" />
+  </Folder>
+</Solution>

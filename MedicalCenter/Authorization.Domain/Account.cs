@@ -11,14 +11,14 @@ public class Account
     public string Password { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
     public bool IsEmailVerified { get; set; } = false;
-    public Guid? PhotoId { get; set; }
+    public Photo? PhotoId { get; set; }
 
     public UserRole Role { get; set; } = UserRole.None;
 
 
-    public string CreatedBy { get; set; } = "System";
+    public UserRole CreatedBy { get; set; } = UserRole.None;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public string UpdatedBy { get; set; } = "System";
+    public UserRole UpdatedBy { get; set; } = UserRole.None;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
 

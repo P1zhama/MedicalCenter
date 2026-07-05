@@ -11,7 +11,7 @@ public class Account
     public string Password { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
     public bool IsEmailVerified { get; set; } = false;
-    public Photo? PhotoId { get; set; }
+    public Photo? Photo { get; set; }
 
     public UserRole Role { get; set; } = UserRole.None;
 

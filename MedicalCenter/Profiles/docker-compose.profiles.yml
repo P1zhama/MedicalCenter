@@ -1,0 +1,22 @@
+services:
+  profiles-api:
+    build:
+      context: .
+      dockerfile: Profiles/Profiles.API/Dockerfile
+    container_name: profiles-api
+    depends_on:
+      sql-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sql-server;Database=MmcProfilesDb;User Id=sa;Password=Your_Strong!Password123;TrustServerCertificate=True;
+      - RabbitMqSettings__Host=rabbitmq
+      - RabbitMqSettings__Username=guest
+      - RabbitMqSettings__Password=guest
+      - GrpcClients__Authorization=http://authorization-api:8080
+    networks:
+      - medical-network

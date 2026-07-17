@@ -1,6 +1,4 @@
 services:
-  # Общая инфраструктура для всех микросервисов: одна база SQL Server (у каждого сервиса своя БД внутри неё)
-  # и один брокер сообщений RabbitMQ для MassTransit
   sql-server:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sql-server
@@ -12,8 +10,6 @@ services:
     volumes:
       - mssql_data:/var/opt/mssql
     healthcheck:
-      # В образе mssql/server:2022-latest sqlcmd теперь лежит в mssql-tools18, а не в mssql-tools,
-      # и по умолчанию требует шифрование — флаг -C отключает проверку сертификата для локального healthcheck
       test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-C", "-U", "sa", "-P", "Your_Strong!Password123", "-Q", "SELECT 1"]
       interval: 10s
       timeout: 5s
@@ -25,8 +21,8 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
-      - "5672:5672"   # AMQP — сюда подключаются сервисы через MassTransit
-      - "15672:15672" # Web UI (admin: guest/guest)
+      - "5672:5672"
+      - "15672:15672"
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 10s
@@ -35,7 +31,6 @@ services:
     networks:
       - medical-network
 
-  # Хранилище сервиса Offices (по C4-диаграмме офисы лежат в NoSQL)
   mongodb:
     image: mongo:7
     container_name: mongodb
@@ -51,15 +46,15 @@ services:
     networks:
       - medical-network
 
-# Конфигурация каждого сервиса лежит в своём docker-compose.<service>.yml.
-# include подключает их все в один и тот же проект — благодаря этому:
-#  - "docker compose up" в этой папке поднимает сразу весь бэкенд (инфраструктуру + все сервисы);
-#  - каждый сервис при этом можно по-прежнему разрабатывать и обсуждать в изоляции, глядя только в свой файл.
 include:
-  - docker-compose.auth.yml
-  - docker-compose.profiles.yml
-  - docker-compose.offices.yml
-  - docker-compose.gateway.yml
+  - path: Authorization/docker-compose.auth.yml
+    project_directory: .
+  - path: Profiles/docker-compose.profiles.yml
+    project_directory: .
+  - path: Offices/docker-compose.offices.yml
+    project_directory: .
+  - path: Gateway/docker-compose.gateway.yml
+    project_directory: .
 
 volumes:
   mssql_data:

@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <!-- MassTransit 9.x требует платную лицензию для работы шины даже с RabbitMQ (падает при старте).
+         8.x — последняя полностью бесплатная мажорная версия, функциональности хватает с запасом -->
+    <PackageReference Include="MassTransit" Version="8.5.10" />
+    <PackageReference Include="MediatR" Version="14.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Authorization.Domain\Authorization.Domain.csproj" />
+    <ProjectReference Include="..\MedicalCenter.Shared.Contracts\MedicalCenter.Shared.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+option csharp_namespace = "Offices.API.Protos";
+
+package offices;
+
+service OfficesService {
+    rpc CreateOffice (CreateOfficeRequest) returns (CreateOfficeResponse);
+    rpc UpdateOffice (UpdateOfficeRequest) returns (UpdateOfficeResponse);
+    rpc ChangeOfficeStatus (ChangeOfficeStatusRequest) returns (ChangeOfficeStatusResponse);
+    rpc GetOffices (GetOfficesRequest) returns (GetOfficesResponse);
+    rpc GetOfficeById (GetOfficeByIdRequest) returns (OfficeResponse);
+}
+
+message CreateOfficeRequest {
+    string city = 1;
+    string street = 2;
+    string house_number = 3;
+    string office_number = 4;
+    string registry_phone_number = 5;
+    string photo_url = 6;
+    string status = 7;
+}
+
+message CreateOfficeResponse {
+    string office_id = 1;
+    string message = 2;
+}
+
+message UpdateOfficeRequest {
+    string office_id = 1;
+    string city = 2;
+    string street = 3;
+    string house_number = 4;
+    string office_number = 5;
+    string registry_phone_number = 6;
+    string photo_url = 7;
+    string status = 8;
+}
+
+message UpdateOfficeResponse {
+    string message = 1;
+}
+
+message ChangeOfficeStatusRequest {
+    string office_id = 1;
+    string status = 2;
+}
+
+message ChangeOfficeStatusResponse {
+    string message = 1;
+}
+
+message GetOfficesRequest {}
+
+message OfficeListItem {
+    string office_id = 1;
+    string address = 2;
+    string status = 3;
+    string registry_phone_number = 4;
+}
+
+message GetOfficesResponse {
+    repeated OfficeListItem offices = 1;
+}
+
+message GetOfficeByIdRequest {
+    string office_id = 1;
+}
+
+message OfficeResponse {
+    string office_id = 1;
+    string photo_url = 2;
+    string address = 3;
+    string city = 4;
+    string street = 5;
+    string house_number = 6;
+    string office_number = 7;
+    string status = 8;
+    string registry_phone_number = 9;
+}

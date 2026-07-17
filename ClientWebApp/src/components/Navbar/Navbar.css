@@ -1,0 +1,20 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2.5rem;
+  background-color: #0b6948;
+  color: #FFFFFF;
+}
+
+.navbar-brand h1 {
+  color: #FFFFFF;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.navbar-actions {
+  display: flex;
+  gap: 1rem;
+}

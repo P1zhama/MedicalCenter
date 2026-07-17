@@ -1,0 +1,70 @@
+services:
+  # Общая инфраструктура для всех микросервисов: одна база SQL Server (у каждого сервиса своя БД внутри неё)
+  # и один брокер сообщений RabbitMQ для MassTransit
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql-server
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Your_Strong!Password123"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      # В образе mssql/server:2022-latest sqlcmd теперь лежит в mssql-tools18, а не в mssql-tools,
+      # и по умолчанию требует шифрование — флаг -C отключает проверку сертификата для локального healthcheck
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-C", "-U", "sa", "-P", "Your_Strong!Password123", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medical-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP — сюда подключаются сервисы через MassTransit
+      - "15672:15672" # Web UI (admin: guest/guest)
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medical-network
+
+  # Хранилище сервиса Offices (по C4-диаграмме офисы лежат в NoSQL)
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medical-network
+
+# Конфигурация каждого сервиса лежит в своём docker-compose.<service>.yml.
+# include подключает их все в один и тот же проект — благодаря этому:
+#  - "docker compose up" в этой папке поднимает сразу весь бэкенд (инфраструктуру + все сервисы);
+#  - каждый сервис при этом можно по-прежнему разрабатывать и обсуждать в изоляции, глядя только в свой файл.
+include:
+  - docker-compose.auth.yml
+  - docker-compose.profiles.yml
+  - docker-compose.offices.yml
+  - docker-compose.gateway.yml
+
+volumes:
+  mssql_data:
+  mongo_data:
+
+networks:
+  medical-network:
+    driver: bridge

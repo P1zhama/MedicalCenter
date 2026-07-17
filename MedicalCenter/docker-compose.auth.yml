@@ -1,0 +1,25 @@
+services:
+  authorization-api:
+    build:
+      context: .
+      dockerfile: Authorization.API/Dockerfile
+    container_name: authorization-api
+    depends_on:
+      sql-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sql-server;Database=MmcAuthDb;User Id=sa;Password=Your_Strong!Password123;TrustServerCertificate=True;
+      - RabbitMqSettings__Host=rabbitmq
+      - RabbitMqSettings__Username=guest
+      - RabbitMqSettings__Password=guest
+      # Секреты берутся из .env (см. .env.example) - сам .env не коммитится
+      - JwtSettings__SecretKey=${AUTH_JWT_SECRET_KEY}
+      - EmailSettings__Password=${AUTH_EMAIL_PASSWORD}
+      - EmailSettings__ClientAppBaseUrl=http://localhost:5174
+    networks:
+      - medical-network

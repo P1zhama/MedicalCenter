@@ -1,8 +1,55 @@
 <Solution>
   <Folder Name="/Элементы решения/">
+    <File Path="docker-compose.yml" />
     <File Path="README.md" />
   </Folder>
+  <Folder Name="/Элементы решения/Appointments/">
+    <File Path="docker-compose.appointments.yml" />
+    <Project Path="Appointments.API/Appointments.API.csproj" Id="54a1d01a-5906-4c4f-987a-dac677998456" />
+    <Project Path="Appointments.Application/Appointments.Application.csproj" Id="977345f6-6e45-40d4-9139-64a73bfa91b4" />
+    <Project Path="Appointments.Domain/Appointments.Domain.csproj" Id="f8eb7676-c2b5-49d1-a9a8-854d74765038" />
+    <Project Path="Appointments.Infrastructure/Appointments.Infrastructure.csproj" Id="fae0a20d-0ccb-421d-8b28-1778577bd27f" />
+  </Folder>
+  <Folder Name="/Элементы решения/Authorization/">
+    <File Path="docker-compose.auth.yml" />
+    <Project Path="Authorization.API/Authorization.API.csproj" Id="e947cc4b-839a-4eef-8196-e674ec7a5851" />
+    <Project Path="Authorization.Application/Authorization.Application.csproj" Id="8405c5c3-59e8-4653-8e5f-7d7843690396" />
+    <Project Path="Authorization.Domain/Authorization.Domain.csproj" Id="4bd65b2d-de60-483e-a0ac-8e05324d98bb" />
+    <Project Path="Authorization.Infrastructure/Authorization.Infrastructure.csproj" Id="ee0d72b7-8b16-4f59-a91b-297557977d83" />
+  </Folder>
+  <Folder Name="/Элементы решения/Contracts/">
+    <Project Path="MedicalCenter.Shared.Contracts/MedicalCenter.Shared.Contracts.csproj" Id="3d78bf55-0018-47f1-abf5-85d9da4f84e0" />
+  </Folder>
+  <Folder Name="/Элементы решения/Documents/">
+    <File Path="docker-compose.documents.yml" />
+    <Project Path="Documents.API/Documents.API.csproj" Id="b270fa1b-273b-40df-b02a-e3c5f33ac23b" />
+    <Project Path="Documents.Application/Documents.Application.csproj" Id="1365f39c-50ee-416c-864b-1d225b8c317e" />
+    <Project Path="Documents.Domain/Documents.Domain.csproj" Id="ccb3e00e-430b-4c77-bcf9-e093255c803d" />
+    <Project Path="Documents.Infastrusture/Documents.Infrastructure.csproj" Id="843c1731-0d18-4796-9114-ef10f6de8c3d" />
+  </Folder>
   <Folder Name="/Элементы решения/Gateway/">
+    <File Path="docker-compose.gateway.yml" />
     <Project Path="Gateway.API/Gateway.API.csproj" Id="8e7175b4-45d5-4819-8399-5a0801a7ffcb" />
+  </Folder>
+  <Folder Name="/Элементы решения/Offices/">
+    <File Path="docker-compose.offices.yml" />
+    <Project Path="Offices.API/Offices.API.csproj" Id="ce1bbcb8-9b36-4584-8fd4-a87414a6d641" />
+    <Project Path="Offices.Application/Offices.Application.csproj" Id="a1413147-a681-47e1-a98f-ad8bb75ef3cb" />
+    <Project Path="Offices.Domain/Offices.Domain.csproj" Id="0d625598-6dcc-41e5-8d03-a2b902b2c014" />
+    <Project Path="Offices.Infrastructure/Offices.Infrastructure.csproj" Id="58940d0a-6698-44b2-932b-85563e9dcfc8" />
+  </Folder>
+  <Folder Name="/Элементы решения/Profiles/">
+    <File Path="docker-compose.profiles.yml" />
+    <Project Path="Profiles.API/Profiles.API.csproj" Id="63deff45-5e7e-4792-ac65-621d6bf37660" />
+    <Project Path="Profiles.Application/Profiles.Application.csproj" Id="94d75029-1ca4-40cd-8aea-1ef93f05d6dd" />
+    <Project Path="Profiles.Domain/Profiles.Domain.csproj" Id="bd3b05c7-263a-4696-982e-d467049d068f" />
+    <Project Path="Profiles.Infrastructure/Profiles.Infrastructure.csproj" Id="03f772c6-d841-4974-bd74-bf238b2bc94c" />
+  </Folder>
+  <Folder Name="/Элементы решения/Services/">
+    <File Path="docker-compose.services.yml" />
+    <Project Path="Services.API/Services.API.csproj" Id="2f16a465-f172-4d2d-9edd-b80b80f015fa" />
+    <Project Path="Services.Application/Services.Application.csproj" Id="c083e70b-9dd6-413d-9f00-908925b101cc" />
+    <Project Path="Services.Domain/Services.Domain.csproj" Id="f5434944-7f7b-49fe-8d92-b7a3bd9200f5" />
+    <Project Path="Services.Infrastructure/Services.Infrastructure.csproj" Id="fe7c072d-8d53-431a-9f50-b28f82bf2186" />
   </Folder>
 </Solution>

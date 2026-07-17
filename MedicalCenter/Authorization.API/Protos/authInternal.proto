@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+option csharp_namespace = "Authorization.API.Protos";
+
+package authInternal;
+
+service AuthInternalService {
+    rpc CreateWorkerAccount (CreateWorkerRequest) returns (CreateWorkerResponse);
+    rpc DeleteWorkerAccount (DeleteWorkerRequest) returns (DeleteWorkerResponse);
+}
+
+message CreateWorkerRequest {
+    string email = 1;
+    string role_name = 2;
+    string created_by = 3;
+}
+
+message CreateWorkerResponse {
+    string account_id = 1;
+    string message = 2;
+}
+
+message DeleteWorkerRequest {
+    string account_id = 1;
+}
+
+message DeleteWorkerResponse {
+    bool success = 1;
+    string message = 2;
+}

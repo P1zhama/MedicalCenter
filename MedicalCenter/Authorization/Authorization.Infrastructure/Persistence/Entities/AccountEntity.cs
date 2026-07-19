@@ -1,0 +1,24 @@
+namespace Authorization.Infrastructure.Persistence.Entities;
+
+public class AccountEntity
+{
+    public Guid Id { get; set; }
+
+    public string Email { get; set; } = null!;
+
+    public string PasswordHash { get; set; } = null!;
+
+    public int StatusId { get; set; }
+
+    public DateTimeOffset? EmailConfirmedAt { get; set; }
+
+    public long Version { get; set; }
+
+    public Guid CreatedBy { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; }
+
+    public Guid? UpdatedBy { get; set; }
+
+    public DateTimeOffset? UpdatedAt { get; set; }
+}

@@ -17,6 +17,11 @@
     <Project Path="Authorization/Authorization.Domain/Authorization.Domain.csproj" Id="4bd65b2d-de60-483e-a0ac-8e05324d98bb" />
     <Project Path="Authorization/Authorization.Infrastructure/Authorization.Infrastructure.csproj" Id="ee0d72b7-8b16-4f59-a91b-297557977d83" />
   </Folder>
+  <Folder Name="/Элементы решения/Common/">
+    <Project Path="Common/Common.Abstractions/Common.Abstractions.csproj" Id="c1863c16-2f09-4081-b9ca-189ddf46390e" />
+    <Project Path="Common/Common.Domain/Common.Domain.csproj" Id="28f9be9c-6088-4025-9a72-9cbd4a762cbb" />
+    <Project Path="Common/Common.Infrastructure/Common.Infrastructure.csproj" Id="462f4c3d-d18a-4757-b521-9f4353cccc7c" />
+  </Folder>
   <Folder Name="/Элементы решения/Contracts/">
     <Project Path="MedicalCenter.Shared.Contracts/MedicalCenter.Shared.Contracts.csproj" Id="3d78bf55-0018-47f1-abf5-85d9da4f84e0" />
   </Folder>

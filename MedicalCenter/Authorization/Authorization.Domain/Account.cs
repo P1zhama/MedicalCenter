@@ -1,31 +1,87 @@
-﻿using System;
-using System.Collections.Generic;
-
+using Authorization.Domain.Enums;
+using Authorization.Domain.Events;
+using Authorization.Domain.ValueObjects;
+using Common.Domain;
+using ErrorOr;
 
 namespace Authorization.Domain;
 
-
-public class Account
+public sealed class Account : AggregateRoot<Guid>
 {
-    public Guid Id { get; set; }
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-    public string? PhoneNumber { get; set; }
-    public bool IsEmailVerified { get; set; } = false;
+    public Email Email { get; private set; }
 
-    public bool IsProfileCreated { get; set; } = false;
+    public string PasswordHash { get; private set; }
 
-    public Photo? Photo { get; set; }
+    public AccountStatus Status { get; private set; }
 
-    public ICollection<AccountRole> AccountRoles { get; set; } = new List<AccountRole>();
+    public DateTime? EmailConfirmedAt { get; private set; }
 
-    
-    public string? CreatedBy { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public string? UpdatedBy { get; set; }
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsEmailConfirmed => EmailConfirmedAt.HasValue;
 
-    public string? RefreshToken { get; set; }
-    public DateTime? RefreshTokenExpiryTime { get; set; }
+    private Account(
+        Guid id,
+        Email email,
+        string passwordHash,
+        AccountStatus status,
+        DateTime? emailConfirmedAt,
+        long version,
+        AuditInfo audit)
+        : base(id, version, audit)
+    {
+        Email = email;
+        PasswordHash = passwordHash;
+        Status = status;
+        EmailConfirmedAt = emailConfirmedAt;
+    }
 
+    public static ErrorOr<Account> CreateNew(
+        Guid id,
+        string email,
+        string passwordHash,
+        Guid createdBy,
+        DateTime createdAt)
+    {
+        var emailResult = Email.Create(email);
+        if (emailResult.IsError)
+            return emailResult.Errors;
+
+        if (string.IsNullOrWhiteSpace(passwordHash))
+            return Error.Validation("Account.PasswordHash", "Password hash must not be empty.");
+
+        var account = new Account(
+            id,
+            emailResult.Value,
+            passwordHash,
+            AccountStatus.PendingConfirmation,
+            emailConfirmedAt: null,
+            version: 1,
+            new AuditInfo(createdBy, createdAt, null, null));
+
+        account.AddDomainEvent(new AccountRegisteredDomainEvent(account.Id, account.Email.Value, createdAt));
+
+        return account;
+    }
+
+    public ErrorOr<Success> ConfirmEmail(DateTime confirmedAt, Guid updatedBy)
+    {
+        if (IsEmailConfirmed)
+            return Error.Conflict("Account.AlreadyConfirmed", "Email is already confirmed.");
+
+        EmailConfirmedAt = confirmedAt;
+        Status = AccountStatus.Active;
+        Audit = Audit.WithUpdate(updatedBy, confirmedAt);
+        Version++;
+
+        return Result.Success;
+    }
+
+    public static Account Restore(
+        Guid id,
+        Email email,
+        string passwordHash,
+        AccountStatus status,
+        DateTime? emailConfirmedAt,
+        long version,
+        AuditInfo audit)
+        => new(id, email, passwordHash, status, emailConfirmedAt, version, audit);
 }

@@ -5,10 +5,10 @@ using Common.Abstractions.Providers;
 using ErrorOr;
 using MediatR;
 
-namespace Authorization.Application.Accounts.RegisterAccount;
+namespace Authorization.Application.Accounts.SignUp;
 
-public sealed class RegisterAccountCommandHandler
-    : IRequestHandler<RegisterAccountCommand, ErrorOr<Guid>>
+public sealed class SignUpCommandHandler
+    : IRequestHandler<SignUpCommand, ErrorOr<Guid>>
 {
     private const int PasswordMinLength = 6;
     private const int PasswordMaxLength = 15;
@@ -19,7 +19,7 @@ public sealed class RegisterAccountCommandHandler
     private readonly TimeProvider _timeProvider;
     private readonly IGuidProvider _guidProvider;
 
-    public RegisterAccountCommandHandler(
+    public SignUpCommandHandler(
         IAccountRepository accountRepository,
         IPasswordHasher passwordHasher,
         IUnitOfWork unitOfWork,
@@ -33,7 +33,7 @@ public sealed class RegisterAccountCommandHandler
         _guidProvider = guidProvider;
     }
 
-    public async Task<ErrorOr<Guid>> Handle(RegisterAccountCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Guid>> Handle(SignUpCommand request, CancellationToken cancellationToken)
     {
         var emailResult = Email.Create(request.Email);
         if (emailResult.IsError)
@@ -47,7 +47,7 @@ public sealed class RegisterAccountCommandHandler
             return Error.Conflict("Account.EmailAlreadyUsed", "Someone already uses this email.");
 
         var passwordHash = _passwordHasher.Hash(request.Password);
-        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        var now = _timeProvider.GetUtcNow();
         var id = _guidProvider.NewGuid();
 
         var accountResult = Account.CreateNew(id, request.Email, passwordHash, createdBy: id, now);

@@ -4,13 +4,13 @@ public sealed class AuditInfo : ValueObject
 {
     public Guid CreatedBy { get; }
 
-    public DateTime CreatedAt { get; }
+    public DateTimeOffset CreatedAt { get; }
 
     public Guid? UpdatedBy { get; }
 
-    public DateTime? UpdatedAt { get; }
+    public DateTimeOffset? UpdatedAt { get; }
 
-    public AuditInfo(Guid createdBy, DateTime createdAt, Guid? updatedBy, DateTime? updatedAt)
+    public AuditInfo(Guid createdBy, DateTimeOffset createdAt, Guid? updatedBy, DateTimeOffset? updatedAt)
     {
         CreatedBy = createdBy;
         CreatedAt = createdAt;
@@ -18,7 +18,7 @@ public sealed class AuditInfo : ValueObject
         UpdatedAt = updatedAt;
     }
 
-    public AuditInfo WithUpdate(Guid updatedBy, DateTime updatedAt)
+    public AuditInfo WithUpdate(Guid updatedBy, DateTimeOffset updatedAt)
     {
         return new AuditInfo(CreatedBy, CreatedAt, updatedBy, updatedAt);
     }

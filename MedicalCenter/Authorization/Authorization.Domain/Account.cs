@@ -14,7 +14,7 @@ public sealed class Account : AggregateRoot<Guid>
 
     public AccountStatus Status { get; private set; }
 
-    public DateTime? EmailConfirmedAt { get; private set; }
+    public DateTimeOffset? EmailConfirmedAt { get; private set; }
 
     public bool IsEmailConfirmed => EmailConfirmedAt.HasValue;
 
@@ -23,7 +23,7 @@ public sealed class Account : AggregateRoot<Guid>
         Email email,
         string passwordHash,
         AccountStatus status,
-        DateTime? emailConfirmedAt,
+        DateTimeOffset? emailConfirmedAt,
         long version,
         AuditInfo audit)
         : base(id, version, audit)
@@ -39,7 +39,7 @@ public sealed class Account : AggregateRoot<Guid>
         string email,
         string passwordHash,
         Guid createdBy,
-        DateTime createdAt)
+        DateTimeOffset createdAt)
     {
         var emailResult = Email.Create(email);
         if (emailResult.IsError)
@@ -62,7 +62,7 @@ public sealed class Account : AggregateRoot<Guid>
         return account;
     }
 
-    public ErrorOr<Success> ConfirmEmail(DateTime confirmedAt, Guid updatedBy)
+    public ErrorOr<Success> ConfirmEmail(DateTimeOffset confirmedAt, Guid updatedBy)
     {
         if (IsEmailConfirmed)
             return Error.Conflict("Account.AlreadyConfirmed", "Email is already confirmed.");
@@ -80,7 +80,7 @@ public sealed class Account : AggregateRoot<Guid>
         Email email,
         string passwordHash,
         AccountStatus status,
-        DateTime? emailConfirmedAt,
+        DateTimeOffset? emailConfirmedAt,
         long version,
         AuditInfo audit)
         => new(id, email, passwordHash, status, emailConfirmedAt, version, audit);

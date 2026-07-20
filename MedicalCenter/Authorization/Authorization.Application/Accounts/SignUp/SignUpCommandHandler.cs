@@ -1,36 +1,38 @@
 using Authorization.Application.Common.Interfaces;
 using Authorization.Domain;
+using Authorization.Domain.Constants;
 using Authorization.Domain.ValueObjects;
 using Common.Abstractions.Providers;
 using ErrorOr;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Authorization.Application.Accounts.SignUp;
 
 public sealed class SignUpCommandHandler
     : IRequestHandler<SignUpCommand, ErrorOr<Guid>>
 {
-    private const int PasswordMinLength = 6;
-    private const int PasswordMaxLength = 15;
-
     private readonly IAccountRepository _accountRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IUnitOfWork _unitOfWork;
     private readonly TimeProvider _timeProvider;
     private readonly IGuidProvider _guidProvider;
+    private readonly ILogger<SignUpCommandHandler> _logger;
 
     public SignUpCommandHandler(
         IAccountRepository accountRepository,
         IPasswordHasher passwordHasher,
         IUnitOfWork unitOfWork,
         TimeProvider timeProvider,
-        IGuidProvider guidProvider)
+        IGuidProvider guidProvider,
+        ILogger<SignUpCommandHandler> logger)
     {
         _accountRepository = accountRepository;
         _passwordHasher = passwordHasher;
         _unitOfWork = unitOfWork;
         _timeProvider = timeProvider;
         _guidProvider = guidProvider;
+        _logger = logger;
     }
 
     public async Task<ErrorOr<Guid>> Handle(SignUpCommand request, CancellationToken cancellationToken)
@@ -39,10 +41,6 @@ public sealed class SignUpCommandHandler
         if (emailResult.IsError)
             return emailResult.Errors;
 
-        if (request.Password.Length < PasswordMinLength || request.Password.Length > PasswordMaxLength)
-            return Error.Validation("Password.Invalid",
-                $"Password must be between {PasswordMinLength} and {PasswordMaxLength} characters.");
-
         if (await _accountRepository.ExistsByEmailAsync(emailResult.Value, cancellationToken))
             return Error.Conflict("Account.EmailAlreadyUsed", "Someone already uses this email.");
 
@@ -50,12 +48,17 @@ public sealed class SignUpCommandHandler
         var now = _timeProvider.GetUtcNow();
         var id = _guidProvider.NewGuid();
 
-        var accountResult = Account.CreateNew(id, request.Email, passwordHash, createdBy: id, now);
+        var accountResult = Account.CreateNew(id, emailResult.Value, passwordHash, Roles.Patient, createdBy: id, now);
         if (accountResult.IsError)
             return accountResult.Errors;
 
         await _accountRepository.AddAsync(accountResult.Value, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Account {AccountId} signed up with role {Role}",
+            accountResult.Value.Id,
+            Roles.Patient);
 
         return accountResult.Value.Id;
     }

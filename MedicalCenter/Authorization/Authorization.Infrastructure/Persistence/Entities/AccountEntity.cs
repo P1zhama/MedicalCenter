@@ -21,4 +21,6 @@ public class AccountEntity
     public Guid? UpdatedBy { get; set; }
 
     public DateTimeOffset? UpdatedAt { get; set; }
+
+    public List<AccountClaimEntity> Claims { get; set; } = [];
 }

@@ -72,9 +72,14 @@ try
     var jwtSection = builder.Configuration.GetSection("JwtSettings");
     var jwtSecretKey = jwtSection["SecretKey"];
 
+    const string RoleClaimType = "role";
+    const string SubjectClaimType = "sub";
+
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
+            options.MapInboundClaims = false;
+
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
@@ -84,7 +89,9 @@ try
                 ValidateAudience = true,
                 ValidAudience = jwtSection["Audience"],
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.Zero,
+                RoleClaimType = RoleClaimType,
+                NameClaimType = SubjectClaimType
             };
         });
 

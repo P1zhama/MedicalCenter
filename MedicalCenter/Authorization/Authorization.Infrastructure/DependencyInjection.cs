@@ -1,4 +1,5 @@
 using Authorization.Application.Common.Interfaces;
+using Authorization.Infrastructure.Authentication;
 using Authorization.Infrastructure.Persistence;
 using Authorization.Infrastructure.Persistence.Repositories;
 using Authorization.Infrastructure.Services;
@@ -18,9 +19,12 @@ public static class DependencyInjection
         services.AddDbContext<AuthDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
+        services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
+
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
+        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 
         return services;
     }

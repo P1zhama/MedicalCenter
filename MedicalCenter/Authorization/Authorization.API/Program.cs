@@ -1,13 +1,11 @@
 using Authorization.API.Services;
 using Authorization.Application;
 using Authorization.Infrastructure;
-using Microsoft.AspNetCore.Builder;
+using Authorization.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
-using System;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -19,16 +17,15 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     Log.Information("Starting Authorization Microservice...");
+
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services));    
-    
-    AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+        .ReadFrom.Services(services));
 
-    builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddApplication();
 
     builder.Services.AddGrpc(options =>
     {
@@ -37,35 +34,22 @@ try
 
     var app = builder.Build();
 
-    app.UseSerilogRequestLogging();
-    
-    app.MapGrpcService<AuthClientGrpcService>();
-    app.MapGrpcService<AuthInternalGrpcService>();
-    app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-
     using (var scope = app.Services.CreateScope())
     {
-        var services = scope.ServiceProvider;
-        try
-        {
-            var context = services.GetRequiredService<Authorization.Infrastructure.Persistence.ApplicationDbContext>();
-
-            if (context.Database.IsSqlServer())
-            {
-                context.Database.Migrate();
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Fatal(ex, "An error occurred while performing a database migration.");
-        }
+        var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+        await dbContext.Database.MigrateAsync();
     }
+
+    app.UseSerilogRequestLogging();
+
+    app.MapGrpcService<AuthGrpcService>();
+    app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client.");
 
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Application terminated unexpectedly");
+    Log.Fatal(ex, "Authorization microservice terminated unexpectedly");
 }
 finally
 {

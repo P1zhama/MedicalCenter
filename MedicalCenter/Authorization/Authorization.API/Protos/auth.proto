@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option csharp_namespace = "Authorization.API.Protos";
+
+package auth;
+
+service AuthService {
+    rpc SignUp (SignUpRequest) returns (SignUpResponse);
+}
+
+message SignUpRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message SignUpResponse {
+    string account_id = 1;
+}

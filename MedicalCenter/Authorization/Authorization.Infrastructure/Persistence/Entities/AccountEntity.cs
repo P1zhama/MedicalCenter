@@ -8,7 +8,7 @@ public class AccountEntity
 
     public string PasswordHash { get; set; } = null!;
 
-    public int StatusId { get; set; }
+    public string Status { get; set; } = null!;
 
     public DateTimeOffset? EmailConfirmedAt { get; set; }
 

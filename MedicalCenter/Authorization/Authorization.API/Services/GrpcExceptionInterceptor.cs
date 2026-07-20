@@ -1,14 +1,9 @@
-using FluentValidation;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Authorization.API.Services;
 
-public class GrpcExceptionInterceptor : Interceptor
+public sealed class GrpcExceptionInterceptor : Interceptor
 {
     private readonly ILogger<GrpcExceptionInterceptor> _logger;
 
@@ -29,19 +24,6 @@ public class GrpcExceptionInterceptor : Interceptor
         catch (RpcException)
         {
             throw;
-        }
-        catch (ValidationException ex)
-        {
-            var details = string.Join("; ", ex.Errors.Select(e => e.ErrorMessage));
-            throw new RpcException(new Status(StatusCode.InvalidArgument, details));
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            throw new RpcException(new Status(StatusCode.Unauthenticated, ex.Message));
-        }
-        catch (Exception ex) when (ex is FormatException or ArgumentException)
-        {
-            throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
         }
         catch (Exception ex)
         {

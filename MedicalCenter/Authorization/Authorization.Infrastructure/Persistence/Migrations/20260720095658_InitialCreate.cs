@@ -18,7 +18,7 @@ namespace Authorization.Infrastructure.Persistence.Migrations
                     id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     email = table.Column<string>(type: "nvarchar(254)", maxLength: 254, nullable: false),
                     password_hash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    status_id = table.Column<int>(type: "int", nullable: false),
+                    status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
                     email_confirmed_at = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     version = table.Column<long>(type: "bigint", nullable: false),
                     created_by = table.Column<Guid>(type: "uniqueidentifier", nullable: false),

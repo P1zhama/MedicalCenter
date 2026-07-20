@@ -57,7 +57,7 @@ public sealed class Account : AggregateRoot<Guid>
             version: 1,
             new AuditInfo(createdBy, createdAt, null, null));
 
-        account.AddDomainEvent(new AccountRegisteredDomainEvent(account.Id, account.Email.Value, createdAt));
+        account.AddDomainEvent(new SignUpDomainEvent(account.Id, account.Email.Value, createdAt));
 
         return account;
     }

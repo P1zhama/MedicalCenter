@@ -8,7 +8,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<Protobuf Include="..\..\Authorization\Authorization.API\Protos\authClient.proto" GrpcServices="Client" Link="Protos\authClient.proto" />
+		<Protobuf Include="..\..\Authorization\Authorization.API\Protos\auth.proto" GrpcServices="Client" Link="Protos\auth.proto" />
 		<Protobuf Include="..\..\Profiles\Profiles.API\Protos\profiles.proto" GrpcServices="Client" Link="Protos\profiles.proto" />
 		<Protobuf Include="..\..\Offices\Offices.API\Protos\offices.proto" GrpcServices="Client" Link="Protos\offices.proto" />
 	</ItemGroup>
@@ -16,7 +16,7 @@
 	<ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.80.0" />
     <PackageReference Include="Grpc.Net.ClientFactory" Version="2.80.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.82.0-pre2">
+    <PackageReference Include="Grpc.Tools" Version="2.80.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

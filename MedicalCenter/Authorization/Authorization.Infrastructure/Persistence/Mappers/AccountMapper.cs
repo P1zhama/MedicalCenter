@@ -13,7 +13,7 @@ public static class AccountMapper
         Id = account.Id,
         Email = account.Email.Value,
         PasswordHash = account.PasswordHash,
-        StatusId = (int)account.Status,
+        Status = account.Status.ToString(),
         EmailConfirmedAt = account.EmailConfirmedAt,
         Version = account.Version,
         CreatedBy = account.Audit.CreatedBy,
@@ -32,7 +32,7 @@ public static class AccountMapper
             entity.Id,
             emailResult.Value,
             entity.PasswordHash,
-            (AccountStatus)entity.StatusId,
+            Enum.Parse<AccountStatus>(entity.Status),
             entity.EmailConfirmedAt,
             entity.Version,
             new AuditInfo(entity.CreatedBy, entity.CreatedAt, entity.UpdatedBy, entity.UpdatedAt));

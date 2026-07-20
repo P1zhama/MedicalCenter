@@ -22,9 +22,10 @@ public class AccountConfiguration : IEntityTypeConfiguration<AccountEntity>
             .IsRequired()
             .HasMaxLength(255);
 
-        builder.Property(a => a.StatusId)
-            .HasColumnName("status_id")
-            .IsRequired();
+        builder.Property(a => a.Status)
+            .HasColumnName("status")
+            .IsRequired()
+            .HasMaxLength(30);
 
         builder.Property(a => a.EmailConfirmedAt)
             .HasColumnName("email_confirmed_at");

@@ -29,6 +29,7 @@ try
 
     builder.Services.AddGrpc(options =>
     {
+        options.Interceptors.Add<CorrelationIdInterceptor>();
         options.Interceptors.Add<GrpcExceptionInterceptor>();
     });
 

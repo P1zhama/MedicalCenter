@@ -36,13 +36,12 @@ public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRe
             {
                 var errors = failed.Errors ?? [];
 
-                var errorDetails = string.Join("; ", errors.Select(e => $"{e.Code}: {e.Description}"));
-
                 _logger.LogWarning(
-                    "{RequestName} failed in {ElapsedMilliseconds} ms. Errors: {ErrorDetails}",
+                    "{RequestName} failed in {ElapsedMilliseconds} ms with {ErrorCount} error(s): {@Errors}",
                     requestName,
                     stopwatch.ElapsedMilliseconds,
-                    errorDetails);
+                    errors.Count,
+                    errors.Select(error => new { error.Code, error.Type, error.Description }));
             }
             else
             {

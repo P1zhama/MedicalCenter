@@ -11,4 +11,6 @@ public sealed class JwtSettings
     public string Audience { get; set; } = string.Empty;
 
     public int AccessTokenLifetimeMinutes { get; set; } = 15;
+
+    public int RefreshTokenLifetimeDays { get; set; } = 30;
 }

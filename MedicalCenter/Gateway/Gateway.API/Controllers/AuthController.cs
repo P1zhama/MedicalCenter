@@ -51,4 +51,42 @@ public class AuthController : ControllerBase
             };
         }
     }
+
+    [HttpPost("sign-in")]
+    [ProducesResponseType(typeof(SignInWebResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> SignIn([FromBody] SignInWebRequest request)
+    {
+        var grpcRequest = new SignInRequest
+        {
+            Email = request.Email,
+            Password = request.Password
+        };
+
+        try
+        {
+            var grpcResponse = await _authClient.SignInAsync(grpcRequest);
+
+            return Ok(new SignInWebResponse(
+                grpcResponse.AccountId,
+                grpcResponse.AccessToken,
+                grpcResponse.AccessTokenExpiresAt.ToDateTimeOffset(),
+                grpcResponse.RefreshToken,
+                grpcResponse.RefreshTokenExpiresAt.ToDateTimeOffset()));
+        }
+        catch (RpcException ex)
+        {
+            _logger.LogWarning(ex, "gRPC SignIn call failed");
+
+            return ex.StatusCode switch
+            {
+                Grpc.Core.StatusCode.InvalidArgument => BadRequest(new { error = ex.Status.Detail }),
+                Grpc.Core.StatusCode.Unauthenticated => Unauthorized(new { error = ex.Status.Detail }),
+                Grpc.Core.StatusCode.PermissionDenied => StatusCode(StatusCodes.Status403Forbidden, new { error = ex.Status.Detail }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal server error occurred." })
+            };
+        }
+    }
 }

@@ -69,6 +69,17 @@ public sealed class Account : AggregateRoot<Guid>
         return account;
     }
 
+    public ErrorOr<Success> EnsureCanSignIn()
+    {
+        if (Status == AccountStatus.Deactivated)
+            return Error.Forbidden("Account.Deactivated", "Account is deactivated.");
+
+        if (!IsEmailConfirmed)
+            return Error.Forbidden("Account.EmailNotConfirmed", "Please confirm your email before signing in.");
+
+        return Result.Success;
+    }
+
     public ErrorOr<Success> ConfirmEmail(DateTimeOffset confirmedAt, Guid updatedBy)
     {
         if (IsEmailConfirmed)
@@ -125,7 +136,14 @@ public sealed class Account : AggregateRoot<Guid>
         AuditInfo audit,
         IEnumerable<AccountClaim> claims)
     {
-        var account = new Account(id, email, passwordHash, status, emailConfirmedAt, version, audit);
+        var account = new Account(
+            id,
+            email,
+            passwordHash,
+            status,
+            emailConfirmedAt,
+            version,
+            audit);
 
         account._claims.AddRange(claims);
 

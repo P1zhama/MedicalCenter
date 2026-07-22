@@ -7,5 +7,9 @@ public interface IAccountRepository
 {
     Task AddAsync(Account account, CancellationToken cancellationToken = default);
 
+    Task<Account?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default);
+
+    Task UpdateAsync(Account account, CancellationToken cancellationToken = default);
+
     Task<bool> ExistsByEmailAsync(Email email, CancellationToken cancellationToken = default);
 }

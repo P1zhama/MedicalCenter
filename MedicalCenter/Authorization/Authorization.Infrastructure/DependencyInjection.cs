@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<ITokenHashGenerator, TokenHashGenerator>();
+        services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
 
         return services;
     }

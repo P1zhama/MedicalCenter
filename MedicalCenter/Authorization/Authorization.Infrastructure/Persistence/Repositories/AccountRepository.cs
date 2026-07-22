@@ -20,6 +20,29 @@ public sealed class AccountRepository : IAccountRepository
         await _context.Accounts.AddAsync(account.ToEntity(), cancellationToken);
     }
 
+    public async Task<Account?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.Accounts
+            .Include(a => a.Claims)
+            .FirstOrDefaultAsync(a => a.Email == email.Value, cancellationToken);
+
+        return entity?.ToDomain();
+    }
+
+    public async Task UpdateAsync(Account account, CancellationToken cancellationToken = default)
+    {
+        var tracked = await _context.Accounts.FindAsync([account.Id], cancellationToken);
+
+        if (tracked is null)
+        {
+            _context.Accounts.Update(account.ToEntity());
+
+            return;
+        }
+
+        _context.Entry(tracked).CurrentValues.SetValues(account.ToEntity());
+    }
+
     public Task<bool> ExistsByEmailAsync(Email email, CancellationToken cancellationToken = default)
     {
         return _context.Accounts.AnyAsync(a => a.Email == email.Value, cancellationToken);

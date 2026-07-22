@@ -1,11 +1,14 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 option csharp_namespace = "Authorization.API.Protos";
 
 package auth;
 
 service AuthService {
     rpc SignUp (SignUpRequest) returns (SignUpResponse);
+    rpc SignIn (SignInRequest) returns (SignInResponse);
 }
 
 message SignUpRequest {
@@ -15,4 +18,17 @@ message SignUpRequest {
 
 message SignUpResponse {
     string account_id = 1;
+}
+
+message SignInRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message SignInResponse {
+    string account_id = 1;
+    string access_token = 2;
+    google.protobuf.Timestamp access_token_expires_at = 3;
+    string refresh_token = 4;
+    google.protobuf.Timestamp refresh_token_expires_at = 5;
 }

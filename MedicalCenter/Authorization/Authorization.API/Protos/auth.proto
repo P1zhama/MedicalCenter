@@ -9,6 +9,7 @@ package auth;
 service AuthService {
     rpc SignUp (SignUpRequest) returns (SignUpResponse);
     rpc SignIn (SignInRequest) returns (SignInResponse);
+    rpc ConfirmEmail (ConfirmEmailRequest) returns (ConfirmEmailResponse);
 }
 
 message SignUpRequest {
@@ -31,4 +32,12 @@ message SignInResponse {
     google.protobuf.Timestamp access_token_expires_at = 3;
     string refresh_token = 4;
     google.protobuf.Timestamp refresh_token_expires_at = 5;
+}
+
+message ConfirmEmailRequest {
+    string token = 1;
+}
+
+message ConfirmEmailResponse {
+    string account_id = 1;
 }

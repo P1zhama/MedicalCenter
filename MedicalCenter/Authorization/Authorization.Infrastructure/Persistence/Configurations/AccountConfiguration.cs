@@ -30,6 +30,13 @@ public class AccountConfiguration : IEntityTypeConfiguration<AccountEntity>
         builder.Property(a => a.EmailConfirmedAt)
             .HasColumnName("email_confirmed_at");
 
+        builder.Property(a => a.EmailConfirmationTokenHash)
+            .HasColumnName("email_confirmation_token_hash")
+            .HasMaxLength(200);
+
+        builder.Property(a => a.EmailConfirmationTokenExpiresAt)
+            .HasColumnName("email_confirmation_token_expires_at");
+
         builder.Property(a => a.Version)
             .HasColumnName("version")
             .IsRequired()
@@ -50,5 +57,6 @@ public class AccountConfiguration : IEntityTypeConfiguration<AccountEntity>
             .HasColumnName("updated_at");
 
         builder.HasIndex(a => a.Email).IsUnique();
+        builder.HasIndex(a => a.EmailConfirmationTokenHash);
     }
 }

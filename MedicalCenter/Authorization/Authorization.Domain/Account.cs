@@ -19,6 +19,10 @@ public sealed class Account : AggregateRoot<Guid>
 
     public DateTimeOffset? EmailConfirmedAt { get; private set; }
 
+    public string? EmailConfirmationTokenHash { get; private set; }
+
+    public DateTimeOffset? EmailConfirmationTokenExpiresAt { get; private set; }
+
     public bool IsEmailConfirmed => EmailConfirmedAt.HasValue;
 
     public IReadOnlyCollection<AccountClaim> Claims => _claims.AsReadOnly();
@@ -29,6 +33,8 @@ public sealed class Account : AggregateRoot<Guid>
         string passwordHash,
         AccountStatus status,
         DateTimeOffset? emailConfirmedAt,
+        string? emailConfirmationTokenHash,
+        DateTimeOffset? emailConfirmationTokenExpiresAt,
         long version,
         AuditInfo audit)
         : base(id, version, audit)
@@ -37,6 +43,8 @@ public sealed class Account : AggregateRoot<Guid>
         PasswordHash = passwordHash;
         Status = status;
         EmailConfirmedAt = emailConfirmedAt;
+        EmailConfirmationTokenHash = emailConfirmationTokenHash;
+        EmailConfirmationTokenExpiresAt = emailConfirmationTokenExpiresAt;
     }
 
     public static ErrorOr<Account> CreateNew(
@@ -44,11 +52,16 @@ public sealed class Account : AggregateRoot<Guid>
         Email email,
         string passwordHash,
         string role,
+        string emailConfirmationTokenHash,
+        DateTimeOffset emailConfirmationTokenExpiresAt,
         Guid createdBy,
         DateTimeOffset createdAt)
     {
         if (string.IsNullOrWhiteSpace(passwordHash))
             return Error.Validation("Account.PasswordHash", "Password hash must not be empty.");
+
+        if (string.IsNullOrWhiteSpace(emailConfirmationTokenHash))
+            return Error.Validation("Account.ConfirmationTokenHash", "Confirmation token hash must not be empty.");
 
         if (!Roles.IsKnown(role))
             return Error.Validation("Account.Role", $"Unknown role '{role}'.");
@@ -59,6 +72,8 @@ public sealed class Account : AggregateRoot<Guid>
             passwordHash,
             AccountStatus.PendingConfirmation,
             emailConfirmedAt: null,
+            emailConfirmationTokenHash,
+            emailConfirmationTokenExpiresAt,
             version: 1,
             new AuditInfo(createdBy, createdAt, null, null));
 
@@ -80,15 +95,52 @@ public sealed class Account : AggregateRoot<Guid>
         return Result.Success;
     }
 
-    public ErrorOr<Success> ConfirmEmail(DateTimeOffset confirmedAt, Guid updatedBy)
+    public ErrorOr<Success> ConfirmEmail(string tokenHash, DateTimeOffset now, Guid updatedBy)
     {
         if (IsEmailConfirmed)
             return Error.Conflict("Account.AlreadyConfirmed", "Email is already confirmed.");
 
-        EmailConfirmedAt = confirmedAt;
+        if (EmailConfirmationTokenHash is null || EmailConfirmationTokenExpiresAt is null)
+            return Error.Validation("Account.ConfirmationTokenMissing", "There is no confirmation token to confirm.");
+
+        if (!string.Equals(EmailConfirmationTokenHash, tokenHash, StringComparison.Ordinal))
+            return Error.Validation("Account.ConfirmationTokenInvalid", "Confirmation link is invalid.");
+
+        if (now >= EmailConfirmationTokenExpiresAt.Value)
+            return Error.Validation("Account.ConfirmationTokenExpired", "Confirmation link has expired.");
+
+        EmailConfirmedAt = now;
         Status = AccountStatus.Active;
-        Audit = Audit.WithUpdate(updatedBy, confirmedAt);
+        EmailConfirmationTokenHash = null;
+        EmailConfirmationTokenExpiresAt = null;
+        Audit = Audit.WithUpdate(updatedBy, now);
         Version++;
+
+        return Result.Success;
+    }
+
+    public ErrorOr<Success> ReissueConfirmation(
+        string newPasswordHash,
+        string emailConfirmationTokenHash,
+        DateTimeOffset emailConfirmationTokenExpiresAt,
+        DateTimeOffset now)
+    {
+        if (IsEmailConfirmed)
+            return Error.Conflict("Account.AlreadyConfirmed", "Email is already confirmed.");
+
+        if (string.IsNullOrWhiteSpace(newPasswordHash))
+            return Error.Validation("Account.PasswordHash", "Password hash must not be empty.");
+
+        if (string.IsNullOrWhiteSpace(emailConfirmationTokenHash))
+            return Error.Validation("Account.ConfirmationTokenHash", "Confirmation token hash must not be empty.");
+
+        PasswordHash = newPasswordHash;
+        EmailConfirmationTokenHash = emailConfirmationTokenHash;
+        EmailConfirmationTokenExpiresAt = emailConfirmationTokenExpiresAt;
+        Audit = Audit.WithUpdate(Id, now);
+        Version++;
+
+        AddDomainEvent(new SignUpDomainEvent(Id, Email.Value, now));
 
         return Result.Success;
     }
@@ -132,6 +184,8 @@ public sealed class Account : AggregateRoot<Guid>
         string passwordHash,
         AccountStatus status,
         DateTimeOffset? emailConfirmedAt,
+        string? emailConfirmationTokenHash,
+        DateTimeOffset? emailConfirmationTokenExpiresAt,
         long version,
         AuditInfo audit,
         IEnumerable<AccountClaim> claims)
@@ -142,6 +196,8 @@ public sealed class Account : AggregateRoot<Guid>
             passwordHash,
             status,
             emailConfirmedAt,
+            emailConfirmationTokenHash,
+            emailConfirmationTokenExpiresAt,
             version,
             audit);
 

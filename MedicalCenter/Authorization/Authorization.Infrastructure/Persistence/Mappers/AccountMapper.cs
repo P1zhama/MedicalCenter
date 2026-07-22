@@ -15,6 +15,8 @@ public static class AccountMapper
         PasswordHash = account.PasswordHash,
         Status = account.Status.ToString(),
         EmailConfirmedAt = account.EmailConfirmedAt,
+        EmailConfirmationTokenHash = account.EmailConfirmationTokenHash,
+        EmailConfirmationTokenExpiresAt = account.EmailConfirmationTokenExpiresAt,
         Version = account.Version,
         CreatedBy = account.Audit.CreatedBy,
         CreatedAt = account.Audit.CreatedAt,
@@ -49,6 +51,8 @@ public static class AccountMapper
             entity.PasswordHash,
             Enum.Parse<AccountStatus>(entity.Status),
             entity.EmailConfirmedAt,
+            entity.EmailConfirmationTokenHash,
+            entity.EmailConfirmationTokenExpiresAt,
             entity.Version,
             new AuditInfo(entity.CreatedBy, entity.CreatedAt, entity.UpdatedBy, entity.UpdatedAt),
             claims);

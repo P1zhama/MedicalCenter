@@ -22,3 +22,11 @@ public record SignInWebResponse(
     string RefreshToken,
     DateTimeOffset RefreshTokenExpiresAt
 );
+
+public record ConfirmEmailWebRequest(
+    [Required] string Token
+);
+
+public record ConfirmEmailWebResponse(
+    string AccountId
+);

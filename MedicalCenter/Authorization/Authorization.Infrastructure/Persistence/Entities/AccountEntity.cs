@@ -12,6 +12,10 @@ public class AccountEntity
 
     public DateTimeOffset? EmailConfirmedAt { get; set; }
 
+    public string? EmailConfirmationTokenHash { get; set; }
+
+    public DateTimeOffset? EmailConfirmationTokenExpiresAt { get; set; }
+
     public long Version { get; set; }
 
     public Guid CreatedBy { get; set; }

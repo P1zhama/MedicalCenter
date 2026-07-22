@@ -14,6 +14,7 @@ public sealed class SignUpCommandHandler
 {
     private readonly IAccountRepository _accountRepository;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IEmailConfirmationTokenGenerator _emailConfirmationTokenGenerator;
     private readonly IUnitOfWork _unitOfWork;
     private readonly TimeProvider _timeProvider;
     private readonly IGuidProvider _guidProvider;
@@ -22,6 +23,7 @@ public sealed class SignUpCommandHandler
     public SignUpCommandHandler(
         IAccountRepository accountRepository,
         IPasswordHasher passwordHasher,
+        IEmailConfirmationTokenGenerator emailConfirmationTokenGenerator,
         IUnitOfWork unitOfWork,
         TimeProvider timeProvider,
         IGuidProvider guidProvider,
@@ -29,6 +31,7 @@ public sealed class SignUpCommandHandler
     {
         _accountRepository = accountRepository;
         _passwordHasher = passwordHasher;
+        _emailConfirmationTokenGenerator = emailConfirmationTokenGenerator;
         _unitOfWork = unitOfWork;
         _timeProvider = timeProvider;
         _guidProvider = guidProvider;
@@ -41,14 +44,45 @@ public sealed class SignUpCommandHandler
         if (emailResult.IsError)
             return emailResult.Errors;
 
-        if (await _accountRepository.ExistsByEmailAsync(emailResult.Value, cancellationToken))
+        var existing = await _accountRepository.GetByEmailAsync(emailResult.Value, cancellationToken);
+        if (existing is not null && existing.IsEmailConfirmed)
             return Error.Conflict("Account.EmailAlreadyUsed", "Someone already uses this email.");
 
         var passwordHash = _passwordHasher.Hash(request.Password);
         var now = _timeProvider.GetUtcNow();
+        var confirmationToken = _emailConfirmationTokenGenerator.Generate(now);
+
+        if (existing is not null)
+        {
+            var reissue = existing.ReissueConfirmation(
+                passwordHash,
+                confirmationToken.TokenHash,
+                confirmationToken.ExpiresAt,
+                now);
+
+            if (reissue.IsError)
+                return reissue.Errors;
+
+            await _accountRepository.UpdateAsync(existing, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Reissued email confirmation for pending account {AccountId}", existing.Id);
+
+            return existing.Id;
+        }
+
         var id = _guidProvider.NewGuid();
 
-        var accountResult = Account.CreateNew(id, emailResult.Value, passwordHash, Roles.Patient, createdBy: id, now);
+        var accountResult = Account.CreateNew(
+            id,
+            emailResult.Value,
+            passwordHash,
+            Roles.Patient,
+            confirmationToken.TokenHash,
+            confirmationToken.ExpiresAt,
+            createdBy: id,
+            now);
+
         if (accountResult.IsError)
             return accountResult.Errors;
 

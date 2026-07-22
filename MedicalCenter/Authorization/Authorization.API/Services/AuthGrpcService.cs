@@ -1,4 +1,5 @@
 using Authorization.API.Protos;
+using Authorization.Application.Accounts.ConfirmEmail;
 using Authorization.Application.Accounts.SignIn;
 using Authorization.Application.Accounts.SignUp;
 using Google.Protobuf.WellKnownTypes;
@@ -45,5 +46,17 @@ public sealed class AuthGrpcService : AuthService.AuthServiceBase
             RefreshToken = result.Value.RefreshToken,
             RefreshTokenExpiresAt = Timestamp.FromDateTimeOffset(result.Value.RefreshTokenExpiresAt)
         };
+    }
+
+    public override async Task<ConfirmEmailResponse> ConfirmEmail(ConfirmEmailRequest request, ServerCallContext context)
+    {
+        var command = new ConfirmEmailCommand(request.Token);
+
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new ConfirmEmailResponse { AccountId = result.Value.ToString() };
     }
 }

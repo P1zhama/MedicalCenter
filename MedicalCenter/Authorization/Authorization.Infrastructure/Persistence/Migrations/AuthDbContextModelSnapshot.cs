@@ -78,6 +78,15 @@ namespace Authorization.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(254)")
                         .HasColumnName("email");
 
+                    b.Property<DateTimeOffset?>("EmailConfirmationTokenExpiresAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("email_confirmation_token_expires_at");
+
+                    b.Property<string>("EmailConfirmationTokenHash")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("email_confirmation_token_hash");
+
                     b.Property<DateTimeOffset?>("EmailConfirmedAt")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("email_confirmed_at");
@@ -111,6 +120,8 @@ namespace Authorization.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("EmailConfirmationTokenHash");
 
                     b.ToTable("Accounts", (string)null);
                 });

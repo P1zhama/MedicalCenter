@@ -89,4 +89,36 @@ public class AuthController : ControllerBase
             };
         }
     }
+
+    [HttpPost("confirm-email")]
+    [ProducesResponseType(typeof(ConfirmEmailWebResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailWebRequest request)
+    {
+        var grpcRequest = new ConfirmEmailRequest
+        {
+            Token = request.Token
+        };
+
+        try
+        {
+            var grpcResponse = await _authClient.ConfirmEmailAsync(grpcRequest);
+
+            return Ok(new ConfirmEmailWebResponse(grpcResponse.AccountId));
+        }
+        catch (RpcException ex)
+        {
+            _logger.LogWarning(ex, "gRPC ConfirmEmail call failed");
+
+            return ex.StatusCode switch
+            {
+                Grpc.Core.StatusCode.InvalidArgument => BadRequest(new { error = ex.Status.Detail }),
+                Grpc.Core.StatusCode.NotFound => NotFound(new { error = ex.Status.Detail }),
+                Grpc.Core.StatusCode.AlreadyExists => Conflict(new { error = ex.Status.Detail }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal server error occurred." })
+            };
+        }
+    }
 }

@@ -29,6 +29,15 @@ public sealed class AccountRepository : IAccountRepository
         return entity?.ToDomain();
     }
 
+    public async Task<Account?> GetByEmailConfirmationTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.Accounts
+            .Include(a => a.Claims)
+            .FirstOrDefaultAsync(a => a.EmailConfirmationTokenHash == tokenHash, cancellationToken);
+
+        return entity?.ToDomain();
+    }
+
     public async Task UpdateAsync(Account account, CancellationToken cancellationToken = default)
     {
         var tracked = await _context.Accounts.FindAsync([account.Id], cancellationToken);

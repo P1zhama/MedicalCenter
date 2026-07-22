@@ -1,4 +1,5 @@
 using Authorization.Application.Common.Interfaces;
+using Authorization.Application.Common.Messaging;
 using Authorization.Domain;
 using Authorization.Domain.Constants;
 using Authorization.Domain.ValueObjects;
@@ -15,6 +16,7 @@ public sealed class SignUpCommandHandler
     private readonly IAccountRepository _accountRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IEmailConfirmationTokenGenerator _emailConfirmationTokenGenerator;
+    private readonly IEventPublisher _eventPublisher;
     private readonly IUnitOfWork _unitOfWork;
     private readonly TimeProvider _timeProvider;
     private readonly IGuidProvider _guidProvider;
@@ -24,6 +26,7 @@ public sealed class SignUpCommandHandler
         IAccountRepository accountRepository,
         IPasswordHasher passwordHasher,
         IEmailConfirmationTokenGenerator emailConfirmationTokenGenerator,
+        IEventPublisher eventPublisher,
         IUnitOfWork unitOfWork,
         TimeProvider timeProvider,
         IGuidProvider guidProvider,
@@ -32,6 +35,7 @@ public sealed class SignUpCommandHandler
         _accountRepository = accountRepository;
         _passwordHasher = passwordHasher;
         _emailConfirmationTokenGenerator = emailConfirmationTokenGenerator;
+        _eventPublisher = eventPublisher;
         _unitOfWork = unitOfWork;
         _timeProvider = timeProvider;
         _guidProvider = guidProvider;
@@ -64,6 +68,11 @@ public sealed class SignUpCommandHandler
                 return reissue.Errors;
 
             await _accountRepository.UpdateAsync(existing, cancellationToken);
+
+            await _eventPublisher.PublishAsync(
+                new AccountConfirmationRequested(existing.Id, existing.Email.Value, confirmationToken.Token),
+                cancellationToken);
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Reissued email confirmation for pending account {AccountId}", existing.Id);
@@ -87,6 +96,11 @@ public sealed class SignUpCommandHandler
             return accountResult.Errors;
 
         await _accountRepository.AddAsync(accountResult.Value, cancellationToken);
+
+        await _eventPublisher.PublishAsync(
+            new AccountConfirmationRequested(accountResult.Value.Id, accountResult.Value.Email.Value, confirmationToken.Token),
+            cancellationToken);
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(

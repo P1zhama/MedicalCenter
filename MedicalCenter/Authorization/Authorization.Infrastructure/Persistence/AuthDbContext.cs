@@ -1,4 +1,5 @@
 using Authorization.Infrastructure.Persistence.Entities;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace Authorization.Infrastructure.Persistence;
@@ -16,6 +17,10 @@ public class AuthDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuthDbContext).Assembly);
     }

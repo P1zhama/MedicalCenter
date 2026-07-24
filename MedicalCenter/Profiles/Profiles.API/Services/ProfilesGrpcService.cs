@@ -1,5 +1,6 @@
 using Grpc.Core;
 using MediatR;
+using Profiles.API.ErrorMapping;
 using Profiles.API.Protos;
 using Profiles.Application.Commands;
 using Profiles.Application.Commands.CreateDoctor;
@@ -114,11 +115,14 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
             NullIfEmpty(request.PhotoUrl),
             request.CreatedBy);
 
-        var doctorId = await _sender.Send(command, context.CancellationToken);
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
 
         return new CreateDoctorResponse
         {
-            DoctorId = doctorId.ToString(),
+            DoctorId = result.Value.ToString(),
             Message = "Doctor profile created successfully."
         };
     }

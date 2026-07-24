@@ -1,4 +1,5 @@
 ﻿using Authorization.API.Protos;
+using Common.Infrastructure;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -16,11 +17,15 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddCommonInfrastructure();
+
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IPatientRepository, PatientRepository>();
         services.AddScoped<IWorkerRepository, WorkerRepository>();
+        services.AddScoped<IDoctorRepository, DoctorRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddGrpcClient<AuthInternalService.AuthInternalServiceClient>(options =>
         {

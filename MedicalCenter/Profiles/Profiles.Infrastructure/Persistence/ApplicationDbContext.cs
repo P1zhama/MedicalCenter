@@ -1,6 +1,6 @@
-﻿
 using Microsoft.EntityFrameworkCore;
 using Profiles.Domain;
+using Profiles.Infrastructure.Persistence.Entities;
 using System.Reflection;
 
 namespace Profiles.Infrastructure.Persistence;
@@ -13,7 +13,9 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<Patient> Patients => Set<Patient>();
-    public DbSet<Doctor> Doctors => Set<Doctor>();
+
+    public DbSet<DoctorEntity> Doctors => Set<DoctorEntity>();
+
     public DbSet<Receptionist> Receptionists => Set<Receptionist>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

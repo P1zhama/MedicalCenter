@@ -1,13 +1,12 @@
-﻿
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Profiles.Domain;
+using Profiles.Infrastructure.Persistence.Entities;
 
 namespace Profiles.Infrastructure.Persistence.Configurations;
 
-public class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
+public class DoctorConfiguration : IEntityTypeConfiguration<DoctorEntity>
 {
-    public void Configure(EntityTypeBuilder<Doctor> builder)
+    public void Configure(EntityTypeBuilder<DoctorEntity> builder)
     {
         builder.ToTable("Doctors");
         builder.HasKey(d => d.Id);
@@ -49,11 +48,31 @@ public class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
 
         builder.Property(d => d.Status)
             .HasColumnName("status")
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(30);
 
         builder.Property(d => d.PhotoUrl)
             .HasColumnName("photo_url")
             .HasMaxLength(500);
+
+        builder.Property(d => d.Version)
+            .HasColumnName("version")
+            .IsRequired()
+            .IsConcurrencyToken();
+
+        builder.Property(d => d.CreatedBy)
+            .HasColumnName("created_by")
+            .IsRequired();
+
+        builder.Property(d => d.CreatedAt)
+            .HasColumnName("created_at")
+            .IsRequired();
+
+        builder.Property(d => d.UpdatedBy)
+            .HasColumnName("updated_by");
+
+        builder.Property(d => d.UpdatedAt)
+            .HasColumnName("updated_at");
 
         builder.HasIndex(d => d.AccountId).IsUnique();
         builder.HasIndex(d => d.OfficeId);

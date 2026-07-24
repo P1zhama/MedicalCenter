@@ -1,5 +1,5 @@
+using ErrorOr;
 using MediatR;
-using System;
 
 namespace Profiles.Application.Commands.CreateReceptionist;
 
@@ -11,4 +11,4 @@ public record CreateReceptionistCommand(
     Guid OfficeId,
     string? PhotoUrl,
     string CreatedBy
-) : IRequest<Guid>;
+) : IRequest<ErrorOr<Guid>>;

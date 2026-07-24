@@ -2,10 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Profiles.Application.Common.Interfaces;
 using Profiles.Domain;
 using Profiles.Infrastructure.Persistence;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Profiles.Infrastructure.Repositories;
 

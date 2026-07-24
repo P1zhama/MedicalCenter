@@ -9,7 +9,6 @@ using Profiles.Application.EventConsumers;
 using Profiles.Infrastructure.Persistence;
 using Profiles.Infrastructure.Repositories;
 using Profiles.Infrastructure.Services;
-using System;
 
 namespace Profiles.Infrastructure;
 
@@ -23,8 +22,8 @@ public static class DependencyInjection
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IPatientRepository, PatientRepository>();
-        services.AddScoped<IWorkerRepository, WorkerRepository>();
         services.AddScoped<IDoctorRepository, DoctorRepository>();
+        services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddGrpcClient<AuthInternalService.AuthInternalServiceClient>(options =>

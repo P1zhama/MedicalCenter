@@ -16,7 +16,7 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<DoctorEntity> Doctors => Set<DoctorEntity>();
 
-    public DbSet<Receptionist> Receptionists => Set<Receptionist>();
+    public DbSet<ReceptionistEntity> Receptionists => Set<ReceptionistEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

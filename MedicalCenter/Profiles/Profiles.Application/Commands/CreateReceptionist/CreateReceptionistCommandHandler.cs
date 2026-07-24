@@ -1,65 +1,102 @@
+using Common.Abstractions.Providers;
+using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Profiles.Application.Common.Interfaces;
 using Profiles.Domain;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Profiles.Domain.ValueObjects;
 
 namespace Profiles.Application.Commands.CreateReceptionist;
 
-public class CreateReceptionistCommandHandler : IRequestHandler<CreateReceptionistCommand, Guid>
+public sealed class CreateReceptionistCommandHandler
+    : IRequestHandler<CreateReceptionistCommand, ErrorOr<Guid>>
 {
+    private const string ReceptionistRole = "Receptionist";
+
     private readonly IAuthorizationServiceClient _authorizationServiceClient;
-    private readonly IWorkerRepository _workerRepository;
+    private readonly IReceptionistRepository _receptionistRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly TimeProvider _timeProvider;
+    private readonly IGuidProvider _guidProvider;
     private readonly ILogger<CreateReceptionistCommandHandler> _logger;
 
     public CreateReceptionistCommandHandler(
         IAuthorizationServiceClient authorizationServiceClient,
-        IWorkerRepository workerRepository,
+        IReceptionistRepository receptionistRepository,
+        IUnitOfWork unitOfWork,
+        TimeProvider timeProvider,
+        IGuidProvider guidProvider,
         ILogger<CreateReceptionistCommandHandler> logger)
     {
         _authorizationServiceClient = authorizationServiceClient;
-        _workerRepository = workerRepository;
+        _receptionistRepository = receptionistRepository;
+        _unitOfWork = unitOfWork;
+        _timeProvider = timeProvider;
+        _guidProvider = guidProvider;
         _logger = logger;
     }
 
-    public async Task<Guid> Handle(CreateReceptionistCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Guid>> Handle(CreateReceptionistCommand request, CancellationToken cancellationToken)
     {
+        var nameResult = PersonName.Create(request.FirstName, request.LastName, request.MiddleName);
+        if (nameResult.IsError)
+            return nameResult.Errors;
+
+        Guid.TryParse(request.CreatedBy, out var createdBy);
+        var now = _timeProvider.GetUtcNow();
+
         var accountId = await _authorizationServiceClient.CreateWorkerAccountAsync(
-            request.Email, "Receptionist", request.CreatedBy, cancellationToken);
+            request.Email, ReceptionistRole, request.CreatedBy, cancellationToken);
+
+        var receptionistResult = Receptionist.Create(
+            _guidProvider.NewGuid(),
+            accountId,
+            nameResult.Value,
+            request.OfficeId,
+            request.PhotoUrl,
+            createdBy,
+            now);
+
+        if (receptionistResult.IsError)
+        {
+            await CompensateAsync(accountId);
+            return receptionistResult.Errors;
+        }
 
         try
         {
-            var receptionist = new Receptionist
-            {
-                Id = Guid.NewGuid(),
-                AccountId = accountId,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                MiddleName = request.MiddleName,
-                OfficeId = request.OfficeId,
-                PhotoUrl = request.PhotoUrl
-            };
-
-            await _workerRepository.AddReceptionistAsync(receptionist, cancellationToken);
-
-            return receptionist.Id;
+            await _receptionistRepository.AddAsync(receptionistResult.Value, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Failed to save receptionist profile after account {AccountId} was created. Compensating.", accountId);
+            _logger.LogError(
+                exception,
+                "Failed to persist receptionist profile after account {AccountId} was created. Compensating.",
+                accountId);
 
-            try
-            {
-                await _authorizationServiceClient.DeleteWorkerAccountAsync(accountId, CancellationToken.None);
-            }
-            catch (Exception compensationEx)
-            {
-                _logger.LogError(compensationEx, "Compensation failed: account {AccountId} may be left orphaned.", accountId);
-            }
+            await CompensateAsync(accountId);
 
             throw;
+        }
+
+        _logger.LogInformation(
+            "Receptionist {ReceptionistId} created for account {AccountId}",
+            receptionistResult.Value.Id,
+            accountId);
+
+        return receptionistResult.Value.Id;
+    }
+
+    private async Task CompensateAsync(Guid accountId)
+    {
+        try
+        {
+            await _authorizationServiceClient.DeleteWorkerAccountAsync(accountId, CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Compensation failed: account {AccountId} may be left orphaned.", accountId);
         }
     }
 }

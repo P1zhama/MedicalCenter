@@ -138,11 +138,14 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
             NullIfEmpty(request.PhotoUrl),
             request.CreatedBy);
 
-        var receptionistId = await _sender.Send(command, context.CancellationToken);
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
 
         return new CreateReceptionistResponse
         {
-            ReceptionistId = receptionistId.ToString(),
+            ReceptionistId = result.Value.ToString(),
             Message = "Receptionist profile created successfully."
         };
     }

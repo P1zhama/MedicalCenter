@@ -1,69 +1,102 @@
+using Common.Abstractions.Providers;
+using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Profiles.Application.Common.Interfaces;
 using Profiles.Domain;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Profiles.Domain.ValueObjects;
 
 namespace Profiles.Application.Commands.CreateDoctor;
 
-public class CreateDoctorCommandHandler : IRequestHandler<CreateDoctorCommand, Guid>
+public sealed class CreateDoctorCommandHandler : IRequestHandler<CreateDoctorCommand, ErrorOr<Guid>>
 {
+    private const string DoctorRole = "Doctor";
+
     private readonly IAuthorizationServiceClient _authorizationServiceClient;
-    private readonly IWorkerRepository _workerRepository;
+    private readonly IDoctorRepository _doctorRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly TimeProvider _timeProvider;
+    private readonly IGuidProvider _guidProvider;
     private readonly ILogger<CreateDoctorCommandHandler> _logger;
 
     public CreateDoctorCommandHandler(
         IAuthorizationServiceClient authorizationServiceClient,
-        IWorkerRepository workerRepository,
+        IDoctorRepository doctorRepository,
+        IUnitOfWork unitOfWork,
+        TimeProvider timeProvider,
+        IGuidProvider guidProvider,
         ILogger<CreateDoctorCommandHandler> logger)
     {
         _authorizationServiceClient = authorizationServiceClient;
-        _workerRepository = workerRepository;
+        _doctorRepository = doctorRepository;
+        _unitOfWork = unitOfWork;
+        _timeProvider = timeProvider;
+        _guidProvider = guidProvider;
         _logger = logger;
     }
 
-    public async Task<Guid> Handle(CreateDoctorCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Guid>> Handle(CreateDoctorCommand request, CancellationToken cancellationToken)
     {
+        var nameResult = PersonName.Create(request.FirstName, request.LastName, request.MiddleName);
+        if (nameResult.IsError)
+            return nameResult.Errors;
+
+        Guid.TryParse(request.CreatedBy, out var createdBy);
+        var now = _timeProvider.GetUtcNow();
+
         var accountId = await _authorizationServiceClient.CreateWorkerAccountAsync(
-            request.Email, "Doctor", request.CreatedBy, cancellationToken);
+            request.Email, DoctorRole, request.CreatedBy, cancellationToken);
+
+        var doctorResult = Doctor.Create(
+            _guidProvider.NewGuid(),
+            accountId,
+            nameResult.Value,
+            request.DateOfBirth,
+            request.SpecializationId,
+            request.OfficeId,
+            request.CareerStartYear,
+            request.Status,
+            request.PhotoUrl,
+            createdBy,
+            now);
+
+        if (doctorResult.IsError)
+        {
+            await CompensateAsync(accountId);
+            return doctorResult.Errors;
+        }
 
         try
         {
-            var doctor = new Doctor
-            {
-                Id = Guid.NewGuid(),
-                AccountId = accountId,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                MiddleName = request.MiddleName,
-                DateOfBirth = request.DateOfBirth,
-                SpecializationId = request.SpecializationId,
-                OfficeId = request.OfficeId,
-                CareerStartYear = request.CareerStartYear,
-                Status = request.Status,
-                PhotoUrl = request.PhotoUrl
-            };
-
-            await _workerRepository.AddDoctorAsync(doctor, cancellationToken);
-
-            return doctor.Id;
+            await _doctorRepository.AddAsync(doctorResult.Value, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Failed to save doctor profile after account {AccountId} was created. Compensating.", accountId);
+            _logger.LogError(
+                exception,
+                "Failed to persist doctor profile after account {AccountId} was created. Compensating.",
+                accountId);
 
-            try
-            {
-                await _authorizationServiceClient.DeleteWorkerAccountAsync(accountId, CancellationToken.None);
-            }
-            catch (Exception compensationEx)
-            {
-                _logger.LogError(compensationEx, "Compensation failed: account {AccountId} may be left orphaned.", accountId);
-            }
+            await CompensateAsync(accountId);
 
             throw;
+        }
+
+        _logger.LogInformation("Doctor {DoctorId} created for account {AccountId}", doctorResult.Value.Id, accountId);
+
+        return doctorResult.Value.Id;
+    }
+
+    private async Task CompensateAsync(Guid accountId)
+    {
+        try
+        {
+            await _authorizationServiceClient.DeleteWorkerAccountAsync(accountId, CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Compensation failed: account {AccountId} may be left orphaned.", accountId);
         }
     }
 }

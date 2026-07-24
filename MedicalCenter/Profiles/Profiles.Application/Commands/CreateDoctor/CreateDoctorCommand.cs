@@ -1,6 +1,6 @@
+using ErrorOr;
 using MediatR;
 using Profiles.Domain.Enums;
-using System;
 
 namespace Profiles.Application.Commands.CreateDoctor;
 
@@ -16,4 +16,4 @@ public record CreateDoctorCommand(
     DoctorStatus Status,
     string? PhotoUrl,
     string CreatedBy
-) : IRequest<Guid>;
+) : IRequest<ErrorOr<Guid>>;

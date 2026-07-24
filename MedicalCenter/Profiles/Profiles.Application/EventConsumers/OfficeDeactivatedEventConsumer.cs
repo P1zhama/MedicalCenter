@@ -2,20 +2,19 @@ using MassTransit;
 using MedicalCenter.Shared.Contracts;
 using Microsoft.Extensions.Logging;
 using Profiles.Application.Common.Interfaces;
-using System.Threading.Tasks;
 
 namespace Profiles.Application.EventConsumers;
 
 public class OfficeDeactivatedEventConsumer : IConsumer<OfficeDeactivatedEvent>
 {
-    private readonly IWorkerRepository _workerRepository;
+    private readonly IDoctorRepository _doctorRepository;
     private readonly ILogger<OfficeDeactivatedEventConsumer> _logger;
 
     public OfficeDeactivatedEventConsumer(
-        IWorkerRepository workerRepository,
+        IDoctorRepository doctorRepository,
         ILogger<OfficeDeactivatedEventConsumer> logger)
     {
-        _workerRepository = workerRepository;
+        _doctorRepository = doctorRepository;
         _logger = logger;
     }
 
@@ -25,7 +24,7 @@ public class OfficeDeactivatedEventConsumer : IConsumer<OfficeDeactivatedEvent>
 
         _logger.LogInformation("Office {OfficeId} deactivated — deactivating its doctors.", officeId);
 
-        var affected = await _workerRepository.DeactivateDoctorsByOfficeAsync(officeId, context.CancellationToken);
+        var affected = await _doctorRepository.DeactivateByOfficeAsync(officeId, context.CancellationToken);
 
         _logger.LogInformation("Deactivated {Count} doctor(s) of office {OfficeId}.", affected, officeId);
     }

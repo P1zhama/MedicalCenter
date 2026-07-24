@@ -34,4 +34,11 @@ public sealed class RefreshTokenRepository : IRefreshTokenRepository
 
         return Task.CompletedTask;
     }
+
+    public Task RevokeAllActiveForAccountAsync(Guid accountId, DateTimeOffset revokedAt, CancellationToken cancellationToken = default)
+    {
+        return _context.RefreshTokens
+            .Where(token => token.AccountId == accountId && token.RevokedAt == null && token.ExpiresAt > revokedAt)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.RevokedAt, revokedAt), cancellationToken);
+    }
 }

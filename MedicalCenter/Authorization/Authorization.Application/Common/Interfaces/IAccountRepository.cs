@@ -11,6 +11,8 @@ public interface IAccountRepository
 
     Task<Account?> GetByEmailConfirmationTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default);
 
+    Task<Account?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
     Task UpdateAsync(Account account, CancellationToken cancellationToken = default);
 
     Task<bool> ExistsByEmailAsync(Email email, CancellationToken cancellationToken = default);

@@ -30,3 +30,19 @@ public record ConfirmEmailWebRequest(
 public record ConfirmEmailWebResponse(
     string AccountId
 );
+
+public record RefreshWebRequest(
+    [Required] string RefreshToken
+);
+
+public record RefreshWebResponse(
+    string AccountId,
+    string AccessToken,
+    DateTimeOffset AccessTokenExpiresAt,
+    string RefreshToken,
+    DateTimeOffset RefreshTokenExpiresAt
+);
+
+public record SignOutWebRequest(
+    [Required] string RefreshToken
+);

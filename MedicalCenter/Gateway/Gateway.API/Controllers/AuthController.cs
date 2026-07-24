@@ -121,4 +121,67 @@ public class AuthController : ControllerBase
             };
         }
     }
+
+    [HttpPost("refresh")]
+    [ProducesResponseType(typeof(RefreshWebResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Refresh([FromBody] RefreshWebRequest request)
+    {
+        var grpcRequest = new RefreshRequest
+        {
+            RefreshToken = request.RefreshToken
+        };
+
+        try
+        {
+            var grpcResponse = await _authClient.RefreshAsync(grpcRequest);
+
+            return Ok(new RefreshWebResponse(
+                grpcResponse.AccountId,
+                grpcResponse.AccessToken,
+                grpcResponse.AccessTokenExpiresAt.ToDateTimeOffset(),
+                grpcResponse.RefreshToken,
+                grpcResponse.RefreshTokenExpiresAt.ToDateTimeOffset()));
+        }
+        catch (RpcException ex)
+        {
+            _logger.LogWarning(ex, "gRPC Refresh call failed");
+
+            return ex.StatusCode switch
+            {
+                Grpc.Core.StatusCode.InvalidArgument => BadRequest(new { error = ex.Status.Detail }),
+                Grpc.Core.StatusCode.Unauthenticated => Unauthorized(new { error = ex.Status.Detail }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal server error occurred." })
+            };
+        }
+    }
+
+    [HttpPost("sign-out")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SignOut([FromBody] SignOutWebRequest request)
+    {
+        var grpcRequest = new SignOutRequest
+        {
+            RefreshToken = request.RefreshToken
+        };
+
+        try
+        {
+            await _authClient.SignOutAsync(grpcRequest);
+
+            return NoContent();
+        }
+        catch (RpcException ex)
+        {
+            _logger.LogWarning(ex, "gRPC SignOut call failed");
+
+            return ex.StatusCode switch
+            {
+                Grpc.Core.StatusCode.InvalidArgument => BadRequest(new { error = ex.Status.Detail }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal server error occurred." })
+            };
+        }
+    }
 }

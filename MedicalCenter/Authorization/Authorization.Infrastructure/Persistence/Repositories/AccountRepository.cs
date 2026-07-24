@@ -38,6 +38,16 @@ public sealed class AccountRepository : IAccountRepository
         return entity?.ToDomain();
     }
 
+    public async Task<Account?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.Accounts
+            .AsNoTracking()
+            .Include(a => a.Claims)
+            .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+
+        return entity?.ToDomain();
+    }
+
     public async Task UpdateAsync(Account account, CancellationToken cancellationToken = default)
     {
         var tracked = await _context.Accounts.FindAsync([account.Id], cancellationToken);

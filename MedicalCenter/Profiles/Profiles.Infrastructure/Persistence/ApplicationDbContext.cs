@@ -12,7 +12,7 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    public DbSet<Patient> Patients => Set<Patient>();
+    public DbSet<PatientEntity> Patients => Set<PatientEntity>();
 
     public DbSet<DoctorEntity> Doctors => Set<DoctorEntity>();
 

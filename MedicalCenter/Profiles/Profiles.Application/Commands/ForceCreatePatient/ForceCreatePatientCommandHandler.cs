@@ -1,50 +1,64 @@
-﻿using MassTransit;
+using Common.Abstractions.Providers;
+using ErrorOr;
 using MediatR;
 using MedicalCenter.Shared.Contracts;
 using Profiles.Application.Common.Interfaces;
 using Profiles.Domain;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Profiles.Domain.ValueObjects;
 
 namespace Profiles.Application.Commands.ForceCreatePatient;
 
-public class ForceCreatePatientCommandHandler : IRequestHandler<ForceCreatePatientCommand, Guid>
+public sealed class ForceCreatePatientCommandHandler
+    : IRequestHandler<ForceCreatePatientCommand, ErrorOr<Guid>>
 {
-    private readonly IPatientRepository _repository;
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IPatientRepository _patientRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IEventPublisher _eventPublisher;
+    private readonly TimeProvider _timeProvider;
+    private readonly IGuidProvider _guidProvider;
 
     public ForceCreatePatientCommandHandler(
-        IPatientRepository repository,
-        IPublishEndpoint publishEndpoint)
+        IPatientRepository patientRepository,
+        IUnitOfWork unitOfWork,
+        IEventPublisher eventPublisher,
+        TimeProvider timeProvider,
+        IGuidProvider guidProvider)
     {
-        _repository = repository;
-        _publishEndpoint = publishEndpoint;
+        _patientRepository = patientRepository;
+        _unitOfWork = unitOfWork;
+        _eventPublisher = eventPublisher;
+        _timeProvider = timeProvider;
+        _guidProvider = guidProvider;
     }
 
-    public async Task<Guid> Handle(ForceCreatePatientCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Guid>> Handle(ForceCreatePatientCommand request, CancellationToken cancellationToken)
     {
-        var newPatient = new Patient
-        {
-            Id = Guid.NewGuid(),
-            AccountId = request.AccountId,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            MiddleName = request.MiddleName,
-            PhoneNumber = request.PhoneNumber,
-            DateOfBirth = request.DateOfBirth,
-            PhotoUrl = request.PhotoUrl,
-            CreatedAt = DateTime.UtcNow
-        };
+        var nameResult = PersonName.Create(request.FirstName, request.LastName, request.MiddleName);
+        if (nameResult.IsError)
+            return nameResult.Errors;
 
-        await _repository.AddAsync(newPatient, cancellationToken);
+        var now = _timeProvider.GetUtcNow();
 
-        await _publishEndpoint.Publish(new ProfileLinkedToAccountEvent(
+        var patientResult = Patient.Create(
+            _guidProvider.NewGuid(),
             request.AccountId,
-            newPatient.Id,
-            DateTime.UtcNow
-        ), cancellationToken);
+            nameResult.Value,
+            request.DateOfBirth,
+            request.PhoneNumber,
+            request.PhotoUrl,
+            createdBy: request.AccountId,
+            now);
 
-        return newPatient.Id;
+        if (patientResult.IsError)
+            return patientResult.Errors;
+
+        await _patientRepository.AddAsync(patientResult.Value, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        await _eventPublisher.PublishAsync(
+            new ProfileLinkedToAccountEvent(request.AccountId, patientResult.Value.Id, now.UtcDateTime),
+            cancellationToken);
+
+        return patientResult.Value.Id;
     }
 }

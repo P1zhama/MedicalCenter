@@ -39,7 +39,10 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
 
         var result = await _sender.Send(command, context.CancellationToken);
 
-        return ToResponse(result);
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return ToResponse(result.Value);
     }
 
     public override async Task<LinkExistingPatientResponse> LinkExistingPatientProfile(LinkExistingPatientRequest request, ServerCallContext context)
@@ -48,12 +51,12 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
             Guid.Parse(request.AccountId),
             Guid.Parse(request.PatientId));
 
-        var success = await _sender.Send(command, context.CancellationToken);
+        var result = await _sender.Send(command, context.CancellationToken);
 
         return new LinkExistingPatientResponse
         {
-            Success = success,
-            Message = success ? "Profile linked successfully." : "Profile is already linked or was not found."
+            Success = !result.IsError,
+            Message = result.IsError ? result.Errors[0].Description : "Profile linked successfully."
         };
     }
 
@@ -68,11 +71,14 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
             ParseDate(request.DateOfBirth),
             NullIfEmpty(request.PhotoUrl));
 
-        var profileId = await _sender.Send(command, context.CancellationToken);
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
 
         return new CreatePatientResponse
         {
-            ProfileId = profileId.ToString(),
+            ProfileId = result.Value.ToString(),
             IsMatched = false,
             Message = "Profile created successfully."
         };
@@ -86,11 +92,14 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
             NullIfEmpty(request.MiddleName),
             ParseDate(request.DateOfBirth));
 
-        var profileId = await _sender.Send(command, context.CancellationToken);
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
 
         return new CreatePatientResponse
         {
-            ProfileId = profileId.ToString(),
+            ProfileId = result.Value.ToString(),
             IsMatched = false,
             Message = "Patient profile created successfully by receptionist."
         };

@@ -1,5 +1,5 @@
-﻿using MediatR;
-using System;
+using ErrorOr;
+using MediatR;
 
 namespace Profiles.Application.Commands;
 
@@ -23,4 +23,4 @@ public record CreatePatientProfileCommand(
     string PhoneNumber,
     DateOnly DateOfBirth,
     string? PhotoUrl
-) : IRequest<ProfileCreationResult>;
+) : IRequest<ErrorOr<ProfileCreationResult>>;

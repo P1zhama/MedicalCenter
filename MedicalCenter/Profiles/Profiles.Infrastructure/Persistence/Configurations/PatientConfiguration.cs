@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Profiles.Domain;
+using Profiles.Infrastructure.Persistence.Entities;
 
 namespace Profiles.Infrastructure.Persistence.Configurations;
 
-public class PatientConfiguration : IEntityTypeConfiguration<Patient>
+public class PatientConfiguration : IEntityTypeConfiguration<PatientEntity>
 {
-    public void Configure(EntityTypeBuilder<Patient> builder)
+    public void Configure(EntityTypeBuilder<PatientEntity> builder)
     {
         builder.ToTable("Patients");
         builder.HasKey(p => p.Id);
@@ -41,14 +41,24 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
             .HasColumnName("photo_url")
             .HasMaxLength(500);
 
+        builder.Property(p => p.Version)
+            .HasColumnName("version")
+            .IsRequired()
+            .IsConcurrencyToken();
+
+        builder.Property(p => p.CreatedBy)
+            .HasColumnName("created_by")
+            .IsRequired();
+
         builder.Property(p => p.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();
 
+        builder.Property(p => p.UpdatedBy)
+            .HasColumnName("updated_by");
+
         builder.Property(p => p.UpdatedAt)
             .HasColumnName("updated_at");
-
-        builder.Ignore(p => p.IsLinkedToAccount);
 
         builder.HasIndex(p => new { p.LastName, p.FirstName, p.DateOfBirth });
         builder.HasIndex(p => p.PhoneNumber).IsUnique().HasFilter("[phone_number] IS NOT NULL");

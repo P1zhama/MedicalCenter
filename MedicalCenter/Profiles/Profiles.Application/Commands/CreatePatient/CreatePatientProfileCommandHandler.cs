@@ -1,65 +1,82 @@
-using MassTransit;
+using Common.Abstractions.Providers;
+using ErrorOr;
 using MediatR;
 using MedicalCenter.Shared.Contracts;
 using Profiles.Application.Common.Interfaces;
 using Profiles.Domain;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Profiles.Domain.Services;
+using Profiles.Domain.ValueObjects;
 
 namespace Profiles.Application.Commands;
 
-public class CreatePatientProfileCommandHandler : IRequestHandler<CreatePatientProfileCommand, ProfileCreationResult>
+public sealed class CreatePatientProfileCommandHandler
+    : IRequestHandler<CreatePatientProfileCommand, ErrorOr<ProfileCreationResult>>
 {
-    private readonly IPatientRepository _repository;
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IPatientRepository _patientRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IEventPublisher _eventPublisher;
+    private readonly TimeProvider _timeProvider;
+    private readonly IGuidProvider _guidProvider;
 
-    public CreatePatientProfileCommandHandler(IPatientRepository repository, IPublishEndpoint publishEndpoint)
+    public CreatePatientProfileCommandHandler(
+        IPatientRepository patientRepository,
+        IUnitOfWork unitOfWork,
+        IEventPublisher eventPublisher,
+        TimeProvider timeProvider,
+        IGuidProvider guidProvider)
     {
-        _repository = repository;
-        _publishEndpoint = publishEndpoint;
+        _patientRepository = patientRepository;
+        _unitOfWork = unitOfWork;
+        _eventPublisher = eventPublisher;
+        _timeProvider = timeProvider;
+        _guidProvider = guidProvider;
     }
 
-    public async Task<ProfileCreationResult> Handle(CreatePatientProfileCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<ProfileCreationResult>> Handle(
+        CreatePatientProfileCommand request,
+        CancellationToken cancellationToken)
     {
-        var bestMatch = await _repository.GetBestMatchAsync(
-            request.FirstName,
-            request.LastName,
-            request.MiddleName,
-            request.DateOfBirth,
-            cancellationToken);
+        var nameResult = PersonName.Create(request.FirstName, request.LastName, request.MiddleName);
+        if (nameResult.IsError)
+            return nameResult.Errors;
 
-        if (bestMatch != null)
+        var candidates = await _patientRepository.GetMatchCandidatesAsync(
+            request.FirstName, request.LastName, cancellationToken);
+
+        var match = PatientMatcher.FindBestMatch(nameResult.Value, request.DateOfBirth, candidates);
+        if (match is not null)
         {
             var matchedInfo = new MatchedProfileDto(
-                bestMatch.FirstName,
-                bestMatch.LastName,
-                bestMatch.MiddleName,
-                bestMatch.DateOfBirth
-            );
+                match.Name.FirstName,
+                match.Name.LastName,
+                match.Name.MiddleName,
+                match.DateOfBirth);
 
-            return new ProfileCreationResult(true, bestMatch.Id, matchedInfo, null);
+            return new ProfileCreationResult(true, match.Id, matchedInfo, null);
         }
 
-        var newProfile = new Patient
-        {
-            Id = Guid.NewGuid(),
-            AccountId = request.AccountId,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            MiddleName = request.MiddleName,
-            PhoneNumber = request.PhoneNumber,
-            DateOfBirth = request.DateOfBirth,
-            PhotoUrl = request.PhotoUrl,
-            CreatedAt = DateTime.UtcNow
-        };
+        var now = _timeProvider.GetUtcNow();
 
-        await _repository.AddAsync(newProfile, cancellationToken);
+        var patientResult = Patient.Create(
+            _guidProvider.NewGuid(),
+            request.AccountId,
+            nameResult.Value,
+            request.DateOfBirth,
+            request.PhoneNumber,
+            request.PhotoUrl,
+            createdBy: request.AccountId,
+            now);
 
-        await _publishEndpoint.Publish(
-            new ProfileLinkedToAccountEvent(request.AccountId, newProfile.Id, DateTime.UtcNow),
+        if (patientResult.IsError)
+            return patientResult.Errors;
+
+        await _patientRepository.AddAsync(patientResult.Value, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        await _eventPublisher.PublishAsync(
+            new ProfileLinkedToAccountEvent(request.AccountId, patientResult.Value.Id, now.UtcDateTime),
             cancellationToken);
 
-        return new ProfileCreationResult(false, null, null, newProfile.Id);
+        return new ProfileCreationResult(false, null, null, patientResult.Value.Id);
     }
 }

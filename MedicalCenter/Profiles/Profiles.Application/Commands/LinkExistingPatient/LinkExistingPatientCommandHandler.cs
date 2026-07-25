@@ -1,43 +1,49 @@
-﻿
-using MassTransit;
+using ErrorOr;
 using MediatR;
 using MedicalCenter.Shared.Contracts;
 using Profiles.Application.Common.Interfaces;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Profiles.Application.Commands.LinkExistingPatient;
 
-public class LinkExistingPatientCommandHandler : IRequestHandler<LinkExistingPatientCommand, bool>
+public sealed class LinkExistingPatientCommandHandler
+    : IRequestHandler<LinkExistingPatientCommand, ErrorOr<Success>>
 {
-    private readonly IPatientRepository _repository;
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IPatientRepository _patientRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IEventPublisher _eventPublisher;
+    private readonly TimeProvider _timeProvider;
 
-    public LinkExistingPatientCommandHandler(IPatientRepository repository, IPublishEndpoint publishEndpoint)
+    public LinkExistingPatientCommandHandler(
+        IPatientRepository patientRepository,
+        IUnitOfWork unitOfWork,
+        IEventPublisher eventPublisher,
+        TimeProvider timeProvider)
     {
-        _repository = repository;
-        _publishEndpoint = publishEndpoint;
+        _patientRepository = patientRepository;
+        _unitOfWork = unitOfWork;
+        _eventPublisher = eventPublisher;
+        _timeProvider = timeProvider;
     }
 
-    public async Task<bool> Handle(LinkExistingPatientCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Success>> Handle(LinkExistingPatientCommand request, CancellationToken cancellationToken)
     {
-        var patient = await _repository.GetByIdAsync(request.PatientId, cancellationToken);
+        var patient = await _patientRepository.GetByIdAsync(request.PatientId, cancellationToken);
+        if (patient is null)
+            return Error.NotFound("Patient.NotFound", "Patient profile was not found.");
 
-        if (patient == null || patient.AccountId.HasValue)
-            return false;
+        var now = _timeProvider.GetUtcNow();
 
-        patient.AccountId = request.AccountId;
-        patient.UpdatedAt = DateTime.UtcNow;
+        var linkResult = patient.LinkToAccount(request.AccountId, now);
+        if (linkResult.IsError)
+            return linkResult.Errors;
 
-        await _repository.UpdateAsync(patient, cancellationToken);
+        await _patientRepository.UpdateAsync(patient, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        await _publishEndpoint.Publish(new ProfileLinkedToAccountEvent(
-            request.AccountId,
-            patient.Id,
-            DateTime.UtcNow
-        ), cancellationToken);
+        await _eventPublisher.PublishAsync(
+            new ProfileLinkedToAccountEvent(request.AccountId, patient.Id, now.UtcDateTime),
+            cancellationToken);
 
-        return true;
+        return Result.Success;
     }
 }

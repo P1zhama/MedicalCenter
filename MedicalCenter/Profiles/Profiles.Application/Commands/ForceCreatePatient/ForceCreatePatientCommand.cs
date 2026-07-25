@@ -1,6 +1,5 @@
-﻿
+using ErrorOr;
 using MediatR;
-using System;
 
 namespace Profiles.Application.Commands.ForceCreatePatient;
 
@@ -12,4 +11,4 @@ public record ForceCreatePatientCommand(
     string PhoneNumber,
     DateOnly DateOfBirth,
     string? PhotoUrl
-) : IRequest<Guid>;
+) : IRequest<ErrorOr<Guid>>;

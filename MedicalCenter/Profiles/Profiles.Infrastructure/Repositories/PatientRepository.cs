@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Profiles.Application.Common.Interfaces;
 using Profiles.Domain;
 using Profiles.Infrastructure.Persistence;
+using Profiles.Infrastructure.Persistence.Mappers;
 
 namespace Profiles.Infrastructure.Repositories;
 
@@ -14,64 +15,39 @@ public class PatientRepository : IPatientRepository
         _context = context;
     }
 
-    public async Task<Patient?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Patient?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Patients
-            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        var entity = await _context.Patients
+            .FirstOrDefaultAsync(patient => patient.Id == id, cancellationToken);
+
+        return entity?.ToDomain();
     }
 
-    public async Task AddAsync(Patient patient, CancellationToken cancellationToken)
-    {
-        await _context.Patients.AddAsync(patient, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task UpdateAsync(Patient patient, CancellationToken cancellationToken)
-    {
-        _context.Patients.Update(patient);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task<Patient?> GetBestMatchAsync(
+    public async Task<IReadOnlyList<Patient>> GetMatchCandidatesAsync(
         string firstName,
         string lastName,
-        string? middleName,
-        DateOnly dateOfBirth,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
-        var candidates = await _context.Patients
+        var entities = await _context.Patients
             .AsNoTracking()
-            .Where(p => p.AccountId == null)
-            .Where(p => p.FirstName == firstName || p.LastName == lastName)
+            .Where(patient => patient.AccountId == null)
+            .Where(patient => patient.FirstName == firstName || patient.LastName == lastName)
             .ToListAsync(cancellationToken);
 
-        Patient? bestMatch = null;
-        var bestWeight = 0;
+        return entities.Select(entity => entity.ToDomain()).ToList();
+    }
 
-        foreach (var candidate in candidates)
-        {
-            var weight = 0;
+    public async Task AddAsync(Patient patient, CancellationToken cancellationToken = default)
+    {
+        await _context.Patients.AddAsync(patient.ToEntity(), cancellationToken);
+    }
 
-            if (string.Equals(candidate.FirstName, firstName, StringComparison.OrdinalIgnoreCase))
-                weight += 5;
+    public async Task UpdateAsync(Patient patient, CancellationToken cancellationToken = default)
+    {
+        var tracked = await _context.Patients.FindAsync([patient.Id], cancellationToken);
+        if (tracked is null)
+            throw new InvalidOperationException($"Patient {patient.Id} must be loaded before update.");
 
-            if (string.Equals(candidate.LastName, lastName, StringComparison.OrdinalIgnoreCase))
-                weight += 5;
-
-            if (!string.IsNullOrEmpty(candidate.MiddleName) &&
-                string.Equals(candidate.MiddleName, middleName, StringComparison.OrdinalIgnoreCase))
-                weight += 5;
-
-            if (candidate.DateOfBirth == dateOfBirth)
-                weight += 3;
-
-            if (weight >= 13 && weight > bestWeight)
-            {
-                bestWeight = weight;
-                bestMatch = candidate;
-            }
-        }
-
-        return bestMatch;
+        _context.Entry(tracked).CurrentValues.SetValues(patient.ToEntity());
     }
 }

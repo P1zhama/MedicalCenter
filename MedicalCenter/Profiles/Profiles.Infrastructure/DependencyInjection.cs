@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Profiles.Application.Common.Interfaces;
 using Profiles.Application.EventConsumers;
+using Profiles.Infrastructure.Messaging;
 using Profiles.Infrastructure.Persistence;
 using Profiles.Infrastructure.Repositories;
 using Profiles.Infrastructure.Services;
@@ -25,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<IDoctorRepository, DoctorRepository>();
         services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IEventPublisher, EventPublisher>();
 
         services.AddGrpcClient<AuthInternalService.AuthInternalServiceClient>(options =>
         {

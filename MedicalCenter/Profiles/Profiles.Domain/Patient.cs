@@ -1,25 +1,90 @@
-﻿
-using System;
+using Common.Domain;
+using ErrorOr;
+using Profiles.Domain.ValueObjects;
 
 namespace Profiles.Domain;
 
-public class Patient    
+public sealed class Patient : AggregateRoot<Guid>
 {
-    public Guid Id { get; set; }
-    public Guid? AccountId { get; set; }
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-    public string? MiddleName { get; set; }
+    private Patient(
+        Guid id,
+        Guid? accountId,
+        PersonName name,
+        DateOnly dateOfBirth,
+        string? phoneNumber,
+        string? photoUrl,
+        long version,
+        AuditInfo audit)
+        : base(id, version, audit)
+    {
+        AccountId = accountId;
+        Name = name;
+        DateOfBirth = dateOfBirth;
+        PhoneNumber = phoneNumber;
+        PhotoUrl = photoUrl;
+    }
 
-    public string? PhoneNumber { get; set; }
+    public Guid? AccountId { get; private set; }
 
-    public DateOnly DateOfBirth { get; set; }
+    public PersonName Name { get; private set; }
 
-    public string? PhotoUrl { get; set; }
+    public DateOnly DateOfBirth { get; private set; }
 
+    public string? PhoneNumber { get; private set; }
+
+    public string? PhotoUrl { get; private set; }
 
     public bool IsLinkedToAccount => AccountId.HasValue;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
+    public static ErrorOr<Patient> Create(
+        Guid id,
+        Guid? accountId,
+        PersonName name,
+        DateOnly dateOfBirth,
+        string? phoneNumber,
+        string? photoUrl,
+        Guid createdBy,
+        DateTimeOffset createdAt)
+    {
+        var today = DateOnly.FromDateTime(createdAt.UtcDateTime);
+
+        if (dateOfBirth > today)
+            return Error.Validation("Patient.DateOfBirth", "Date of birth must not be in the future.");
+
+        return new Patient(
+            id,
+            accountId,
+            name,
+            dateOfBirth,
+            phoneNumber,
+            photoUrl,
+            version: 1,
+            new AuditInfo(createdBy, createdAt, null, null));
+    }
+
+    public ErrorOr<Success> LinkToAccount(Guid accountId, DateTimeOffset at)
+    {
+        if (accountId == Guid.Empty)
+            return Error.Validation("Patient.AccountId", "Account id must not be empty.");
+        
+        if (IsLinkedToAccount)
+            return Error.Conflict("Patient.AlreadyLinked", "Patient is already linked to an account.");
+
+        AccountId = accountId;
+        Audit = Audit.WithUpdate(accountId, at);
+        Version++;
+
+        return Result.Success;
+    }
+
+    public static Patient Restore(
+        Guid id,
+        Guid? accountId,
+        PersonName name,
+        DateOnly dateOfBirth,
+        string? phoneNumber,
+        string? photoUrl,
+        long version,
+        AuditInfo audit)
+        => new(id, accountId, name, dateOfBirth, phoneNumber, photoUrl, version, audit);
 }

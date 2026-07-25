@@ -9,9 +9,7 @@ using Profiles.Application.Commands.CreateReceptionist;
 using Profiles.Application.Commands.ForceCreatePatient;
 using Profiles.Application.Commands.LinkExistingPatient;
 using Profiles.Domain.Enums;
-using System;
 using System.Globalization;
-using System.Threading.Tasks;
 
 namespace Profiles.API.Services;
 
@@ -26,7 +24,9 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
         _sender = sender;
     }
 
-    public override async Task<CreatePatientResponse> CreatePatientProfile(CreatePatientRequest request, ServerCallContext context)
+    public override async Task<CreatePatientResponse> CreatePatientProfile(
+        CreatePatientRequest request, 
+        ServerCallContext context)
     {
         var command = new CreatePatientProfileCommand(
             Guid.Parse(request.AccountId),
@@ -45,18 +45,27 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
         return ToResponse(result.Value);
     }
 
-    public override async Task<LinkExistingPatientResponse> LinkExistingPatientProfile(LinkExistingPatientRequest request, ServerCallContext context)
+    public override async Task<LinkExistingPatientResponse> LinkExistingPatientProfile(
+        LinkExistingPatientRequest request,
+        ServerCallContext context)
     {
-        var command = new LinkExistingPatientCommand(
-            Guid.Parse(request.AccountId),
-            Guid.Parse(request.PatientId));
+        if (!Guid.TryParse(request.AccountId, out var accountId) ||
+            !Guid.TryParse(request.PatientId, out var patientId))
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid AccountId or PatientId format."));
+        }
+
+        var command = new LinkExistingPatientCommand(accountId, patientId);
 
         var result = await _sender.Send(command, context.CancellationToken);
 
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
         return new LinkExistingPatientResponse
         {
-            Success = !result.IsError,
-            Message = result.IsError ? result.Errors[0].Description : "Profile linked successfully."
+            Success = true,
+            Message = "Profile linked successfully."
         };
     }
 

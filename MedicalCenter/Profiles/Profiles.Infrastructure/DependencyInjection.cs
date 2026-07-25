@@ -9,6 +9,7 @@ using Profiles.Application.EventConsumers;
 using Profiles.Infrastructure.Messaging;
 using Profiles.Infrastructure.Persistence;
 using Profiles.Infrastructure.Repositories;
+using Profiles.Infrastructure.Security;
 using Profiles.Infrastructure.Services;
 
 namespace Profiles.Infrastructure;
@@ -22,6 +23,8 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
+        services.AddScoped<CurrentUserProvider>();
+        services.AddScoped<ICurrentUserProvider>(provider => provider.GetRequiredService<CurrentUserProvider>());
         services.AddScoped<IPatientRepository, PatientRepository>();
         services.AddScoped<IDoctorRepository, DoctorRepository>();
         services.AddScoped<IReceptionistRepository, ReceptionistRepository>();

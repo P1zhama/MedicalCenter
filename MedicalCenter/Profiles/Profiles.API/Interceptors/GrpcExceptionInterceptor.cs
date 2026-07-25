@@ -1,12 +1,8 @@
 using FluentValidation;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Profiles.API.Services;
+namespace Profiles.API.Interceptors;
 
 public class GrpcExceptionInterceptor : Interceptor
 {

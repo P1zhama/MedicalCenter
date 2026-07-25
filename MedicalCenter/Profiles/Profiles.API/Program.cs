@@ -1,13 +1,11 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Profiles.API.Interceptors;
 using Profiles.API.Services;
 using Profiles.Application;
 using Profiles.Infrastructure;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
-using System;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -33,7 +31,8 @@ try
 
     builder.Services.AddGrpc(options =>
     {
-        options.Interceptors.Add<Profiles.API.Services.GrpcExceptionInterceptor>();
+        options.Interceptors.Add<UserContextInterceptor>();
+        options.Interceptors.Add<GrpcExceptionInterceptor>();
     });
 
     var app = builder.Build();

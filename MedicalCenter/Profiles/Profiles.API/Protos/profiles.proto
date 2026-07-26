@@ -35,7 +35,6 @@ message MatchedProfile {
 message CreatePatientResponse {
     string profile_id = 1;
     bool is_matched = 2;
-    string message = 3;
     MatchedProfile matched_profile = 4;
 }
 
@@ -45,8 +44,6 @@ message LinkExistingPatientRequest {
 }
 
 message LinkExistingPatientResponse {
-    bool success = 1;
-    string message = 2;
 }
 
 message ForceCreatePatientRequest {
@@ -82,7 +79,6 @@ message CreateDoctorRequest {
 
 message CreateDoctorResponse {
     string doctor_id = 1;
-    string message = 2;
 }
 
 message CreateReceptionistRequest {
@@ -97,5 +93,4 @@ message CreateReceptionistRequest {
 
 message CreateReceptionistResponse {
     string receptionist_id = 1;
-    string message = 2;
 }

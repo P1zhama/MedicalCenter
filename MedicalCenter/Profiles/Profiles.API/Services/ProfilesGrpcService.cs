@@ -62,11 +62,7 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
         if (result.IsError)
             throw result.Errors.ToRpcException();
 
-        return new LinkExistingPatientResponse
-        {
-            Success = true,
-            Message = "Profile linked successfully."
-        };
+        return new LinkExistingPatientResponse();
     }
 
     public override async Task<CreatePatientResponse> ForceCreatePatientProfile(ForceCreatePatientRequest request, ServerCallContext context)
@@ -88,8 +84,7 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
         return new CreatePatientResponse
         {
             ProfileId = result.Value.ToString(),
-            IsMatched = false,
-            Message = "Profile created successfully."
+            IsMatched = false
         };
     }
 
@@ -109,8 +104,7 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
         return new CreatePatientResponse
         {
             ProfileId = result.Value.ToString(),
-            IsMatched = false,
-            Message = "Patient profile created successfully by receptionist."
+            IsMatched = false
         };
     }
 
@@ -140,8 +134,7 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
 
         return new CreateDoctorResponse
         {
-            DoctorId = result.Value.ToString(),
-            Message = "Doctor profile created successfully."
+            DoctorId = result.Value.ToString()
         };
     }
 
@@ -163,8 +156,7 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
 
         return new CreateReceptionistResponse
         {
-            ReceptionistId = result.Value.ToString(),
-            Message = "Receptionist profile created successfully."
+            ReceptionistId = result.Value.ToString()
         };
     }
 
@@ -173,9 +165,6 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
         var response = new CreatePatientResponse
         {
             IsMatched = result.IsMatchFound,
-            Message = result.IsMatchFound
-                ? "A similar profile has been found, you might have already visited one of our clinics?"
-                : "Profile created successfully.",
             ProfileId = (result.CreatedProfileId ?? result.MatchedProfileId ?? Guid.Empty).ToString()
         };
 

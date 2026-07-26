@@ -1,8 +1,5 @@
 using Authorization.API.Protos;
 using Profiles.Application.Common.Interfaces;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Profiles.Infrastructure.Services;
 

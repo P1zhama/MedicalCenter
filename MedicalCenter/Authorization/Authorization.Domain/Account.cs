@@ -47,11 +47,10 @@ public sealed class Account : AggregateRoot<Guid>
         EmailConfirmationTokenExpiresAt = emailConfirmationTokenExpiresAt;
     }
 
-    public static ErrorOr<Account> CreateNew(
+    public static ErrorOr<Account> CreatePatient(
         Guid id,
         Email email,
         string passwordHash,
-        string role,
         string emailConfirmationTokenHash,
         DateTimeOffset emailConfirmationTokenExpiresAt,
         Guid createdBy,
@@ -62,9 +61,6 @@ public sealed class Account : AggregateRoot<Guid>
 
         if (string.IsNullOrWhiteSpace(emailConfirmationTokenHash))
             return Error.Validation("Account.ConfirmationTokenHash", "Confirmation token hash must not be empty.");
-
-        if (!Roles.IsKnown(role))
-            return Error.Validation("Account.Role", $"Unknown role '{role}'.");
 
         var account = new Account(
             id,
@@ -77,9 +73,39 @@ public sealed class Account : AggregateRoot<Guid>
             version: 1,
             new AuditInfo(createdBy, createdAt, null, null));
 
-        account._claims.Add(AccountClaim.Role(Guid.NewGuid(), account.Id, role, createdAt));
+        account._claims.Add(AccountClaim.Role(Guid.NewGuid(), account.Id, Roles.Patient, createdAt));
 
         account.AddDomainEvent(new SignUpDomainEvent(account.Id, account.Email.Value, createdAt));
+
+        return account;
+    }
+
+    public static ErrorOr<Account> CreateWorker(
+        Guid id,
+        Email email,
+        string passwordHash,
+        string role,
+        Guid createdBy,
+        DateTimeOffset createdAt)
+    {
+        if (string.IsNullOrWhiteSpace(passwordHash))
+            return Error.Validation("Account.PasswordHash", "Password hash must not be empty.");
+
+        if (!Roles.IsWorker(role))
+            return Error.Validation("Account.Role", $"Role '{role}' is not a worker role.");
+
+        var account = new Account(
+            id,
+            email,
+            passwordHash,
+            AccountStatus.Active,
+            emailConfirmedAt: createdAt,
+            emailConfirmationTokenHash: null,
+            emailConfirmationTokenExpiresAt: null,
+            version: 1,
+            new AuditInfo(createdBy, createdAt, null, null));
+
+        account._claims.Add(AccountClaim.Role(Guid.NewGuid(), account.Id, role, createdAt));
 
         return account;
     }

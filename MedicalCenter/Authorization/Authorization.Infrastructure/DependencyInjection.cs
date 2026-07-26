@@ -4,6 +4,7 @@ using Authorization.Infrastructure.Messaging;
 using Authorization.Infrastructure.Notifications;
 using Authorization.Infrastructure.Persistence;
 using Authorization.Infrastructure.Persistence.Repositories;
+using Authorization.Infrastructure.Security;
 using Authorization.Infrastructure.Services;
 using Common.Infrastructure;
 using MassTransit;
@@ -26,6 +27,8 @@ public static class DependencyInjection
         services.Configure<EmailConfirmationSettings>(configuration.GetSection(EmailConfirmationSettings.SectionName));
         services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
 
+        services.AddScoped<CurrentUserProvider>();
+        services.AddScoped<ICurrentUserProvider>(provider => provider.GetRequiredService<CurrentUserProvider>());
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -35,11 +38,13 @@ public static class DependencyInjection
         services.AddSingleton<ITokenHashGenerator, TokenHashGenerator>();
         services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
         services.AddSingleton<IEmailConfirmationTokenGenerator, EmailConfirmationTokenGenerator>();
+        services.AddSingleton<IPasswordGenerator, PasswordGenerator>();
         services.AddScoped<IEmailSender, MailKitEmailSender>();
 
         services.AddMassTransit(bus =>
         {
             bus.AddConsumer<AccountConfirmationRequestedConsumer>();
+            bus.AddConsumer<WorkerCredentialsIssuedConsumer>();
 
             bus.AddEntityFrameworkOutbox<AuthDbContext>(outbox =>
             {

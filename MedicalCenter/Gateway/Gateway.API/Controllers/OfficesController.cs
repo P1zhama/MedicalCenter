@@ -79,7 +79,7 @@ public class OfficesController : ControllerBase
         try
         {
             var response = await _officesClient.CreateOfficeAsync(grpcRequest);
-            return Ok(new CreatedOfficeWebResponse(response.OfficeId, response.Message));
+            return Ok(new CreatedOfficeWebResponse(response.OfficeId));
         }
         catch (RpcException ex)
         {
@@ -104,8 +104,8 @@ public class OfficesController : ControllerBase
 
         try
         {
-            var response = await _officesClient.UpdateOfficeAsync(grpcRequest);
-            return Ok(new { message = response.Message });
+            await _officesClient.UpdateOfficeAsync(grpcRequest);
+            return Ok();
         }
         catch (RpcException ex)
         {
@@ -124,8 +124,8 @@ public class OfficesController : ControllerBase
 
         try
         {
-            var response = await _officesClient.ChangeOfficeStatusAsync(grpcRequest);
-            return Ok(new { message = response.Message });
+            await _officesClient.ChangeOfficeStatusAsync(grpcRequest);
+            return Ok();
         }
         catch (RpcException ex)
         {

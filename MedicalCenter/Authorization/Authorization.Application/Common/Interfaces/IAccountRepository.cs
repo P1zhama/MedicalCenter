@@ -15,5 +15,7 @@ public interface IAccountRepository
 
     Task UpdateAsync(Account account, CancellationToken cancellationToken = default);
 
+    Task<int> DeleteByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
     Task<bool> ExistsByEmailAsync(Email email, CancellationToken cancellationToken = default);
 }

@@ -53,21 +53,22 @@ try
 
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddTransient<CorrelationIdClientInterceptor>();
+    builder.Services.AddTransient<IdentityForwardingInterceptor>();
 
     builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(options =>
     {
         options.Address = new Uri(builder.Configuration["GrpcClients:Authorization"] ?? "http://localhost:8000");
-    }).AddInterceptor<CorrelationIdClientInterceptor>();
+    }).AddInterceptor<CorrelationIdClientInterceptor>().AddInterceptor<IdentityForwardingInterceptor>();
 
     builder.Services.AddGrpcClient<ProfilesService.ProfilesServiceClient>(options =>
     {
         options.Address = new Uri(builder.Configuration["GrpcClients:Profiles"] ?? "http://localhost:8001");
-    }).AddInterceptor<CorrelationIdClientInterceptor>();
+    }).AddInterceptor<CorrelationIdClientInterceptor>().AddInterceptor<IdentityForwardingInterceptor>();
 
     builder.Services.AddGrpcClient<OfficesService.OfficesServiceClient>(options =>
     {
         options.Address = new Uri(builder.Configuration["GrpcClients:Offices"] ?? "http://localhost:8002");
-    }).AddInterceptor<CorrelationIdClientInterceptor>();
+    }).AddInterceptor<CorrelationIdClientInterceptor>().AddInterceptor<IdentityForwardingInterceptor>();
 
     var jwtSection = builder.Configuration.GetSection("JwtSettings");
     var jwtSecretKey = jwtSection["SecretKey"];

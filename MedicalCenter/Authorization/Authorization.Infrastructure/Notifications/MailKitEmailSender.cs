@@ -21,17 +21,36 @@ public sealed class MailKitEmailSender : IEmailSender
     {
         var link = $"{_settings.ClientAppBaseUrl}/confirm-email?token={Uri.EscapeDataString(token)}";
 
+        var body =
+            "<p>Welcome to Medical Center.</p>" +
+            "<p>Please confirm your email to finish creating your account:</p>" +
+            $"<p><a href=\"{link}\">Confirm email</a></p>";
+
+        await SendAsync(email, "Confirm your email", body, cancellationToken);
+
+        _logger.LogInformation("Confirmation email sent to {Email}", email);
+    }
+
+    public async Task SendWorkerCredentialsAsync(string email, string temporaryPassword, CancellationToken cancellationToken = default)
+    {
+        var body =
+            "<p>An account has been created for you at Medical Center.</p>" +
+            $"<p>Login: {email}</p>" +
+            $"<p>Temporary password: {temporaryPassword}</p>" +
+            "<p>Please sign in and change your password.</p>";
+
+        await SendAsync(email, "Your Medical Center account", body, cancellationToken);
+
+        _logger.LogInformation("Credentials email sent to {Email}", email);
+    }
+
+    private async Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken cancellationToken)
+    {
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(_settings.SenderName, _settings.SenderEmail));
-        message.To.Add(MailboxAddress.Parse(email));
-        message.Subject = "Confirm your email";
-        message.Body = new BodyBuilder
-        {
-            HtmlBody =
-                $"<p>Welcome to Medical Center.</p>" +
-                $"<p>Please confirm your email to finish creating your account:</p>" +
-                $"<p><a href=\"{link}\">Confirm email</a></p>"
-        }.ToMessageBody();
+        message.To.Add(MailboxAddress.Parse(toEmail));
+        message.Subject = subject;
+        message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
 
         var secureSocketOptions = _settings.UseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls;
 
@@ -41,7 +60,5 @@ public sealed class MailKitEmailSender : IEmailSender
         await client.AuthenticateAsync(_settings.SenderEmail, _settings.Password, cancellationToken);
         await client.SendAsync(message, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);
-
-        _logger.LogInformation("Confirmation email sent to {Email}", email);
     }
 }

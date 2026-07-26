@@ -8,15 +8,14 @@ public static class Roles
 
     public const string Receptionist = "Receptionist";
 
-    public const string Admin = "Admin";
-
     private static readonly HashSet<string> Known = new(StringComparer.Ordinal)
     {
         Patient,
         Doctor,
-        Receptionist,
-        Admin
+        Receptionist
     };
 
     public static bool IsKnown(string? role) => !string.IsNullOrWhiteSpace(role) && Known.Contains(role);
+
+    public static bool IsWorker(string? role) => role == Doctor || role == Receptionist;
 }

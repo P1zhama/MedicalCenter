@@ -26,7 +26,7 @@ public record ChangeOfficeStatusWebRequest(
     [Required] string Status
 );
 
-public record CreatedOfficeWebResponse(string OfficeId, string Message);
+public record CreatedOfficeWebResponse(string OfficeId);
 
 public record OfficeListItemWebResponse(
     string Id,

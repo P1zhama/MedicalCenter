@@ -1,3 +1,4 @@
+using Authorization.API.Interceptors;
 using Authorization.API.Services;
 using Authorization.Application;
 using Authorization.Infrastructure;
@@ -30,6 +31,7 @@ try
     builder.Services.AddGrpc(options =>
     {
         options.Interceptors.Add<CorrelationIdInterceptor>();
+        options.Interceptors.Add<UserContextInterceptor>();
         options.Interceptors.Add<GrpcExceptionInterceptor>();
     });
 
@@ -44,6 +46,7 @@ try
     app.UseSerilogRequestLogging();
 
     app.MapGrpcService<AuthGrpcService>();
+    app.MapGrpcService<AuthInternalGrpcService>();
     app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client.");
 
     app.Run();

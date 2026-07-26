@@ -82,11 +82,10 @@ public sealed class SignUpCommandHandler
 
         var id = _guidProvider.NewGuid();
 
-        var accountResult = Account.CreateNew(
+        var accountResult = Account.CreatePatient(
             id,
             emailResult.Value,
             passwordHash,
-            Roles.Patient,
             confirmationToken.TokenHash,
             confirmationToken.ExpiresAt,
             createdBy: id,

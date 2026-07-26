@@ -62,8 +62,8 @@ public class ProfilesController : ControllerBase
 
         try
         {
-            var response = await _profilesClient.LinkExistingPatientProfileAsync(grpcRequest);
-            return Ok(new LinkExistingPatientWebResponse(response.Success, response.Message));
+            await _profilesClient.LinkExistingPatientProfileAsync(grpcRequest);
+            return Ok();
         }
         catch (RpcException ex)
         {
@@ -113,7 +113,7 @@ public class ProfilesController : ControllerBase
         try
         {
             var response = await _profilesClient.CreatePatientProfileByReceptionistAsync(grpcRequest);
-            return Ok(new CreatedProfileWebResponse(response.ProfileId, response.Message));
+            return Ok(new CreatedProfileWebResponse(response.ProfileId));
         }
         catch (RpcException ex)
         {
@@ -144,7 +144,7 @@ public class ProfilesController : ControllerBase
         try
         {
             var response = await _profilesClient.CreateDoctorProfileAsync(grpcRequest);
-            return Ok(new CreatedProfileWebResponse(response.DoctorId, response.Message));
+            return Ok(new CreatedProfileWebResponse(response.DoctorId));
         }
         catch (RpcException ex)
         {
@@ -171,7 +171,7 @@ public class ProfilesController : ControllerBase
         try
         {
             var response = await _profilesClient.CreateReceptionistProfileAsync(grpcRequest);
-            return Ok(new CreatedProfileWebResponse(response.ReceptionistId, response.Message));
+            return Ok(new CreatedProfileWebResponse(response.ReceptionistId));
         }
         catch (RpcException ex)
         {
@@ -202,6 +202,6 @@ public class ProfilesController : ControllerBase
                 response.MatchedProfile.DateOfBirth);
         }
 
-        return new PatientProfileWebResponse(response.ProfileId, response.IsMatched, response.Message, matched);
+        return new PatientProfileWebResponse(response.ProfileId, response.IsMatched, matched);
     }
 }

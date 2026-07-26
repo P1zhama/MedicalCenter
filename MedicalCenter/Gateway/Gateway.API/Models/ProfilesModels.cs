@@ -15,8 +15,6 @@ public record LinkExistingPatientWebRequest(
     [Required] string PatientId
 );
 
-public record LinkExistingPatientWebResponse(bool Success, string Message);
-
 public record MatchedProfileWebDto(
     string ProfileId,
     string FirstName,
@@ -28,7 +26,6 @@ public record MatchedProfileWebDto(
 public record PatientProfileWebResponse(
     string ProfileId,
     bool IsMatched,
-    string Message,
     MatchedProfileWebDto? MatchedProfile
 );
 
@@ -61,4 +58,4 @@ public record CreateReceptionistWebRequest(
     string? PhotoUrl
 );
 
-public record CreatedProfileWebResponse(string ProfileId, string Message);
+public record CreatedProfileWebResponse(string ProfileId);

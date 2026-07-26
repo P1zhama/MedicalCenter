@@ -17,7 +17,6 @@ message CreateWorkerRequest {
 
 message CreateWorkerResponse {
     string account_id = 1;
-    string message = 2;
 }
 
 message DeleteWorkerRequest {
@@ -25,6 +24,4 @@ message DeleteWorkerRequest {
 }
 
 message DeleteWorkerResponse {
-    bool success = 1;
-    string message = 2;
 }

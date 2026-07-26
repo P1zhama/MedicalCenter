@@ -62,6 +62,13 @@ public sealed class AccountRepository : IAccountRepository
         _context.Entry(tracked).CurrentValues.SetValues(account.ToEntity());
     }
 
+    public Task<int> DeleteByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return _context.Accounts
+            .Where(account => account.Id == id)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+
     public Task<bool> ExistsByEmailAsync(Email email, CancellationToken cancellationToken = default)
     {
         return _context.Accounts.AnyAsync(a => a.Email == email.Value, cancellationToken);

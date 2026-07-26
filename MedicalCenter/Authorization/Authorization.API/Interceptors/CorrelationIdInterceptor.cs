@@ -2,7 +2,7 @@ using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Serilog.Context;
 
-namespace Authorization.API.Services;
+namespace Authorization.API.Interceptors;
 
 public sealed class CorrelationIdInterceptor : Interceptor
 {

@@ -1,7 +1,7 @@
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 
-namespace Authorization.API.Services;
+namespace Authorization.API.Interceptors;
 
 public sealed class GrpcExceptionInterceptor : Interceptor
 {

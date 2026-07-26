@@ -1,3 +1,4 @@
+using Authorization.API.ErrorMapping;
 using Authorization.API.Protos;
 using Authorization.Application.Accounts.ConfirmEmail;
 using Authorization.Application.Accounts.Refresh;

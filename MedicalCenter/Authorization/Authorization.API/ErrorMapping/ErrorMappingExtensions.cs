@@ -1,7 +1,7 @@
 using ErrorOr;
 using Grpc.Core;
 
-namespace Authorization.API.Services;
+namespace Authorization.API.ErrorMapping;
 
 public static class ErrorMappingExtensions
 {

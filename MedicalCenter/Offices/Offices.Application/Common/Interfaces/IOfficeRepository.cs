@@ -4,8 +4,11 @@ namespace Offices.Application.Common.Interfaces;
 
 public interface IOfficeRepository
 {
-    Task AddAsync(Office office, CancellationToken cancellationToken);
-    Task<Office?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
-    Task<IReadOnlyList<Office>> GetAllAsync(CancellationToken cancellationToken);
-    Task UpdateAsync(Office office, CancellationToken cancellationToken);
+    Task AddAsync(Office office, CancellationToken cancellationToken = default);
+
+    Task<Office?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Office>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    Task<bool> UpdateAsync(Office office, long expectedVersion, CancellationToken cancellationToken = default);
 }

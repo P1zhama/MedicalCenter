@@ -1,12 +1,11 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using Offices.Domain;
 
 namespace Offices.Infrastructure.Persistence;
 
 public class OfficesDbContext
 {
-    public IMongoCollection<Office> Offices { get; }
+    public IMongoCollection<OfficeDocument> Offices { get; }
 
     public OfficesDbContext(IOptions<MongoDbSettings> options)
     {
@@ -15,6 +14,6 @@ public class OfficesDbContext
         var client = new MongoClient(settings.ConnectionString);
         var database = client.GetDatabase(settings.DatabaseName);
 
-        Offices = database.GetCollection<Office>(settings.OfficesCollectionName);
+        Offices = database.GetCollection<OfficeDocument>(settings.OfficesCollectionName);
     }
 }

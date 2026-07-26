@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ErrorOr" Version="2.1.1" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageReference Include="MassTransit" Version="8.5.10" />
@@ -15,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\MedicalCenter.Shared.Contracts\MedicalCenter.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\Common\Common.Abstractions\Common.Abstractions.csproj" />
     <ProjectReference Include="..\Offices.Domain\Offices.Domain.csproj" />
   </ItemGroup>
 

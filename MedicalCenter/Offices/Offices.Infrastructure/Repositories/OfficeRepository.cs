@@ -5,32 +5,39 @@ using Offices.Infrastructure.Persistence;
 
 namespace Offices.Infrastructure.Repositories;
 
-public class OfficeRepository : IOfficeRepository
+public sealed class OfficeRepository : IOfficeRepository
 {
-    private readonly IMongoCollection<Office> _offices;
+    private readonly IMongoCollection<OfficeDocument> _offices;
 
     public OfficeRepository(OfficesDbContext context)
     {
         _offices = context.Offices;
     }
 
-    public async Task AddAsync(Office office, CancellationToken cancellationToken)
+    public Task AddAsync(Office office, CancellationToken cancellationToken = default)
+        => _offices.InsertOneAsync(office.ToDocument(), cancellationToken: cancellationToken);
+
+    public async Task<Office?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await _offices.InsertOneAsync(office, cancellationToken: cancellationToken);
+        var document = await _offices.Find(office => office.Id == id).FirstOrDefaultAsync(cancellationToken);
+
+        return document?.ToDomain();
     }
 
-    public async Task<Office?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Office>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await _offices.Find(o => o.Id == id).FirstOrDefaultAsync(cancellationToken);
+        var documents = await _offices.Find(FilterDefinition<OfficeDocument>.Empty).ToListAsync(cancellationToken);
+
+        return documents.Select(document => document.ToDomain()).ToList();
     }
 
-    public async Task<IReadOnlyList<Office>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<bool> UpdateAsync(Office office, long expectedVersion, CancellationToken cancellationToken = default)
     {
-        return await _offices.Find(FilterDefinition<Office>.Empty).ToListAsync(cancellationToken);
-    }
+        var result = await _offices.ReplaceOneAsync(
+            document => document.Id == office.Id && document.Version == expectedVersion,
+            office.ToDocument(),
+            cancellationToken: cancellationToken);
 
-    public async Task UpdateAsync(Office office, CancellationToken cancellationToken)
-    {
-        await _offices.ReplaceOneAsync(o => o.Id == office.Id, office, cancellationToken: cancellationToken);
+        return result.IsAcknowledged && result.ModifiedCount == 1;
     }
 }

@@ -1,3 +1,4 @@
+using Offices.API.Interceptors;
 using Offices.API.Services;
 using Offices.Application;
 using Offices.Infrastructure;
@@ -28,6 +29,7 @@ try
 
     builder.Services.AddGrpc(options =>
     {
+        options.Interceptors.Add<UserContextInterceptor>();
         options.Interceptors.Add<GrpcExceptionInterceptor>();
     });
 

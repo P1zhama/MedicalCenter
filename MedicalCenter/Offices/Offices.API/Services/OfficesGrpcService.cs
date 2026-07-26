@@ -1,5 +1,6 @@
 using Grpc.Core;
 using MediatR;
+using Offices.API.ErrorMapping;
 using Offices.API.Protos;
 using Offices.Application.Commands.ChangeOfficeStatus;
 using Offices.Application.Commands.CreateOffice;
@@ -30,19 +31,21 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
             NullIfEmpty(request.PhotoUrl),
             ParseStatusOrDefault(request.Status));
 
-        var officeId = await _sender.Send(command, context.CancellationToken);
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
 
         return new CreateOfficeResponse
         {
-            OfficeId = officeId.ToString(),
-            Message = "Office created successfully."
+            OfficeId = result.Value.ToString()
         };
     }
 
     public override async Task<UpdateOfficeResponse> UpdateOffice(UpdateOfficeRequest request, ServerCallContext context)
     {
         var command = new UpdateOfficeCommand(
-            Guid.Parse(request.OfficeId),
+            ParseGuid(request.OfficeId),
             request.City,
             request.Street,
             request.HouseNumber,
@@ -51,20 +54,26 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
             NullIfEmpty(request.PhotoUrl),
             ParseStatusOrDefault(request.Status));
 
-        await _sender.Send(command, context.CancellationToken);
+        var result = await _sender.Send(command, context.CancellationToken);
 
-        return new UpdateOfficeResponse { Message = "Office updated successfully." };
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new UpdateOfficeResponse();
     }
 
     public override async Task<ChangeOfficeStatusResponse> ChangeOfficeStatus(ChangeOfficeStatusRequest request, ServerCallContext context)
     {
         var command = new ChangeOfficeStatusCommand(
-            Guid.Parse(request.OfficeId),
+            ParseGuid(request.OfficeId),
             ParseStatusOrDefault(request.Status));
 
-        await _sender.Send(command, context.CancellationToken);
+        var result = await _sender.Send(command, context.CancellationToken);
 
-        return new ChangeOfficeStatusResponse { Message = "Office status changed successfully." };
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new ChangeOfficeStatusResponse();
     }
 
     public override async Task<GetOfficesResponse> GetOffices(GetOfficesRequest request, ServerCallContext context)
@@ -89,7 +98,12 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
 
     public override async Task<OfficeResponse> GetOfficeById(GetOfficeByIdRequest request, ServerCallContext context)
     {
-        var office = await _sender.Send(new GetOfficeByIdQuery(Guid.Parse(request.OfficeId)), context.CancellationToken);
+        var result = await _sender.Send(new GetOfficeByIdQuery(ParseGuid(request.OfficeId)), context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        var office = result.Value;
 
         return new OfficeResponse
         {
@@ -105,10 +119,21 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
         };
     }
 
-    private static OfficeStatus ParseStatusOrDefault(string status) =>
-        string.IsNullOrEmpty(status)
-            ? OfficeStatus.Active
-            : Enum.Parse<OfficeStatus>(status, ignoreCase: true);
+    private static Guid ParseGuid(string value)
+        => Guid.TryParse(value, out var id)
+            ? id
+            : throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid office id format."));
+
+    private static OfficeStatus ParseStatusOrDefault(string status)
+    {
+        if (string.IsNullOrEmpty(status))
+            return OfficeStatus.Active;
+
+        if (!Enum.TryParse<OfficeStatus>(status, ignoreCase: true, out var parsed) || !Enum.IsDefined(parsed))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid office status."));
+
+        return parsed;
+    }
 
     private static string? NullIfEmpty(string value) => string.IsNullOrEmpty(value) ? null : value;
 }

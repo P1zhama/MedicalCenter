@@ -1,37 +1,95 @@
+using Common.Domain;
+using ErrorOr;
 using Offices.Domain.Enums;
-using System;
-using System.Collections.Generic;
+using Offices.Domain.ValueObjects;
 
 namespace Offices.Domain;
 
-public class Office
+public sealed class Office : AggregateRoot<Guid>
 {
-    public Guid Id { get; set; }
-
-    public string City { get; set; } = string.Empty;
-    public string Street { get; set; } = string.Empty;
-    public string HouseNumber { get; set; } = string.Empty;
-
-    public string? OfficeNumber { get; set; }
-
-    public string RegistryPhoneNumber { get; set; } = string.Empty;
-
-    public string? PhotoUrl { get; set; }
-
-    public OfficeStatus Status { get; set; } = OfficeStatus.Active;
-
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-
-    public string FormatAddress()
+    private Office(
+        Guid id,
+        Address address,
+        string registryPhoneNumber,
+        string? photoUrl,
+        OfficeStatus status,
+        long version,
+        AuditInfo audit)
+        : base(id, version, audit)
     {
-        var parts = new List<string> { City, Street, HouseNumber };
-
-        if (!string.IsNullOrWhiteSpace(OfficeNumber))
-        {
-            parts.Add(OfficeNumber);
-        }
-
-        return string.Join(", ", parts);
+        Address = address;
+        RegistryPhoneNumber = registryPhoneNumber;
+        PhotoUrl = photoUrl;
+        Status = status;
     }
+
+    public Address Address { get; private set; }
+
+    public string RegistryPhoneNumber { get; private set; }
+
+    public string? PhotoUrl { get; private set; }
+
+    public OfficeStatus Status { get; private set; }
+
+    public bool IsActive => Status == OfficeStatus.Active;
+
+    public static ErrorOr<Office> Create(
+        Guid id,
+        Address address,
+        string registryPhoneNumber,
+        string? photoUrl,
+        OfficeStatus status,
+        Guid createdBy,
+        DateTimeOffset createdAt)
+    {
+        if (string.IsNullOrWhiteSpace(registryPhoneNumber))
+            return Error.Validation("Office.RegistryPhoneNumber", "Please, enter the phone number");
+
+        return new Office(
+            id,
+            address,
+            registryPhoneNumber.Trim(),
+            photoUrl,
+            status,
+            version: 1,
+            new AuditInfo(createdBy, createdAt, null, null));
+    }
+
+    public ErrorOr<Success> Update(
+        Address address,
+        string registryPhoneNumber,
+        string? photoUrl,
+        OfficeStatus status,
+        Guid updatedBy,
+        DateTimeOffset at)
+    {
+        if (string.IsNullOrWhiteSpace(registryPhoneNumber))
+            return Error.Validation("Office.RegistryPhoneNumber", "Please, enter the phone number");
+
+        Address = address;
+        RegistryPhoneNumber = registryPhoneNumber.Trim();
+        PhotoUrl = photoUrl;
+        Status = status;
+        Audit = Audit.WithUpdate(updatedBy, at);
+        Version++;
+
+        return Result.Success;
+    }
+
+    public void ChangeStatus(OfficeStatus status, Guid updatedBy, DateTimeOffset at)
+    {
+        Status = status;
+        Audit = Audit.WithUpdate(updatedBy, at);
+        Version++;
+    }
+
+    public static Office Restore(
+        Guid id,
+        Address address,
+        string registryPhoneNumber,
+        string? photoUrl,
+        OfficeStatus status,
+        long version,
+        AuditInfo audit)
+        => new(id, address, registryPhoneNumber, photoUrl, status, version, audit);
 }

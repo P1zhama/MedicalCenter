@@ -1,4 +1,7 @@
+using ErrorOr;
 using MediatR;
+using Offices.Application.Common.Security;
+using Offices.Domain.Constants;
 using Offices.Domain.Enums;
 
 namespace Offices.Application.Commands.UpdateOffice;
@@ -12,4 +15,7 @@ public record UpdateOfficeCommand(
     string RegistryPhoneNumber,
     string? PhotoUrl,
     OfficeStatus Status
-) : IRequest<bool>;
+) : IRequest<ErrorOr<Success>>, IAuthorizedRequest
+{
+    public string RequiredPermission => Permissions.EditOffice;
+}

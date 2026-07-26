@@ -7,18 +7,18 @@ public static class OfficeMappings
 {
     public static OfficeListItemDto ToListItem(this Office office) => new(
         office.Id,
-        office.FormatAddress(),
+        office.Address.Format(),
         office.Status.ToString(),
         office.RegistryPhoneNumber);
 
     public static OfficeDto ToDto(this Office office) => new(
         office.Id,
         office.PhotoUrl,
-        office.FormatAddress(),
-        office.City,
-        office.Street,
-        office.HouseNumber,
-        office.OfficeNumber,
+        office.Address.Format(),
+        office.Address.City,
+        office.Address.Street,
+        office.Address.HouseNumber,
+        office.Address.OfficeNumber,
         office.Status.ToString(),
         office.RegistryPhoneNumber);
 }

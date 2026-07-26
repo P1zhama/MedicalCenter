@@ -1,47 +1,64 @@
-using MassTransit;
+using Common.Abstractions.Providers;
+using ErrorOr;
 using MediatR;
 using MedicalCenter.Shared.Contracts;
 using Offices.Application.Common.Interfaces;
-using Offices.Domain.Enums;
+using Offices.Domain.ValueObjects;
 
 namespace Offices.Application.Commands.UpdateOffice;
 
-public class UpdateOfficeCommandHandler : IRequestHandler<UpdateOfficeCommand, bool>
+public sealed class UpdateOfficeCommandHandler : IRequestHandler<UpdateOfficeCommand, ErrorOr<Success>>
 {
-    private readonly IOfficeRepository _repository;
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IOfficeRepository _officeRepository;
+    private readonly IEventPublisher _eventPublisher;
+    private readonly ICurrentUserProvider _currentUserProvider;
+    private readonly TimeProvider _timeProvider;
 
-    public UpdateOfficeCommandHandler(IOfficeRepository repository, IPublishEndpoint publishEndpoint)
+    public UpdateOfficeCommandHandler(
+        IOfficeRepository officeRepository,
+        IEventPublisher eventPublisher,
+        ICurrentUserProvider currentUserProvider,
+        TimeProvider timeProvider)
     {
-        _repository = repository;
-        _publishEndpoint = publishEndpoint;
+        _officeRepository = officeRepository;
+        _eventPublisher = eventPublisher;
+        _currentUserProvider = currentUserProvider;
+        _timeProvider = timeProvider;
     }
 
-    public async Task<bool> Handle(UpdateOfficeCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Success>> Handle(UpdateOfficeCommand request, CancellationToken cancellationToken)
     {
-        var office = await _repository.GetByIdAsync(request.Id, cancellationToken)
-            ?? throw new KeyNotFoundException($"Office {request.Id} was not found.");
+        var office = await _officeRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (office is null)
+            return Error.NotFound("Office.NotFound", "Office was not found.");
 
-        var wasActive = office.Status != OfficeStatus.Inactive;
+        var addressResult = Address.Create(request.City, request.Street, request.HouseNumber, request.OfficeNumber);
+        if (addressResult.IsError)
+            return addressResult.Errors;
 
-        office.City = request.City;
-        office.Street = request.Street;
-        office.HouseNumber = request.HouseNumber;
-        office.OfficeNumber = request.OfficeNumber;
-        office.RegistryPhoneNumber = request.RegistryPhoneNumber;
-        office.PhotoUrl = request.PhotoUrl;
-        office.Status = request.Status;
-        office.UpdatedAt = DateTime.UtcNow;
+        var now = _timeProvider.GetUtcNow();
+        var updatedBy = _currentUserProvider.User?.Id ?? Guid.Empty;
+        var wasActive = office.IsActive;
+        var expectedVersion = office.Version;
 
+        var updateResult = office.Update(
+            addressResult.Value,
+            request.RegistryPhoneNumber,
+            request.PhotoUrl,
+            request.Status,
+            updatedBy,
+            now);
 
-        await _repository.UpdateAsync(office, cancellationToken);
+        if (updateResult.IsError)
+            return updateResult.Errors;
 
+        var updated = await _officeRepository.UpdateAsync(office, expectedVersion, cancellationToken);
+        if (!updated)
+            return Error.Conflict("Office.ConcurrencyConflict", "Office was modified by another operation. Please retry.");
 
-        if (wasActive && request.Status == OfficeStatus.Inactive)
-        {
-            await _publishEndpoint.Publish(new OfficeDeactivatedEvent(office.Id, DateTime.UtcNow), cancellationToken);
-        }
+        if (wasActive && !office.IsActive)
+            await _eventPublisher.PublishAsync(new OfficeDeactivatedEvent(office.Id, now.UtcDateTime), cancellationToken);
 
-        return true;
+        return Result.Success;
     }
 }

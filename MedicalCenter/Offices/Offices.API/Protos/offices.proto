@@ -24,7 +24,6 @@ message CreateOfficeRequest {
 
 message CreateOfficeResponse {
     string office_id = 1;
-    string message = 2;
 }
 
 message UpdateOfficeRequest {
@@ -39,7 +38,6 @@ message UpdateOfficeRequest {
 }
 
 message UpdateOfficeResponse {
-    string message = 1;
 }
 
 message ChangeOfficeStatusRequest {
@@ -48,7 +46,6 @@ message ChangeOfficeStatusRequest {
 }
 
 message ChangeOfficeStatusResponse {
-    string message = 1;
 }
 
 message GetOfficesRequest {}

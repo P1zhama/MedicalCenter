@@ -1,10 +1,12 @@
+using ErrorOr;
 using FluentValidation;
 using MediatR;
 
 namespace Offices.Application.Common.Behaviors;
 
-public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
+    where TResponse : IErrorOr
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
 
@@ -13,26 +15,30 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
         _validators = validators;
     }
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
     {
-        if (_validators.Any())
-        {
-            var context = new ValidationContext<TRequest>(request);
+        if (!_validators.Any())
+            return await next();
 
-            var validationResults = await Task.WhenAll(
-                _validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+        var context = new ValidationContext<TRequest>(request);
 
-            var failures = validationResults
-                .Where(r => r.Errors.Any())
-                .SelectMany(r => r.Errors)
-                .ToList();
+        var validationResults = await Task.WhenAll(
+            _validators.Select(validator => validator.ValidateAsync(context, cancellationToken)));
 
-            if (failures.Any())
-            {
-                throw new ValidationException(failures);
-            }
-        }
+        var failures = validationResults
+            .SelectMany(result => result.Errors)
+            .Where(failure => failure is not null)
+            .ToList();
 
-        return await next();
+        if (failures.Count == 0)
+            return await next();
+
+        var errors = failures.ConvertAll(
+            failure => Error.Validation(failure.PropertyName, failure.ErrorMessage));
+
+        return (dynamic)errors;
     }
 }

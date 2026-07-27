@@ -1,6 +1,5 @@
 using Authorization.Domain.Constants;
 using Authorization.Domain.Enums;
-using Authorization.Domain.Events;
 using Authorization.Domain.ValueObjects;
 using Common.Domain;
 using ErrorOr;
@@ -74,8 +73,6 @@ public sealed class Account : AggregateRoot<Guid>
             new AuditInfo(createdBy, createdAt, null, null));
 
         account._claims.Add(AccountClaim.Role(Guid.NewGuid(), account.Id, Roles.Patient, createdAt));
-
-        account.AddDomainEvent(new SignUpDomainEvent(account.Id, account.Email.Value, createdAt));
 
         return account;
     }
@@ -165,8 +162,6 @@ public sealed class Account : AggregateRoot<Guid>
         EmailConfirmationTokenExpiresAt = emailConfirmationTokenExpiresAt;
         Audit = Audit.WithUpdate(Id, now);
         Version++;
-
-        AddDomainEvent(new SignUpDomainEvent(Id, Email.Value, now));
 
         return Result.Success;
     }

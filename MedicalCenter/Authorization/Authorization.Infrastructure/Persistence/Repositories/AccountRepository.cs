@@ -53,11 +53,7 @@ public sealed class AccountRepository : IAccountRepository
         var tracked = await _context.Accounts.FindAsync([account.Id], cancellationToken);
 
         if (tracked is null)
-        {
-            _context.Accounts.Update(account.ToEntity());
-
-            return;
-        }
+            throw new InvalidOperationException($"Account {account.Id} must be loaded before update.");
 
         _context.Entry(tracked).CurrentValues.SetValues(account.ToEntity());
     }

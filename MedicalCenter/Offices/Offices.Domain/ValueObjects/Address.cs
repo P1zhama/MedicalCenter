@@ -1,5 +1,4 @@
 using Common.Domain;
-using ErrorOr;
 
 namespace Offices.Domain.ValueObjects;
 
@@ -21,16 +20,11 @@ public sealed class Address : ValueObject
 
     public string? OfficeNumber { get; }
 
-    public static ErrorOr<Address> Create(string city, string street, string houseNumber, string? officeNumber)
+    public static Address Create(string city, string street, string houseNumber, string? officeNumber)
     {
-        if (string.IsNullOrWhiteSpace(city))
-            return Error.Validation("Address.City", "Please, enter the office's city");
-
-        if (string.IsNullOrWhiteSpace(street))
-            return Error.Validation("Address.Street", "Please, enter the office's street");
-
-        if (string.IsNullOrWhiteSpace(houseNumber))
-            return Error.Validation("Address.HouseNumber", "Please, enter the office's house number");
+        Guard.NotNullOrWhiteSpace(city, nameof(city));
+        Guard.NotNullOrWhiteSpace(street, nameof(street));
+        Guard.NotNullOrWhiteSpace(houseNumber, nameof(houseNumber));
 
         return new Address(
             city.Trim(),

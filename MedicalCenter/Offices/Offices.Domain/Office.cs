@@ -1,5 +1,4 @@
 using Common.Domain;
-using ErrorOr;
 using Offices.Domain.Enums;
 using Offices.Domain.ValueObjects;
 
@@ -33,7 +32,7 @@ public sealed class Office : AggregateRoot<Guid>
 
     public bool IsActive => Status == OfficeStatus.Active;
 
-    public static ErrorOr<Office> Create(
+    public static Office Create(
         Guid id,
         Address address,
         string registryPhoneNumber,
@@ -42,8 +41,7 @@ public sealed class Office : AggregateRoot<Guid>
         Guid createdBy,
         DateTimeOffset createdAt)
     {
-        if (string.IsNullOrWhiteSpace(registryPhoneNumber))
-            return Error.Validation("Office.RegistryPhoneNumber", "Please, enter the phone number");
+        Guard.NotNullOrWhiteSpace(registryPhoneNumber, nameof(registryPhoneNumber));
 
         return new Office(
             id,
@@ -55,7 +53,7 @@ public sealed class Office : AggregateRoot<Guid>
             new AuditInfo(createdBy, createdAt, null, null));
     }
 
-    public ErrorOr<Success> Update(
+    public void Update(
         Address address,
         string registryPhoneNumber,
         string? photoUrl,
@@ -63,8 +61,7 @@ public sealed class Office : AggregateRoot<Guid>
         Guid updatedBy,
         DateTimeOffset at)
     {
-        if (string.IsNullOrWhiteSpace(registryPhoneNumber))
-            return Error.Validation("Office.RegistryPhoneNumber", "Please, enter the phone number");
+        Guard.NotNullOrWhiteSpace(registryPhoneNumber, nameof(registryPhoneNumber));
 
         Address = address;
         RegistryPhoneNumber = registryPhoneNumber.Trim();
@@ -72,8 +69,6 @@ public sealed class Office : AggregateRoot<Guid>
         Status = status;
         Audit = Audit.WithUpdate(updatedBy, at);
         Version++;
-
-        return Result.Success;
     }
 
     public void ChangeStatus(OfficeStatus status, Guid updatedBy, DateTimeOffset at)

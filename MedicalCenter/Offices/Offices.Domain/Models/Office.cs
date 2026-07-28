@@ -2,7 +2,7 @@ using Common.Domain;
 using Offices.Domain.Enums;
 using Offices.Domain.ValueObjects;
 
-namespace Offices.Domain;
+namespace Offices.Domain.Models;
 
 public sealed class Office : AggregateRoot<Guid>
 {

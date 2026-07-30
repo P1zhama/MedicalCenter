@@ -10,6 +10,7 @@ service OfficesService {
     rpc ChangeOfficeStatus (ChangeOfficeStatusRequest) returns (ChangeOfficeStatusResponse);
     rpc GetOffices (GetOfficesRequest) returns (GetOfficesResponse);
     rpc GetOfficeById (GetOfficeByIdRequest) returns (OfficeResponse);
+    rpc IsOfficeActive (IsOfficeActiveRequest) returns (IsOfficeActiveResponse);
 }
 
 message CreateOfficeRequest {
@@ -76,4 +77,12 @@ message OfficeResponse {
     string office_number = 7;
     string status = 8;
     string registry_phone_number = 9;
+}
+
+message IsOfficeActiveRequest {
+    string office_id = 1;
+}
+
+message IsOfficeActiveResponse {
+    bool is_active = 1;
 }

@@ -7,6 +7,7 @@ using Offices.Application.Commands.CreateOffice;
 using Offices.Application.Commands.UpdateOffice;
 using Offices.Application.Queries.GetOfficeById;
 using Offices.Application.Queries.GetOffices;
+using Offices.Application.Queries.IsOfficeActive;
 using Offices.Domain.Enums;
 
 namespace Offices.Api.Services;
@@ -117,6 +118,13 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
             Status = office.Status,
             RegistryPhoneNumber = office.RegistryPhoneNumber
         };
+    }
+
+    public override async Task<IsOfficeActiveResponse> IsOfficeActive(IsOfficeActiveRequest request, ServerCallContext context)
+    {
+        var isActive = await _sender.Send(new IsOfficeActiveQuery(ParseGuid(request.OfficeId)), context.CancellationToken);
+
+        return new IsOfficeActiveResponse { IsActive = isActive };
     }
 
     private static Guid ParseGuid(string value)

@@ -8,17 +8,17 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Gateway/Gateway.API/Gateway.API.csproj", "Gateway/Gateway.API/"]
-RUN dotnet restore "./Gateway/Gateway.API/Gateway.API.csproj"
+COPY ["Gateway/Gateway.Api/Gateway.Api.csproj", "Gateway/Gateway.Api/"]
+RUN dotnet restore "./Gateway/Gateway.Api/Gateway.Api.csproj"
 COPY . .
-WORKDIR "/src/Gateway/Gateway.API"
-RUN dotnet build "./Gateway.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Gateway/Gateway.Api"
+RUN dotnet build "./Gateway.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Gateway.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Gateway.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Gateway.API.dll"]
+ENTRYPOINT ["dotnet", "Gateway.Api.dll"]

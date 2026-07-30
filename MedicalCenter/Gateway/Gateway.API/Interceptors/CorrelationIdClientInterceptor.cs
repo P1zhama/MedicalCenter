@@ -1,9 +1,9 @@
-using Gateway.API.Middleware;
+using Gateway.Api.Middleware;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.AspNetCore.Http;
 
-namespace Gateway.API.Interceptors;
+namespace Gateway.Api.Interceptors;
 
 public sealed class CorrelationIdClientInterceptor : Interceptor
 {

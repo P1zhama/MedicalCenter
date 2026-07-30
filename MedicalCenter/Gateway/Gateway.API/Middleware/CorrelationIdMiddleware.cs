@@ -3,7 +3,7 @@ using Serilog.Context;
 using System;
 using System.Threading.Tasks;
 
-namespace Gateway.API.Middleware;
+namespace Gateway.Api.Middleware;
 
 public sealed class CorrelationIdMiddleware
 {

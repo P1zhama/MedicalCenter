@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Gateway.API.Models;
+namespace Gateway.Api.Models;
 
 public record SignUpWebRequest(
     [Required][EmailAddress] string Email,

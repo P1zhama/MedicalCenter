@@ -1,14 +1,14 @@
-using Gateway.API.Models;
+using Gateway.Api.Models;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Offices.API.Protos;
+using Offices.Api.Protos;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Gateway.API.Controllers;
+namespace Gateway.Api.Controllers;
 
 [ApiController]
 [Route("api/offices")]
@@ -141,6 +141,9 @@ public class OfficesController : ControllerBase
         {
             Grpc.Core.StatusCode.NotFound => NotFound(new { error = ex.Status.Detail }),
             Grpc.Core.StatusCode.InvalidArgument => BadRequest(new { error = ex.Status.Detail }),
+            Grpc.Core.StatusCode.AlreadyExists => Conflict(new { error = ex.Status.Detail }),
+            Grpc.Core.StatusCode.PermissionDenied => StatusCode(StatusCodes.Status403Forbidden, new { error = ex.Status.Detail }),
+            Grpc.Core.StatusCode.Unauthenticated => Unauthorized(new { error = ex.Status.Detail }),
             _ => StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal server error occurred." })
         };
     }

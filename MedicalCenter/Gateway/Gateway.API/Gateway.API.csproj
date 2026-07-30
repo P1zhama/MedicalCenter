@@ -8,9 +8,9 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<Protobuf Include="..\..\Authorization\Authorization.API\Protos\auth.proto" GrpcServices="Client" Link="Protos\auth.proto" />
-		<Protobuf Include="..\..\Profiles\Profiles.API\Protos\profiles.proto" GrpcServices="Client" Link="Protos\profiles.proto" />
-		<Protobuf Include="..\..\Offices\Offices.API\Protos\offices.proto" GrpcServices="Client" Link="Protos\offices.proto" />
+		<Protobuf Include="..\..\Authorization\Authorization.Api\Protos\auth.proto" GrpcServices="Client" Link="Protos\auth.proto" />
+		<Protobuf Include="..\..\Profiles\Profiles.Api\Protos\profiles.proto" GrpcServices="Client" Link="Protos\profiles.proto" />
+		<Protobuf Include="..\..\Offices\Offices.Api\Protos\offices.proto" GrpcServices="Client" Link="Protos\offices.proto" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -30,6 +30,10 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Common.Abstractions\Common.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,18 +1,13 @@
 using System.Linq;
+using Common.Abstractions.Security;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.AspNetCore.Http;
 
-namespace Gateway.API.Interceptors;
+namespace Gateway.Api.Interceptors;
 
 public sealed class IdentityForwardingInterceptor : Interceptor
 {
-    public const string UserIdHeader = "x-user-id";
-
-    public const string RolesHeader = "x-user-roles";
-
-    public const string PermissionsHeader = "x-user-permissions";
-
     private const string SubjectClaimType = "sub";
     private const string RoleClaimType = "role";
     private const string PermissionClaimType = "permission";
@@ -38,15 +33,15 @@ public sealed class IdentityForwardingInterceptor : Interceptor
 
         var userId = user.FindFirst(SubjectClaimType)?.Value;
         if (!string.IsNullOrWhiteSpace(userId))
-            headers.Add(UserIdHeader, userId);
+            headers.Add(IdentityHeaders.UserId, userId);
 
         var roles = user.FindAll(RoleClaimType).Select(claim => claim.Value).ToArray();
         if (roles.Length > 0)
-            headers.Add(RolesHeader, string.Join(',', roles));
+            headers.Add(IdentityHeaders.Roles, string.Join(',', roles));
 
         var permissions = user.FindAll(PermissionClaimType).Select(claim => claim.Value).ToArray();
         if (permissions.Length > 0)
-            headers.Add(PermissionsHeader, string.Join(',', permissions));
+            headers.Add(IdentityHeaders.Permissions, string.Join(',', permissions));
 
         var options = context.Options.WithHeaders(headers);
 

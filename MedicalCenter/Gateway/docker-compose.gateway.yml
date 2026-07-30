@@ -2,7 +2,7 @@ services:
   gateway-api:
     build:
       context: .
-      dockerfile: Gateway/Gateway.API/Dockerfile
+      dockerfile: Gateway/Gateway.Api/Dockerfile
     container_name: gateway-api
     depends_on:
       - authorization-api

@@ -1,12 +1,12 @@
-using Authorization.API.Protos;
-using Gateway.API.Models;
+using Authorization.Api.Protos;
+using Gateway.Api.Models;
 using Grpc.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
-namespace Gateway.API.Controllers;
+namespace Gateway.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]

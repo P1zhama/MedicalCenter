@@ -1,15 +1,14 @@
-using Gateway.API.Models;
+using Gateway.Api.Models;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Profiles.API.Protos;
+using Profiles.Api.Protos;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace Gateway.API.Controllers;
+namespace Gateway.Api.Controllers;
 
 [ApiController]
 [Route("api/profiles")]

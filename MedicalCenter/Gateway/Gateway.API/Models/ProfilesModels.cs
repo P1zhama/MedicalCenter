@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Gateway.API.Models;
+namespace Gateway.Api.Models;
 
 public record CreatePatientProfileWebRequest(
     [Required] string FirstName,

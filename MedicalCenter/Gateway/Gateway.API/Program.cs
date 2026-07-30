@@ -1,4 +1,5 @@
 using Authorization.Api.Protos;
+using Gateway.Api.ErrorHandling;
 using Gateway.Api.Interceptors;
 using Gateway.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -50,6 +51,9 @@ try
     });
 
     builder.Services.AddControllers();
+
+    builder.Services.AddProblemDetails();
+    builder.Services.AddExceptionHandler<GrpcExceptionHandler>();
 
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddTransient<CorrelationIdClientInterceptor>();
@@ -125,6 +129,7 @@ try
     var app = builder.Build();
 
     app.UseMiddleware<CorrelationIdMiddleware>();
+    app.UseExceptionHandler();
     app.UseSerilogRequestLogging();
 
     app.UseCors(AllowedOriginsPolicy);

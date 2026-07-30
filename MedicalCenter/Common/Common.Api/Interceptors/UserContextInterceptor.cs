@@ -7,12 +7,6 @@ namespace Common.Api.Interceptors;
 
 public sealed class UserContextInterceptor : Interceptor
 {
-    public const string UserIdHeader = "x-user-id";
-
-    public const string RolesHeader = "x-user-roles";
-
-    public const string PermissionsHeader = "x-user-permissions";
-
     private readonly CurrentUserProvider _currentUserProvider;
 
     public UserContextInterceptor(CurrentUserProvider currentUserProvider)
@@ -27,10 +21,10 @@ public sealed class UserContextInterceptor : Interceptor
     {
         var headers = context.RequestHeaders;
 
-        Guid? userId = Guid.TryParse(headers.GetValue(UserIdHeader), out var parsed) ? parsed : null;
+        Guid? userId = Guid.TryParse(headers.GetValue(IdentityHeaders.UserId), out var parsed) ? parsed : null;
 
-        var roles = Split(headers.GetValue(RolesHeader));
-        var permissions = Split(headers.GetValue(PermissionsHeader));
+        var roles = Split(headers.GetValue(IdentityHeaders.Roles));
+        var permissions = Split(headers.GetValue(IdentityHeaders.Permissions));
 
         _currentUserProvider.Set(new CurrentUser(userId, roles, permissions));
 

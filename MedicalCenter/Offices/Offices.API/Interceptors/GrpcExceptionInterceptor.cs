@@ -2,7 +2,7 @@ using FluentValidation;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 
-namespace Offices.API.Interceptors;
+namespace Offices.Api.Interceptors;
 
 public class GrpcExceptionInterceptor : Interceptor
 {

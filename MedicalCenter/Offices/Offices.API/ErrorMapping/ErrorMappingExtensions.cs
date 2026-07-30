@@ -1,7 +1,7 @@
 using ErrorOr;
 using Grpc.Core;
 
-namespace Offices.API.ErrorMapping;
+namespace Offices.Api.ErrorMapping;
 
 public static class ErrorMappingExtensions
 {

@@ -1,7 +1,7 @@
 using Grpc.Core;
 using MediatR;
-using Offices.API.ErrorMapping;
-using Offices.API.Protos;
+using Offices.Api.ErrorMapping;
+using Offices.Api.Protos;
 using Offices.Application.Commands.ChangeOfficeStatus;
 using Offices.Application.Commands.CreateOffice;
 using Offices.Application.Commands.UpdateOffice;
@@ -9,7 +9,7 @@ using Offices.Application.Queries.GetOfficeById;
 using Offices.Application.Queries.GetOffices;
 using Offices.Domain.Enums;
 
-namespace Offices.API.Services;
+namespace Offices.Api.Services;
 
 public class OfficesGrpcService : OfficesService.OfficesServiceBase
 {

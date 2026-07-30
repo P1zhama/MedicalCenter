@@ -1,5 +1,6 @@
-using Offices.API.Interceptors;
-using Offices.API.Services;
+using Common.Api.Interceptors;
+using Offices.Api.Interceptors;
+using Offices.Api.Services;
 using Offices.Application;
 using Offices.Infrastructure;
 using Serilog;

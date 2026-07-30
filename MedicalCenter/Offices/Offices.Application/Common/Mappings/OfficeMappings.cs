@@ -1,5 +1,5 @@
 using Offices.Application.Common.Dtos;
-using Offices.Domain;
+using Offices.Domain.Models;
 
 namespace Offices.Application.Common.Mappings;
 

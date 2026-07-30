@@ -5,11 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
 using Offices.Application.Common.Interfaces;
-using Offices.Infrastructure.Messaging;
 using Offices.Infrastructure.Persistence;
 using Offices.Infrastructure.Repositories;
-using Offices.Infrastructure.Security;
 
 namespace Offices.Infrastructure;
 
@@ -19,18 +18,30 @@ public static class DependencyInjection
     {
         services.AddCommonInfrastructure();
 
+        var mongoSettings = configuration.GetSection(MongoDbSettings.SectionName).Get<MongoDbSettings>()
+            ?? new MongoDbSettings();
+
         services.Configure<MongoDbSettings>(configuration.GetSection(MongoDbSettings.SectionName));
 
         RegisterMongoMappings();
 
+        services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoSettings.ConnectionString));
+        services.AddSingleton<IMongoDatabase>(provider =>
+            provider.GetRequiredService<IMongoClient>().GetDatabase(mongoSettings.DatabaseName));
+
         services.AddSingleton<OfficesDbContext>();
         services.AddScoped<IOfficeRepository, OfficeRepository>();
-        services.AddScoped<CurrentUserProvider>();
-        services.AddScoped<ICurrentUserProvider>(provider => provider.GetRequiredService<CurrentUserProvider>());
-        services.AddScoped<IEventPublisher, EventPublisher>();
 
         services.AddMassTransit(x =>
         {
+            x.AddMongoDbOutbox(o =>
+            {
+                o.QueryDelay = TimeSpan.FromSeconds(5);
+                o.ClientFactory(provider => provider.GetRequiredService<IMongoClient>());
+                o.DatabaseFactory(provider => provider.GetRequiredService<IMongoDatabase>());
+                o.UseBusOutbox();
+            });
+
             x.UsingRabbitMq((context, cfg) =>
             {
                 var rabbitSettings = configuration.GetSection("RabbitMqSettings");

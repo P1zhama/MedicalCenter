@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "Offices.API.Protos";
+option csharp_namespace = "Offices.Api.Protos";
 
 package offices;
 
@@ -48,7 +48,8 @@ message ChangeOfficeStatusRequest {
 message ChangeOfficeStatusResponse {
 }
 
-message GetOfficesRequest {}
+message GetOfficesRequest {
+}
 
 message OfficeListItem {
     string office_id = 1;

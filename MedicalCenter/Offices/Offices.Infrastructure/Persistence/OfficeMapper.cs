@@ -1,6 +1,6 @@
 using Common.Domain;
-using Offices.Domain;
 using Offices.Domain.Enums;
+using Offices.Domain.Models;
 using Offices.Domain.ValueObjects;
 
 namespace Offices.Infrastructure.Persistence;
@@ -26,13 +26,11 @@ public static class OfficeMapper
 
     public static Office ToDomain(this OfficeDocument document)
     {
-        var addressResult = Address.Create(document.City, document.Street, document.HouseNumber, document.OfficeNumber);
-        if (addressResult.IsError)
-            throw new InvalidOperationException($"Office {document.Id} has an invalid address stored.");
+        var address = Address.Create(document.City, document.Street, document.HouseNumber, document.OfficeNumber);
 
         return Office.Restore(
             document.Id,
-            addressResult.Value,
+            address,
             document.RegistryPhoneNumber,
             document.PhotoUrl,
             Enum.Parse<OfficeStatus>(document.Status),

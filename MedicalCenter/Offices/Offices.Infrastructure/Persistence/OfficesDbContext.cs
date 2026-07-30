@@ -7,13 +7,8 @@ public class OfficesDbContext
 {
     public IMongoCollection<OfficeDocument> Offices { get; }
 
-    public OfficesDbContext(IOptions<MongoDbSettings> options)
+    public OfficesDbContext(IMongoDatabase database, IOptions<MongoDbSettings> options)
     {
-        var settings = options.Value;
-
-        var client = new MongoClient(settings.ConnectionString);
-        var database = client.GetDatabase(settings.DatabaseName);
-
-        Offices = database.GetCollection<OfficeDocument>(settings.OfficesCollectionName);
+        Offices = database.GetCollection<OfficeDocument>(options.Value.OfficesCollectionName);
     }
 }

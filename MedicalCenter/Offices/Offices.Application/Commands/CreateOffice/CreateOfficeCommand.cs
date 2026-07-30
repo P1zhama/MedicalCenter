@@ -1,6 +1,6 @@
+using Common.Abstractions.Security;
 using ErrorOr;
 using MediatR;
-using Offices.Application.Common.Security;
 using Offices.Domain.Constants;
 using Offices.Domain.Enums;
 

@@ -1,8 +1,7 @@
+using Common.Abstractions.Security;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Offices.Application.Common.Interfaces;
-using Offices.Application.Common.Security;
 using Offices.Domain.Constants;
 
 namespace Offices.Application.Common.Behaviors;

@@ -1,8 +1,9 @@
 using Common.Abstractions.Providers;
+using Common.Abstractions.Security;
 using ErrorOr;
 using MediatR;
 using Offices.Application.Common.Interfaces;
-using Offices.Domain;
+using Offices.Domain.Models;
 using Offices.Domain.ValueObjects;
 
 namespace Offices.Application.Commands.CreateOffice;
@@ -28,27 +29,22 @@ public sealed class CreateOfficeCommandHandler : IRequestHandler<CreateOfficeCom
 
     public async Task<ErrorOr<Guid>> Handle(CreateOfficeCommand request, CancellationToken cancellationToken)
     {
-        var addressResult = Address.Create(request.City, request.Street, request.HouseNumber, request.OfficeNumber);
-        if (addressResult.IsError)
-            return addressResult.Errors;
+        var address = Address.Create(request.City, request.Street, request.HouseNumber, request.OfficeNumber);
 
         var now = _timeProvider.GetUtcNow();
         var createdBy = _currentUserProvider.User?.Id ?? Guid.Empty;
 
-        var officeResult = Office.Create(
+        var office = Office.Create(
             _guidProvider.NewGuid(),
-            addressResult.Value,
+            address,
             request.RegistryPhoneNumber,
             request.PhotoUrl,
             request.Status,
             createdBy,
             now);
 
-        if (officeResult.IsError)
-            return officeResult.Errors;
+        await _officeRepository.AddAsync(office, cancellationToken);
 
-        await _officeRepository.AddAsync(officeResult.Value, cancellationToken);
-
-        return officeResult.Value.Id;
+        return office.Id;
     }
 }

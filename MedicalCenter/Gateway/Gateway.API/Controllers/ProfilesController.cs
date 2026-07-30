@@ -1,8 +1,6 @@
 using Gateway.Api.Models;
-using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Profiles.Api.Protos;
 using System;
 using System.Security.Claims;
@@ -16,18 +14,16 @@ namespace Gateway.Api.Controllers;
 public class ProfilesController : ControllerBase
 {
     private readonly ProfilesService.ProfilesServiceClient _profilesClient;
-    private readonly ILogger<ProfilesController> _logger;
 
-    public ProfilesController(ProfilesService.ProfilesServiceClient profilesClient, ILogger<ProfilesController> logger)
+    public ProfilesController(ProfilesService.ProfilesServiceClient profilesClient)
     {
         _profilesClient = profilesClient;
-        _logger = logger;
     }
 
     [HttpPost("patients/me")]
     public async Task<IActionResult> CreateMyPatientProfile([FromBody] CreatePatientProfileWebRequest request)
     {
-        var grpcRequest = new CreatePatientRequest
+        var response = await _profilesClient.CreatePatientProfileAsync(new CreatePatientRequest
         {
             AccountId = GetAccountId(),
             FirstName = request.FirstName,
@@ -36,45 +32,27 @@ public class ProfilesController : ControllerBase
             PhoneNumber = request.PhoneNumber,
             DateOfBirth = request.DateOfBirth,
             PhotoUrl = request.PhotoUrl ?? string.Empty
-        };
+        });
 
-        try
-        {
-            var response = await _profilesClient.CreatePatientProfileAsync(grpcRequest);
-            return Ok(ToWebResponse(response));
-        }
-        catch (RpcException ex)
-        {
-            _logger.LogWarning(ex, "Error creating patient profile");
-            return BadRequest(new { error = ex.Status.Detail });
-        }
+        return Ok(ToWebResponse(response));
     }
 
     [HttpPost("patients/me/link")]
     public async Task<IActionResult> LinkMyPatientProfile([FromBody] LinkExistingPatientWebRequest request)
     {
-        var grpcRequest = new LinkExistingPatientRequest
+        await _profilesClient.LinkExistingPatientProfileAsync(new LinkExistingPatientRequest
         {
             AccountId = GetAccountId(),
             PatientId = request.PatientId
-        };
+        });
 
-        try
-        {
-            await _profilesClient.LinkExistingPatientProfileAsync(grpcRequest);
-            return Ok();
-        }
-        catch (RpcException ex)
-        {
-            _logger.LogWarning(ex, "Error linking patient profile");
-            return BadRequest(new { error = ex.Status.Detail });
-        }
+        return Ok();
     }
 
     [HttpPost("patients/me/force")]
     public async Task<IActionResult> ForceCreateMyPatientProfile([FromBody] CreatePatientProfileWebRequest request)
     {
-        var grpcRequest = new ForceCreatePatientRequest
+        var response = await _profilesClient.ForceCreatePatientProfileAsync(new ForceCreatePatientRequest
         {
             AccountId = GetAccountId(),
             FirstName = request.FirstName,
@@ -83,49 +61,29 @@ public class ProfilesController : ControllerBase
             PhoneNumber = request.PhoneNumber,
             DateOfBirth = request.DateOfBirth,
             PhotoUrl = request.PhotoUrl ?? string.Empty
-        };
+        });
 
-        try
-        {
-            var response = await _profilesClient.ForceCreatePatientProfileAsync(grpcRequest);
-            return Ok(ToWebResponse(response));
-        }
-        catch (RpcException ex)
-        {
-            _logger.LogWarning(ex, "Error force-creating patient profile");
-            return BadRequest(new { error = ex.Status.Detail });
-        }
+        return Ok(ToWebResponse(response));
     }
 
     [HttpPost("patients/by-receptionist")]
-    [Authorize(Roles = "Receptionist")]
     public async Task<IActionResult> CreatePatientByReceptionist([FromBody] CreatePatientByReceptionistWebRequest request)
     {
-        var grpcRequest = new CreatePatientByReceptionistRequest
+        var response = await _profilesClient.CreatePatientProfileByReceptionistAsync(new CreatePatientByReceptionistRequest
         {
             FirstName = request.FirstName,
             LastName = request.LastName,
             MiddleName = request.MiddleName ?? string.Empty,
             DateOfBirth = request.DateOfBirth
-        };
+        });
 
-        try
-        {
-            var response = await _profilesClient.CreatePatientProfileByReceptionistAsync(grpcRequest);
-            return Ok(new CreatedProfileWebResponse(response.ProfileId));
-        }
-        catch (RpcException ex)
-        {
-            _logger.LogWarning(ex, "Error creating patient profile by receptionist");
-            return BadRequest(new { error = ex.Status.Detail });
-        }
+        return Ok(new CreatedProfileWebResponse(response.ProfileId));
     }
 
     [HttpPost("doctors")]
-    [Authorize(Roles = "Receptionist")]
     public async Task<IActionResult> CreateDoctor([FromBody] CreateDoctorWebRequest request)
     {
-        var grpcRequest = new CreateDoctorRequest
+        var response = await _profilesClient.CreateDoctorProfileAsync(new CreateDoctorRequest
         {
             FirstName = request.FirstName,
             LastName = request.LastName,
@@ -138,25 +96,15 @@ public class ProfilesController : ControllerBase
             Status = request.Status ?? string.Empty,
             PhotoUrl = request.PhotoUrl ?? string.Empty,
             CreatedBy = GetEmail()
-        };
+        });
 
-        try
-        {
-            var response = await _profilesClient.CreateDoctorProfileAsync(grpcRequest);
-            return Ok(new CreatedProfileWebResponse(response.DoctorId));
-        }
-        catch (RpcException ex)
-        {
-            _logger.LogWarning(ex, "Error creating doctor profile");
-            return BadRequest(new { error = ex.Status.Detail });
-        }
+        return Ok(new CreatedProfileWebResponse(response.DoctorId));
     }
 
     [HttpPost("receptionists")]
-    [Authorize(Roles = "Receptionist")]
     public async Task<IActionResult> CreateReceptionist([FromBody] CreateReceptionistWebRequest request)
     {
-        var grpcRequest = new CreateReceptionistRequest
+        var response = await _profilesClient.CreateReceptionistProfileAsync(new CreateReceptionistRequest
         {
             FirstName = request.FirstName,
             LastName = request.LastName,
@@ -165,18 +113,9 @@ public class ProfilesController : ControllerBase
             OfficeId = request.OfficeId,
             PhotoUrl = request.PhotoUrl ?? string.Empty,
             CreatedBy = GetEmail()
-        };
+        });
 
-        try
-        {
-            var response = await _profilesClient.CreateReceptionistProfileAsync(grpcRequest);
-            return Ok(new CreatedProfileWebResponse(response.ReceptionistId));
-        }
-        catch (RpcException ex)
-        {
-            _logger.LogWarning(ex, "Error creating receptionist profile");
-            return BadRequest(new { error = ex.Status.Detail });
-        }
+        return Ok(new CreatedProfileWebResponse(response.ReceptionistId));
     }
 
     private string GetAccountId() =>

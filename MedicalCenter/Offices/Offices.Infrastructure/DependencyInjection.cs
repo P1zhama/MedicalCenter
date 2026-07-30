@@ -30,7 +30,7 @@ public static class DependencyInjection
             provider.GetRequiredService<IMongoClient>().GetDatabase(mongoSettings.DatabaseName));
 
         services.AddSingleton<OfficesDbContext>();
-        services.AddScoped<IOfficeRepository, OfficeRepository>();
+        services.AddScoped<IOfficeCommandRepository, OfficeCommandRepository>();
         services.AddScoped<IOfficeQueryRepository, OfficeQueryRepository>();
 
         services.AddMassTransit(x =>

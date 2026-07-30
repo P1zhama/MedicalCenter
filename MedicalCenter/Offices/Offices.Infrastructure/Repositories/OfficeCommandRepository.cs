@@ -7,13 +7,13 @@ using Offices.Infrastructure.Persistence;
 
 namespace Offices.Infrastructure.Repositories;
 
-public sealed class OfficeRepository : IOfficeRepository
+public sealed class OfficeCommandRepository : IOfficeCommandRepository
 {
     private readonly IMongoCollection<OfficeDocument> _offices;
     private readonly MongoDbContext _mongoDbContext;
     private readonly IPublishEndpoint _publishEndpoint;
 
-    public OfficeRepository(
+    public OfficeCommandRepository(
         OfficesDbContext context,
         MongoDbContext mongoDbContext,
         IPublishEndpoint publishEndpoint)
@@ -31,13 +31,6 @@ public sealed class OfficeRepository : IOfficeRepository
         var document = await _offices.Find(office => office.Id == id).FirstOrDefaultAsync(cancellationToken);
 
         return document?.ToDomain();
-    }
-
-    public async Task<IReadOnlyList<Office>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        var documents = await _offices.Find(FilterDefinition<OfficeDocument>.Empty).ToListAsync(cancellationToken);
-
-        return documents.Select(document => document.ToDomain()).ToList();
     }
 
     public async Task<bool> UpdateAsync(

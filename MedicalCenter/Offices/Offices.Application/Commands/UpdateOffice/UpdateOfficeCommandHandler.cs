@@ -9,12 +9,12 @@ namespace Offices.Application.Commands.UpdateOffice;
 
 public sealed class UpdateOfficeCommandHandler : IRequestHandler<UpdateOfficeCommand, ErrorOr<Success>>
 {
-    private readonly IOfficeRepository _officeRepository;
+    private readonly IOfficeCommandRepository _officeRepository;
     private readonly ICurrentUserProvider _currentUserProvider;
     private readonly TimeProvider _timeProvider;
 
     public UpdateOfficeCommandHandler(
-        IOfficeRepository officeRepository,
+        IOfficeCommandRepository officeRepository,
         ICurrentUserProvider currentUserProvider,
         TimeProvider timeProvider)
     {

@@ -8,12 +8,12 @@ namespace Offices.Application.Commands.ChangeOfficeStatus;
 
 public sealed class ChangeOfficeStatusCommandHandler : IRequestHandler<ChangeOfficeStatusCommand, ErrorOr<Success>>
 {
-    private readonly IOfficeRepository _officeRepository;
+    private readonly IOfficeCommandRepository _officeRepository;
     private readonly ICurrentUserProvider _currentUserProvider;
     private readonly TimeProvider _timeProvider;
 
     public ChangeOfficeStatusCommandHandler(
-        IOfficeRepository officeRepository,
+        IOfficeCommandRepository officeRepository,
         ICurrentUserProvider currentUserProvider,
         TimeProvider timeProvider)
     {

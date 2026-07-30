@@ -2,13 +2,11 @@ using Offices.Domain.Models;
 
 namespace Offices.Application.Common.Interfaces;
 
-public interface IOfficeRepository
+public interface IOfficeCommandRepository
 {
     Task AddAsync(Office office, CancellationToken cancellationToken = default);
 
     Task<Office?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<Office>> GetAllAsync(CancellationToken cancellationToken = default);
 
     Task<bool> UpdateAsync(
         Office office,

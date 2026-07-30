@@ -10,13 +10,13 @@ namespace Offices.Application.Commands.CreateOffice;
 
 public sealed class CreateOfficeCommandHandler : IRequestHandler<CreateOfficeCommand, ErrorOr<Guid>>
 {
-    private readonly IOfficeRepository _officeRepository;
+    private readonly IOfficeCommandRepository _officeRepository;
     private readonly ICurrentUserProvider _currentUserProvider;
     private readonly TimeProvider _timeProvider;
     private readonly IGuidProvider _guidProvider;
 
     public CreateOfficeCommandHandler(
-        IOfficeRepository officeRepository,
+        IOfficeCommandRepository officeRepository,
         ICurrentUserProvider currentUserProvider,
         TimeProvider timeProvider,
         IGuidProvider guidProvider)

@@ -1,10 +1,11 @@
+using ErrorOr;
 using MediatR;
 using Offices.Application.Common.Dtos;
 using Offices.Application.Common.Interfaces;
 
 namespace Offices.Application.Queries.GetOffices;
 
-public class GetOfficesQueryHandler : IRequestHandler<GetOfficesQuery, IReadOnlyList<OfficeListItemDto>>
+public class GetOfficesQueryHandler : IRequestHandler<GetOfficesQuery, ErrorOr<IReadOnlyList<OfficeListItemDto>>>
 {
     private readonly IOfficeQueryRepository _repository;
 
@@ -13,8 +14,10 @@ public class GetOfficesQueryHandler : IRequestHandler<GetOfficesQuery, IReadOnly
         _repository = repository;
     }
 
-    public async Task<IReadOnlyList<OfficeListItemDto>> Handle(GetOfficesQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<IReadOnlyList<OfficeListItemDto>>> Handle(GetOfficesQuery request, CancellationToken cancellationToken)
     {
-        return await _repository.GetAllAsync(cancellationToken);
+        var offices = await _repository.GetAllAsync(cancellationToken);
+
+        return ErrorOrFactory.From(offices);
     }
 }

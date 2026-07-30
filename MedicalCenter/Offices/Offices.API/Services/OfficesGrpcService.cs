@@ -79,11 +79,14 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
 
     public override async Task<GetOfficesResponse> GetOffices(GetOfficesRequest request, ServerCallContext context)
     {
-        var offices = await _sender.Send(new GetOfficesQuery(), context.CancellationToken);
+        var result = await _sender.Send(new GetOfficesQuery(), context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
 
         var response = new GetOfficesResponse();
 
-        foreach (var office in offices)
+        foreach (var office in result.Value)
         {
             response.Offices.Add(new OfficeListItem
             {

@@ -11,7 +11,8 @@ public static class RolePermissions
             {
                 Permissions.CreateOffice,
                 Permissions.EditOffice,
-                Permissions.ChangeOfficeStatus
+                Permissions.ChangeOfficeStatus,
+                Permissions.ViewOffices
             },
             [Roles.Doctor] = Empty,
             [Roles.Patient] = Empty

@@ -1,6 +1,7 @@
 using MongoDB.Driver;
 using Offices.Application.Common.Dtos;
 using Offices.Application.Common.Interfaces;
+using Offices.Domain.Enums;
 using Offices.Infrastructure.Persistence;
 
 namespace Offices.Infrastructure.Repositories;
@@ -26,6 +27,15 @@ public sealed class OfficeQueryRepository : IOfficeQueryRepository
         var documents = await _offices.Find(FilterDefinition<OfficeDocument>.Empty).ToListAsync(cancellationToken);
 
         return documents.Select(ToListItem).ToList();
+    }
+
+    public Task<bool> IsActiveAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var activeStatus = OfficeStatus.Active.ToString();
+
+        return _offices
+            .Find(office => office.Id == id && office.Status == activeStatus)
+            .AnyAsync(cancellationToken);
     }
 
     private static OfficeDto ToDto(OfficeDocument document) => new(

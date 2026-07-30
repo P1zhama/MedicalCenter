@@ -1,18 +1,17 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace Gateway.Api.Models;
 
 public record SignUpWebRequest(
-    [Required][EmailAddress] string Email,
-    [Required][MinLength(6)][MaxLength(15)] string Password
+    string Email,
+    string Password
 );
 
 public record SignUpWebResponse(string AccountId);
 
 public record SignInWebRequest(
-    [Required][EmailAddress] string Email,
-    [Required][MinLength(6)][MaxLength(15)] string Password
+    string Email,
+    string Password
 );
 
 public record SignInWebResponse(
@@ -24,7 +23,7 @@ public record SignInWebResponse(
 );
 
 public record ConfirmEmailWebRequest(
-    [Required] string Token
+    string Token
 );
 
 public record ConfirmEmailWebResponse(
@@ -32,7 +31,7 @@ public record ConfirmEmailWebResponse(
 );
 
 public record RefreshWebRequest(
-    [Required] string RefreshToken
+    string RefreshToken
 );
 
 public record RefreshWebResponse(
@@ -44,5 +43,5 @@ public record RefreshWebResponse(
 );
 
 public record SignOutWebRequest(
-    [Required] string RefreshToken
+    string RefreshToken
 );

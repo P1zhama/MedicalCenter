@@ -1,29 +1,27 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Gateway.Api.Models;
 
 public record CreateOfficeWebRequest(
-    [Required] string City,
-    [Required] string Street,
-    [Required] string HouseNumber,
-    string? OfficeNumber,
-    [Required] string RegistryPhoneNumber,
-    string? PhotoUrl,
-    string? Status
+    string City,
+    string Street,
+    string HouseNumber,
+    string OfficeNumber,
+    string RegistryPhoneNumber,
+    string PhotoUrl,
+    string Status
 );
 
 public record UpdateOfficeWebRequest(
-    [Required] string City,
-    [Required] string Street,
-    [Required] string HouseNumber,
-    string? OfficeNumber,
-    [Required] string RegistryPhoneNumber,
-    string? PhotoUrl,
-    [Required] string Status
+    string City,
+    string Street,
+    string HouseNumber,
+    string OfficeNumber,
+    string RegistryPhoneNumber,
+    string PhotoUrl,
+    string Status
 );
 
 public record ChangeOfficeStatusWebRequest(
-    [Required] string Status
+    string Status
 );
 
 public record CreatedOfficeWebResponse(string OfficeId);

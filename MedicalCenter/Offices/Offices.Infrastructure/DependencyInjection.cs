@@ -31,6 +31,7 @@ public static class DependencyInjection
 
         services.AddSingleton<OfficesDbContext>();
         services.AddScoped<IOfficeRepository, OfficeRepository>();
+        services.AddScoped<IOfficeQueryRepository, OfficeQueryRepository>();
 
         services.AddMassTransit(x =>
         {

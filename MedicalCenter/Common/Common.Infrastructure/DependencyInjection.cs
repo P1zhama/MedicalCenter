@@ -1,5 +1,7 @@
 using Common.Abstractions.Providers;
+using Common.Abstractions.Security;
 using Common.Infrastructure.Providers;
+using Common.Infrastructure.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -12,6 +14,9 @@ public static class DependencyInjection
         services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton<IGuidProvider, GuidProvider>();
         services.AddSingleton<IRandomProvider, RandomProvider>();
+
+        services.AddScoped<CurrentUserProvider>();
+        services.AddScoped<ICurrentUserProvider>(provider => provider.GetRequiredService<CurrentUserProvider>());
 
         return services;
     }

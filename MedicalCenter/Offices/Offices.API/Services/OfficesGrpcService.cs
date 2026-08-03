@@ -125,9 +125,12 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
 
     public override async Task<IsOfficeActiveResponse> IsOfficeActive(IsOfficeActiveRequest request, ServerCallContext context)
     {
-        var isActive = await _sender.Send(new IsOfficeActiveQuery(ParseGuid(request.OfficeId)), context.CancellationToken);
+        var result = await _sender.Send(new IsOfficeActiveQuery(ParseGuid(request.OfficeId)), context.CancellationToken);
 
-        return new IsOfficeActiveResponse { IsActive = isActive };
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new IsOfficeActiveResponse { IsActive = result.Value };
     }
 
     private static Guid ParseGuid(string value)

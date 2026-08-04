@@ -1,5 +1,7 @@
+using Common.Abstractions.Eventing;
 using Common.Abstractions.Providers;
 using Common.Abstractions.Security;
+using Common.Infrastructure.Eventing;
 using Common.Infrastructure.Providers;
 using Common.Infrastructure.Security;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +19,8 @@ public static class DependencyInjection
 
         services.AddScoped<CurrentUserProvider>();
         services.AddScoped<ICurrentUserProvider>(provider => provider.GetRequiredService<CurrentUserProvider>());
+
+        services.AddScoped<IEventPublisher, EventPublisher>();
 
         return services;
     }

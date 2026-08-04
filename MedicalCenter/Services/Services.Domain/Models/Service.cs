@@ -46,14 +46,14 @@ public sealed class Service : AggregateRoot<Guid>
         Guid createdBy,
         DateTimeOffset createdAt)
     {
-        Guard.NotNullOrWhiteSpace(name, nameof(name));
-        Guard.MaxLength(name.Trim(), 200, nameof(name));
+        var normalizedName = TextNormalization.CollapseWhitespace(Guard.NotNullOrWhiteSpace(name, nameof(name)));
+        Guard.MaxLength(normalizedName, 200, nameof(name));
         Guard.NotEmpty(specializationId, nameof(specializationId));
         Guard.NotEmpty(categoryId, nameof(categoryId));
 
         return new Service(
             id,
-            name.Trim(),
+            normalizedName,
             price,
             specializationId,
             categoryId,
@@ -70,11 +70,11 @@ public sealed class Service : AggregateRoot<Guid>
         Guid updatedBy,
         DateTimeOffset at)
     {
-        Guard.NotNullOrWhiteSpace(name, nameof(name));
-        Guard.MaxLength(name.Trim(), 200, nameof(name));
+        var normalizedName = TextNormalization.CollapseWhitespace(Guard.NotNullOrWhiteSpace(name, nameof(name)));
+        Guard.MaxLength(normalizedName, 200, nameof(name));
         Guard.NotEmpty(categoryId, nameof(categoryId));
 
-        Name = name.Trim();
+        Name = normalizedName;
         Price = price;
         CategoryId = categoryId;
         Status = status;

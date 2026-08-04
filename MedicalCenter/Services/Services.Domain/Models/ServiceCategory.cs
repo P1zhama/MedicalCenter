@@ -17,13 +17,13 @@ public sealed class ServiceCategory : Entity<Guid>
 
     public static ServiceCategory Create(Guid id, string name, int timeSlotMinutes)
     {
-        Guard.NotNullOrWhiteSpace(name, nameof(name));
-        Guard.MaxLength(name.Trim(), 100, nameof(name));
+        var normalizedName = TextNormalization.CollapseWhitespace(Guard.NotNullOrWhiteSpace(name, nameof(name)));
+        Guard.MaxLength(normalizedName, 100, nameof(name));
 
         if (timeSlotMinutes <= 0)
             throw new DomainException("Time slot size must be greater than zero.");
 
-        return new ServiceCategory(id, name.Trim(), timeSlotMinutes);
+        return new ServiceCategory(id, normalizedName, timeSlotMinutes);
     }
 
     public static ServiceCategory Restore(Guid id, string name, int timeSlotMinutes)

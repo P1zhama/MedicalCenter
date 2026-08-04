@@ -30,12 +30,12 @@ public sealed class Specialization : AggregateRoot<Guid>
         Guid createdBy,
         DateTimeOffset createdAt)
     {
-        Guard.NotNullOrWhiteSpace(name, nameof(name));
-        Guard.MaxLength(name.Trim(), 100, nameof(name));
+        var normalizedName = TextNormalization.CollapseWhitespace(Guard.NotNullOrWhiteSpace(name, nameof(name)));
+        Guard.MaxLength(normalizedName, 100, nameof(name));
 
         return new Specialization(
             id,
-            name.Trim(),
+            normalizedName,
             status,
             version: 1,
             new AuditInfo(createdBy, createdAt, null, null));
@@ -43,10 +43,10 @@ public sealed class Specialization : AggregateRoot<Guid>
 
     public void Update(string name, ActivityStatus status, Guid updatedBy, DateTimeOffset at)
     {
-        Guard.NotNullOrWhiteSpace(name, nameof(name));
-        Guard.MaxLength(name.Trim(), 100, nameof(name));
+        var normalizedName = TextNormalization.CollapseWhitespace(Guard.NotNullOrWhiteSpace(name, nameof(name)));
+        Guard.MaxLength(normalizedName, 100, nameof(name));
 
-        Name = name.Trim();
+        Name = normalizedName;
         Status = status;
         Audit = Audit.WithUpdate(updatedBy, at);
         Version++;

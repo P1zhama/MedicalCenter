@@ -3,8 +3,7 @@ using Authorization.Infrastructure.Authentication;
 using Authorization.Infrastructure.Messaging;
 using Authorization.Infrastructure.Notifications;
 using Authorization.Infrastructure.Persistence;
-using Authorization.Infrastructure.Persistence.Repositories;
-using Authorization.Infrastructure.Security;
+using Authorization.Infrastructure.Repositories;
 using Authorization.Infrastructure.Services;
 using Common.Infrastructure;
 using MassTransit;
@@ -27,12 +26,9 @@ public static class DependencyInjection
         services.Configure<EmailConfirmationSettings>(configuration.GetSection(EmailConfirmationSettings.SectionName));
         services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
 
-        services.AddScoped<CurrentUserProvider>();
-        services.AddScoped<ICurrentUserProvider>(provider => provider.GetRequiredService<CurrentUserProvider>());
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IEventPublisher, EventPublisher>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<ITokenHashGenerator, TokenHashGenerator>();
@@ -45,6 +41,9 @@ public static class DependencyInjection
         {
             bus.AddConsumer<AccountConfirmationRequestedConsumer>();
             bus.AddConsumer<WorkerCredentialsIssuedConsumer>();
+            bus.AddConsumer<ProfileLinkedToAccountEventConsumer>();
+            bus.AddConsumer<WorkerDeactivatedEventConsumer>();
+            bus.AddConsumer<WorkerReactivatedEventConsumer>();
 
             bus.AddEntityFrameworkOutbox<AuthDbContext>(outbox =>
             {

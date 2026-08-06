@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+option csharp_namespace = "Services.Api.Protos";
+
+package services;
+
+service ServicesService {
+    rpc CreateSpecialization (CreateSpecializationRequest) returns (CreateSpecializationResponse);
+    rpc UpdateSpecialization (UpdateSpecializationRequest) returns (UpdateSpecializationResponse);
+    rpc ChangeSpecializationStatus (ChangeSpecializationStatusRequest) returns (ChangeSpecializationStatusResponse);
+    rpc GetSpecializations (GetSpecializationsRequest) returns (GetSpecializationsResponse);
+    rpc GetSpecializationById (GetSpecializationByIdRequest) returns (SpecializationResponse);
+    rpc IsSpecializationActive (IsSpecializationActiveRequest) returns (IsSpecializationActiveResponse);
+
+    rpc CreateService (CreateServiceRequest) returns (CreateServiceResponse);
+    rpc UpdateService (UpdateServiceRequest) returns (UpdateServiceResponse);
+    rpc ChangeServiceStatus (ChangeServiceStatusRequest) returns (ChangeServiceStatusResponse);
+    rpc GetServiceById (GetServiceByIdRequest) returns (ServiceResponse);
+    rpc GetServiceCatalog (GetServiceCatalogRequest) returns (GetServiceCatalogResponse);
+    rpc GetServiceForAppointment (GetServiceForAppointmentRequest) returns (ServiceForAppointmentResponse);
+}
+
+message NewServiceItem {
+    string name = 1;
+    string price = 2;
+    string category_id = 3;
+    string status = 4;
+}
+
+message CreateSpecializationRequest {
+    string name = 1;
+    string status = 2;
+    repeated NewServiceItem services = 3;
+}
+
+message CreateSpecializationResponse {
+    string specialization_id = 1;
+}
+
+message UpdateSpecializationRequest {
+    string specialization_id = 1;
+    string name = 2;
+    string status = 3;
+}
+
+message UpdateSpecializationResponse {
+}
+
+message ChangeSpecializationStatusRequest {
+    string specialization_id = 1;
+    string status = 2;
+}
+
+message ChangeSpecializationStatusResponse {
+}
+
+message GetSpecializationsRequest {
+}
+
+message SpecializationListItem {
+    string specialization_id = 1;
+    string name = 2;
+    string status = 3;
+}
+
+message GetSpecializationsResponse {
+    repeated SpecializationListItem specializations = 1;
+}
+
+message GetSpecializationByIdRequest {
+    string specialization_id = 1;
+}
+
+message ServiceListItem {
+    string service_id = 1;
+    string name = 2;
+    string price = 3;
+    string status = 4;
+    string category_id = 5;
+    string category_name = 6;
+}
+
+message SpecializationResponse {
+    string specialization_id = 1;
+    string name = 2;
+    string status = 3;
+    repeated ServiceListItem services = 4;
+}
+
+message IsSpecializationActiveRequest {
+    string specialization_id = 1;
+}
+
+message IsSpecializationActiveResponse {
+    bool is_active = 1;
+}
+
+message CreateServiceRequest {
+    string name = 1;
+    string price = 2;
+    string specialization_id = 3;
+    string category_id = 4;
+    string status = 5;
+}
+
+message CreateServiceResponse {
+    string service_id = 1;
+}
+
+message UpdateServiceRequest {
+    string service_id = 1;
+    string name = 2;
+    string price = 3;
+    string category_id = 4;
+    string status = 5;
+}
+
+message UpdateServiceResponse {
+}
+
+message ChangeServiceStatusRequest {
+    string service_id = 1;
+    string status = 2;
+}
+
+message ChangeServiceStatusResponse {
+}
+
+message GetServiceByIdRequest {
+    string service_id = 1;
+}
+
+message ServiceResponse {
+    string service_id = 1;
+    string name = 2;
+    string price = 3;
+    string status = 4;
+    string category_id = 5;
+    string category_name = 6;
+    string specialization_id = 7;
+    string specialization_name = 8;
+}
+
+message GetServiceCatalogRequest {
+}
+
+message CatalogService {
+    string service_id = 1;
+    string name = 2;
+    string price = 3;
+}
+
+message CatalogSpecialization {
+    string specialization_id = 1;
+    string name = 2;
+    repeated CatalogService services = 3;
+}
+
+message CatalogCategory {
+    string category_id = 1;
+    string name = 2;
+    repeated CatalogSpecialization specializations = 3;
+}
+
+message GetServiceCatalogResponse {
+    repeated CatalogCategory categories = 1;
+}
+
+message GetServiceForAppointmentRequest {
+    string service_id = 1;
+}
+
+message ServiceForAppointmentResponse {
+    string service_id = 1;
+    string name = 2;
+    string price = 3;
+    string specialization_id = 4;
+    string category_id = 5;
+    int32 time_slot_minutes = 6;
+    bool is_active = 7;
+}

@@ -1,5 +1,5 @@
-using Authorization.API.ErrorMapping;
-using Authorization.API.Protos;
+using Authorization.Api.ErrorMapping;
+using Authorization.Api.Protos;
 using Authorization.Application.Accounts.ConfirmEmail;
 using Authorization.Application.Accounts.Refresh;
 using Authorization.Application.Accounts.SignIn;
@@ -9,7 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using MediatR;
 
-namespace Authorization.API.Services;
+namespace Authorization.Api.Services;
 
 public sealed class AuthGrpcService : AuthService.AuthServiceBase
 {

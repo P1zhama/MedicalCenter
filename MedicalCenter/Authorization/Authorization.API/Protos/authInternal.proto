@@ -1,12 +1,13 @@
 syntax = "proto3";
 
-option csharp_namespace = "Authorization.API.Protos";
+option csharp_namespace = "Authorization.Api.Protos";
 
 package authInternal;
 
 service AuthInternalService {
     rpc CreateWorkerAccount (CreateWorkerRequest) returns (CreateWorkerResponse);
     rpc DeleteWorkerAccount (DeleteWorkerRequest) returns (DeleteWorkerResponse);
+    rpc DeletePatientAccount (DeletePatientRequest) returns (DeletePatientResponse);
 }
 
 message CreateWorkerRequest {
@@ -24,4 +25,11 @@ message DeleteWorkerRequest {
 }
 
 message DeleteWorkerResponse {
+}
+
+message DeletePatientRequest {
+    string account_id = 1;
+}
+
+message DeletePatientResponse {
 }

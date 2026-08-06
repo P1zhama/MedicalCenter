@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 
-option csharp_namespace = "Authorization.API.Protos";
+option csharp_namespace = "Authorization.Api.Protos";
 
 package auth;
 

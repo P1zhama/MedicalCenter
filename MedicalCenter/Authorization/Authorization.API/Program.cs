@@ -1,6 +1,7 @@
-using Authorization.API.Interceptors;
-using Authorization.API.Services;
+using Authorization.Api.Interceptors;
+using Authorization.Api.Services;
 using Authorization.Application;
+using Common.Api.Interceptors;
 using Authorization.Infrastructure;
 using Authorization.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +32,6 @@ try
     builder.Services.AddGrpc(options =>
     {
         options.Interceptors.Add<CorrelationIdInterceptor>();
-        options.Interceptors.Add<UserContextInterceptor>();
         options.Interceptors.Add<GrpcExceptionInterceptor>();
     });
 

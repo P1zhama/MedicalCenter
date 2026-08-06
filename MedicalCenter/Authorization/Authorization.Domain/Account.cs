@@ -22,9 +22,18 @@ public sealed class Account : AggregateRoot<Guid>
 
     public DateTimeOffset? EmailConfirmationTokenExpiresAt { get; private set; }
 
+    public Guid? ProfileId { get; private set; }
+
     public bool IsEmailConfirmed => EmailConfirmedAt.HasValue;
 
+    public bool HasProfile => ProfileId.HasValue;
+
     public IReadOnlyCollection<AccountClaim> Claims => _claims.AsReadOnly();
+
+    public string? Role => _claims
+        .FirstOrDefault(claim => claim.Type == AppClaimTypes.Role)?.Value;
+
+    public bool IsWorker => Roles.IsWorker(Role);
 
     private Account(
         Guid id,
@@ -34,6 +43,7 @@ public sealed class Account : AggregateRoot<Guid>
         DateTimeOffset? emailConfirmedAt,
         string? emailConfirmationTokenHash,
         DateTimeOffset? emailConfirmationTokenExpiresAt,
+        Guid? profileId,
         long version,
         AuditInfo audit)
         : base(id, version, audit)
@@ -44,10 +54,12 @@ public sealed class Account : AggregateRoot<Guid>
         EmailConfirmedAt = emailConfirmedAt;
         EmailConfirmationTokenHash = emailConfirmationTokenHash;
         EmailConfirmationTokenExpiresAt = emailConfirmationTokenExpiresAt;
+        ProfileId = profileId;
     }
 
     public static ErrorOr<Account> CreatePatient(
         Guid id,
+        Guid roleClaimId,
         Email email,
         string passwordHash,
         string emailConfirmationTokenHash,
@@ -69,16 +81,18 @@ public sealed class Account : AggregateRoot<Guid>
             emailConfirmedAt: null,
             emailConfirmationTokenHash,
             emailConfirmationTokenExpiresAt,
+            profileId: null,
             version: 1,
             new AuditInfo(createdBy, createdAt, null, null));
 
-        account._claims.Add(AccountClaim.Role(Guid.NewGuid(), account.Id, Roles.Patient, createdAt));
+        account._claims.Add(AccountClaim.Role(roleClaimId, account.Id, Roles.Patient, createdAt));
 
         return account;
     }
 
     public static ErrorOr<Account> CreateWorker(
         Guid id,
+        Guid roleClaimId,
         Email email,
         string passwordHash,
         string role,
@@ -99,10 +113,11 @@ public sealed class Account : AggregateRoot<Guid>
             emailConfirmedAt: createdAt,
             emailConfirmationTokenHash: null,
             emailConfirmationTokenExpiresAt: null,
+            profileId: null,
             version: 1,
             new AuditInfo(createdBy, createdAt, null, null));
 
-        account._claims.Add(AccountClaim.Role(Guid.NewGuid(), account.Id, role, createdAt));
+        account._claims.Add(AccountClaim.Role(roleClaimId, account.Id, role, createdAt));
 
         return account;
     }
@@ -166,38 +181,50 @@ public sealed class Account : AggregateRoot<Guid>
         return Result.Success;
     }
 
-    public ErrorOr<Success> GrantPermission(string permission, DateTimeOffset grantedAt, Guid updatedBy)
+    public ErrorOr<Success> Deactivate(Guid updatedBy, DateTimeOffset at)
     {
-        if (string.IsNullOrWhiteSpace(permission))
-            return Error.Validation("Account.Permission", "Permission must not be empty.");
+        if (Status == AccountStatus.Deactivated)
+            return Result.Success;
 
-        if (HasClaim(AppClaimTypes.Permission, permission))
-            return Error.Conflict("Account.PermissionAlreadyGranted", $"Permission '{permission}' is already granted.");
-
-        _claims.Add(AccountClaim.Permission(Guid.NewGuid(), Id, permission, grantedAt));
-        Audit = Audit.WithUpdate(updatedBy, grantedAt);
+        Status = AccountStatus.Deactivated;
+        Audit = Audit.WithUpdate(updatedBy, at);
         Version++;
 
         return Result.Success;
     }
 
-    public ErrorOr<Success> RevokePermission(string permission, DateTimeOffset revokedAt, Guid updatedBy)
+    public ErrorOr<Success> Reactivate(Guid updatedBy, DateTimeOffset at)
     {
-        var claim = _claims.FirstOrDefault(
-            existing => existing.Type == AppClaimTypes.Permission && existing.Value == permission);
+        if (Status != AccountStatus.Deactivated)
+            return Result.Success;
 
-        if (claim is null)
-            return Error.NotFound("Account.PermissionNotGranted", $"Permission '{permission}' is not granted.");
+        if (!IsEmailConfirmed)
+            return Error.Conflict("Account.EmailNotConfirmed", "Cannot reactivate an account with an unconfirmed email.");
 
-        _claims.Remove(claim);
-        Audit = Audit.WithUpdate(updatedBy, revokedAt);
+        Status = AccountStatus.Active;
+        Audit = Audit.WithUpdate(updatedBy, at);
         Version++;
 
         return Result.Success;
     }
 
-    public bool HasClaim(string type, string value)
-        => _claims.Any(claim => claim.Type == type && claim.Value == value);
+    public ErrorOr<Success> LinkProfile(Guid profileId, Guid updatedBy, DateTimeOffset at)
+    {
+        if (profileId == Guid.Empty)
+            return Error.Validation("Account.ProfileId", "Profile id must not be empty.");
+
+        if (ProfileId == profileId)
+            return Result.Success;
+
+        if (HasProfile)
+            return Error.Conflict("Account.ProfileAlreadyLinked", "Account is already linked to a profile.");
+
+        ProfileId = profileId;
+        Audit = Audit.WithUpdate(updatedBy, at);
+        Version++;
+
+        return Result.Success;
+    }
 
     public static Account Restore(
         Guid id,
@@ -207,6 +234,7 @@ public sealed class Account : AggregateRoot<Guid>
         DateTimeOffset? emailConfirmedAt,
         string? emailConfirmationTokenHash,
         DateTimeOffset? emailConfirmationTokenExpiresAt,
+        Guid? profileId,
         long version,
         AuditInfo audit,
         IEnumerable<AccountClaim> claims)
@@ -219,6 +247,7 @@ public sealed class Account : AggregateRoot<Guid>
             emailConfirmedAt,
             emailConfirmationTokenHash,
             emailConfirmationTokenExpiresAt,
+            profileId,
             version,
             audit);
 

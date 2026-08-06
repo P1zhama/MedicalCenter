@@ -29,12 +29,6 @@ public sealed class AccountClaim : Entity<Guid>
     public static AccountClaim Role(Guid id, Guid accountId, string role, DateTimeOffset createdAt)
         => Create(id, accountId, AppClaimTypes.Role, role, createdAt);
 
-    public static AccountClaim Permission(Guid id, Guid accountId, string permission, DateTimeOffset createdAt)
-        => Create(id, accountId, AppClaimTypes.Permission, permission, createdAt);
-
-    public static AccountClaim Department(Guid id, Guid accountId, string department, DateTimeOffset createdAt)
-        => Create(id, accountId, AppClaimTypes.Department, department, createdAt);
-
     public static AccountClaim Restore(Guid id, Guid accountId, string type, string value, DateTimeOffset createdAt)
         => new(id, accountId, type, value, createdAt);
 

@@ -30,12 +30,11 @@ public sealed class ChangeOfficeStatusCommandHandler : IRequestHandler<ChangeOff
 
         var now = _timeProvider.GetUtcNow();
         var updatedBy = _currentUserProvider.User?.Id ?? Guid.Empty;
-        var wasActive = office.IsActive;
         var expectedVersion = office.Version;
 
-        office.ChangeStatus(request.Status, updatedBy, now);
+        var deactivated = office.ChangeStatus(request.Status, updatedBy, now);
 
-        var integrationEvents = OfficeIntegrationEvents.ForStatusChange(wasActive, office, now);
+        var integrationEvents = OfficeIntegrationEvents.ForDeactivation(deactivated, office, now);
 
         var updated = await _officeRepository.UpdateAsync(office, expectedVersion, integrationEvents, cancellationToken);
         if (!updated)

@@ -33,10 +33,9 @@ public sealed class UpdateOfficeCommandHandler : IRequestHandler<UpdateOfficeCom
 
         var now = _timeProvider.GetUtcNow();
         var updatedBy = _currentUserProvider.User?.Id ?? Guid.Empty;
-        var wasActive = office.IsActive;
         var expectedVersion = office.Version;
 
-        office.Update(
+        var deactivated = office.Update(
             address,
             request.RegistryPhoneNumber,
             request.PhotoUrl,
@@ -44,7 +43,7 @@ public sealed class UpdateOfficeCommandHandler : IRequestHandler<UpdateOfficeCom
             updatedBy,
             now);
 
-        var integrationEvents = OfficeIntegrationEvents.ForStatusChange(wasActive, office, now);
+        var integrationEvents = OfficeIntegrationEvents.ForDeactivation(deactivated, office, now);
 
         var updated = await _officeRepository.UpdateAsync(office, expectedVersion, integrationEvents, cancellationToken);
         if (!updated)

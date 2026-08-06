@@ -53,7 +53,7 @@ public sealed class Office : AggregateRoot<Guid>
             new AuditInfo(createdBy, createdAt, null, null));
     }
 
-    public void Update(
+    public bool Update(
         Address address,
         string registryPhoneNumber,
         string? photoUrl,
@@ -63,20 +63,31 @@ public sealed class Office : AggregateRoot<Guid>
     {
         Guard.NotNullOrWhiteSpace(registryPhoneNumber, nameof(registryPhoneNumber));
 
+        var deactivated = IsDeactivating(status);
+
         Address = address;
         RegistryPhoneNumber = registryPhoneNumber.Trim();
         PhotoUrl = photoUrl;
         Status = status;
         Audit = Audit.WithUpdate(updatedBy, at);
         Version++;
+
+        return deactivated;
     }
 
-    public void ChangeStatus(OfficeStatus status, Guid updatedBy, DateTimeOffset at)
+    public bool ChangeStatus(OfficeStatus status, Guid updatedBy, DateTimeOffset at)
     {
+        var deactivated = IsDeactivating(status);
+
         Status = status;
         Audit = Audit.WithUpdate(updatedBy, at);
         Version++;
+
+        return deactivated;
     }
+
+    private bool IsDeactivating(OfficeStatus status)
+        => IsActive && status != OfficeStatus.Active;
 
     public static Office Restore(
         Guid id,

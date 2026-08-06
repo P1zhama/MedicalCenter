@@ -1,0 +1,21 @@
+services:
+  services-api:
+    build:
+      context: .
+      dockerfile: Services/Services.Api/Dockerfile
+    container_name: services-api
+    depends_on:
+      sql-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sql-server;Database=MmcServicesDb;User Id=sa;Password=Your_Strong!Password123;TrustServerCertificate=True;
+      - RabbitMqSettings__Host=rabbitmq
+      - RabbitMqSettings__Username=guest
+      - RabbitMqSettings__Password=guest
+    networks:
+      - medical-network

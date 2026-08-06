@@ -15,7 +15,8 @@ public class AccountConfiguration : IEntityTypeConfiguration<AccountEntity>
         builder.Property(a => a.Email)
             .HasColumnName("email")
             .IsRequired()
-            .HasMaxLength(254);
+            .HasMaxLength(254)
+            .UseCollation("Latin1_General_100_CI_AS");
 
         builder.Property(a => a.PasswordHash)
             .HasColumnName("password_hash")
@@ -36,6 +37,9 @@ public class AccountConfiguration : IEntityTypeConfiguration<AccountEntity>
 
         builder.Property(a => a.EmailConfirmationTokenExpiresAt)
             .HasColumnName("email_confirmation_token_expires_at");
+
+        builder.Property(a => a.ProfileId)
+            .HasColumnName("profile_id");
 
         builder.Property(a => a.Version)
             .HasColumnName("version")

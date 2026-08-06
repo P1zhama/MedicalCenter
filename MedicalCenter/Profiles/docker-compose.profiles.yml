@@ -2,7 +2,7 @@ services:
   profiles-api:
     build:
       context: .
-      dockerfile: Profiles/Profiles.API/Dockerfile
+      dockerfile: Profiles/Profiles.Api/Dockerfile
     container_name: profiles-api
     depends_on:
       sql-server:
@@ -18,5 +18,7 @@ services:
       - RabbitMqSettings__Username=guest
       - RabbitMqSettings__Password=guest
       - GrpcClients__Authorization=http://authorization-api:8080
+      - GrpcClients__Offices=http://offices-api:8080
+      - GrpcClients__Services=http://services-api:8080
     networks:
       - medical-network

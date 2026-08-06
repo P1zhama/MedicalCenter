@@ -3,6 +3,7 @@ using Authorization.Application.Common.Messaging;
 using Authorization.Domain;
 using Authorization.Domain.Constants;
 using Authorization.Domain.ValueObjects;
+using Common.Abstractions.Eventing;
 using Common.Abstractions.Providers;
 using ErrorOr;
 using MediatR;
@@ -58,6 +59,8 @@ public sealed class SignUpCommandHandler
 
         if (existing is not null)
         {
+            var expectedVersion = existing.Version;
+
             var reissue = existing.ReissueConfirmation(
                 passwordHash,
                 confirmationToken.TokenHash,
@@ -67,13 +70,14 @@ public sealed class SignUpCommandHandler
             if (reissue.IsError)
                 return reissue.Errors;
 
-            await _accountRepository.UpdateAsync(existing, cancellationToken);
+            await _accountRepository.UpdateAsync(existing, expectedVersion, cancellationToken);
 
             await _eventPublisher.PublishAsync(
                 new AccountConfirmationRequested(existing.Id, existing.Email.Value, confirmationToken.Token),
                 cancellationToken);
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+                return Error.Conflict("Account.ConcurrencyConflict", "Account was modified by another operation. Please retry.");
 
             _logger.LogInformation("Reissued email confirmation for pending account {AccountId}", existing.Id);
 
@@ -84,6 +88,7 @@ public sealed class SignUpCommandHandler
 
         var accountResult = Account.CreatePatient(
             id,
+            _guidProvider.NewGuid(),
             emailResult.Value,
             passwordHash,
             confirmationToken.TokenHash,
@@ -100,7 +105,8 @@ public sealed class SignUpCommandHandler
             new AccountConfirmationRequested(accountResult.Value.Id, accountResult.Value.Email.Value, confirmationToken.Token),
             cancellationToken);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+            return Error.Conflict("Account.ConcurrencyConflict", "Account was modified by another operation. Please retry.");
 
         _logger.LogInformation(
             "Account {AccountId} signed up with role {Role}",

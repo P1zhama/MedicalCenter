@@ -47,7 +47,9 @@ public sealed class SignOutCommandHandler
             return revoke.Errors;
 
         await _refreshTokenRepository.UpdateAsync(storedToken, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+            return Error.Conflict("Account.ConcurrencyConflict", "Refresh token was modified by another operation. Please retry.");
 
         _logger.LogInformation("Account {AccountId} signed out; refresh token revoked", storedToken.AccountId);
 

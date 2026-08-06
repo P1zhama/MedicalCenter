@@ -114,7 +114,9 @@ public sealed class RefreshCommandHandler
 
         await _refreshTokenRepository.AddAsync(newTokenResult.Value, cancellationToken);
         await _refreshTokenRepository.UpdateAsync(storedToken, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+            return Error.Conflict("Account.ConcurrencyConflict", "Refresh token was modified by another operation. Please retry.");
 
         _logger.LogInformation("Refreshed tokens for account {AccountId}", account.Id);
 

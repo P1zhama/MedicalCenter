@@ -1,0 +1,59 @@
+using Authorization.Application.Common.Interfaces;
+using ErrorOr;
+using MediatR;
+using Microsoft.Extensions.Logging;
+
+namespace Authorization.Application.Accounts.LinkProfile;
+
+public sealed class LinkProfileCommandHandler : IRequestHandler<LinkProfileCommand, ErrorOr<Success>>
+{
+    private readonly IAccountRepository _accountRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly TimeProvider _timeProvider;
+    private readonly ILogger<LinkProfileCommandHandler> _logger;
+
+    public LinkProfileCommandHandler(
+        IAccountRepository accountRepository,
+        IUnitOfWork unitOfWork,
+        TimeProvider timeProvider,
+        ILogger<LinkProfileCommandHandler> logger)
+    {
+        _accountRepository = accountRepository;
+        _unitOfWork = unitOfWork;
+        _timeProvider = timeProvider;
+        _logger = logger;
+    }
+
+    public async Task<ErrorOr<Success>> Handle(LinkProfileCommand request, CancellationToken cancellationToken)
+    {
+        var account = await _accountRepository.GetByIdAsync(request.AccountId, cancellationToken);
+        if (account is null)
+        {
+            _logger.LogWarning("Profile link skipped: account {AccountId} was not found", request.AccountId);
+
+            return Result.Success;
+        }
+
+        var now = _timeProvider.GetUtcNow();
+        var expectedVersion = account.Version;
+
+        var result = account.LinkProfile(request.ProfileId, account.Id, now);
+        if (result.IsError)
+            return result.Errors;
+
+        if (account.Version == expectedVersion)
+            return Result.Success;
+
+        await _accountRepository.UpdateAsync(account, expectedVersion, cancellationToken);
+
+        if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+            return Error.Conflict("Account.ConcurrencyConflict", "Account was modified by another operation. Please retry.");
+
+        _logger.LogInformation(
+            "Account {AccountId} linked to profile {ProfileId}",
+            request.AccountId,
+            request.ProfileId);
+
+        return Result.Success;
+    }
+}

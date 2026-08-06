@@ -3,6 +3,7 @@ using Authorization.Application.Common.Messaging;
 using Authorization.Domain;
 using Authorization.Domain.Constants;
 using Authorization.Domain.ValueObjects;
+using Common.Abstractions.Eventing;
 using Common.Abstractions.Providers;
 using ErrorOr;
 using MediatR;
@@ -59,7 +60,14 @@ public sealed class CreateWorkerAccountCommandHandler
         var now = _timeProvider.GetUtcNow();
         var id = _guidProvider.NewGuid();
 
-        var accountResult = Account.CreateWorker(id, emailResult.Value, passwordHash, request.RoleName, request.CreatedBy, now);
+        var accountResult = Account.CreateWorker(
+            id,
+            _guidProvider.NewGuid(),
+            emailResult.Value,
+            passwordHash,
+            request.RoleName,
+            request.CreatedBy,
+            now);
         if (accountResult.IsError)
             return accountResult.Errors;
 
@@ -69,7 +77,8 @@ public sealed class CreateWorkerAccountCommandHandler
             new WorkerCredentialsIssued(id, emailResult.Value.Value, password),
             cancellationToken);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+            return Error.Conflict("Account.ConcurrencyConflict", "Account was modified by another operation. Please retry.");
 
         _logger.LogInformation("Worker account {AccountId} created with role {Role}", id, request.RoleName);
 

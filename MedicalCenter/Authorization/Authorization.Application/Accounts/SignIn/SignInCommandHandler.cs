@@ -103,7 +103,9 @@ public sealed class SignInCommandHandler
             return refreshTokenResult.Errors;
 
         await _refreshTokenRepository.AddAsync(refreshTokenResult.Value, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+            return Error.Conflict("Account.ConcurrencyConflict", "Account was modified by another operation. Please retry.");
 
         _logger.LogInformation(
             "Account {AccountId} signed in, access token expires at {AccessTokenExpiresAt}",

@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\Common.Abstractions\Common.Abstractions.csproj" />
     <ProjectReference Include="..\Authorization.Domain\Authorization.Domain.csproj" />
   </ItemGroup>
 

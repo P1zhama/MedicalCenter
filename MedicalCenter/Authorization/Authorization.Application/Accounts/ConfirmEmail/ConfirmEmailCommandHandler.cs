@@ -41,6 +41,7 @@ public sealed class ConfirmEmailCommandHandler
         }
 
         var now = _timeProvider.GetUtcNow();
+        var expectedVersion = account.Version;
 
         var result = account.ConfirmEmail(tokenHash, now, account.Id);
         if (result.IsError)
@@ -53,8 +54,10 @@ public sealed class ConfirmEmailCommandHandler
             return result.Errors;
         }
 
-        await _accountRepository.UpdateAsync(account, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _accountRepository.UpdateAsync(account, expectedVersion, cancellationToken);
+
+        if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+            return Error.Conflict("Account.ConcurrencyConflict", "Account was modified by another operation. Please retry.");
 
         _logger.LogInformation("Account {AccountId} confirmed email", account.Id);
 

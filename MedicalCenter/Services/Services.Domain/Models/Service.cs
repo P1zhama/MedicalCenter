@@ -62,7 +62,7 @@ public sealed class Service : AggregateRoot<Guid>
             new AuditInfo(createdBy, createdAt, null, null));
     }
 
-    public void Update(
+    public bool Update(
         string name,
         Price price,
         Guid categoryId,
@@ -74,20 +74,31 @@ public sealed class Service : AggregateRoot<Guid>
         Guard.MaxLength(normalizedName, 200, nameof(name));
         Guard.NotEmpty(categoryId, nameof(categoryId));
 
+        var deactivated = IsDeactivating(status);
+
         Name = normalizedName;
         Price = price;
         CategoryId = categoryId;
         Status = status;
         Audit = Audit.WithUpdate(updatedBy, at);
         Version++;
+
+        return deactivated;
     }
 
-    public void ChangeStatus(ActivityStatus status, Guid updatedBy, DateTimeOffset at)
+    public bool ChangeStatus(ActivityStatus status, Guid updatedBy, DateTimeOffset at)
     {
+        var deactivated = IsDeactivating(status);
+
         Status = status;
         Audit = Audit.WithUpdate(updatedBy, at);
         Version++;
+
+        return deactivated;
     }
+
+    private bool IsDeactivating(ActivityStatus status)
+        => IsActive && status != ActivityStatus.Active;
 
     public static Service Restore(
         Guid id,

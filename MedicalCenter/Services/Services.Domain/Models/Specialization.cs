@@ -41,23 +41,34 @@ public sealed class Specialization : AggregateRoot<Guid>
             new AuditInfo(createdBy, createdAt, null, null));
     }
 
-    public void Update(string name, ActivityStatus status, Guid updatedBy, DateTimeOffset at)
+    public bool Update(string name, ActivityStatus status, Guid updatedBy, DateTimeOffset at)
     {
         var normalizedName = TextNormalization.CollapseWhitespace(Guard.NotNullOrWhiteSpace(name, nameof(name)));
         Guard.MaxLength(normalizedName, 100, nameof(name));
+
+        var deactivated = IsDeactivating(status);
 
         Name = normalizedName;
         Status = status;
         Audit = Audit.WithUpdate(updatedBy, at);
         Version++;
+
+        return deactivated;
     }
 
-    public void ChangeStatus(ActivityStatus status, Guid updatedBy, DateTimeOffset at)
+    public bool ChangeStatus(ActivityStatus status, Guid updatedBy, DateTimeOffset at)
     {
+        var deactivated = IsDeactivating(status);
+
         Status = status;
         Audit = Audit.WithUpdate(updatedBy, at);
         Version++;
+
+        return deactivated;
     }
+
+    private bool IsDeactivating(ActivityStatus status)
+        => IsActive && status != ActivityStatus.Active;
 
     public static Specialization Restore(
         Guid id,

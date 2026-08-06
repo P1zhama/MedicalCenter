@@ -4,7 +4,7 @@ namespace MedicalCenter.Shared.Contracts;
 
 public record ProfileLinkedToAccountEvent(
     Guid AccountId,
-    Guid PatientId,
+    Guid ProfileId,
     DateTime LinkedAt
 );
  

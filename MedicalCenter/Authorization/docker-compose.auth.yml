@@ -2,7 +2,7 @@ services:
   authorization-api:
     build:
       context: .
-      dockerfile: Authorization/Authorization.API/Dockerfile
+      dockerfile: Authorization/Authorization.Api/Dockerfile
     container_name: authorization-api
     depends_on:
       sql-server:

@@ -1,8 +1,7 @@
+using Common.Abstractions.Security;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Profiles.Application.Common.Interfaces;
-using Profiles.Application.Common.Security;
 using Profiles.Domain.Constants;
 
 namespace Profiles.Application.Common.Behaviors;

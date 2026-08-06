@@ -1,8 +1,9 @@
+using Common.Domain.Exceptions;
 using FluentValidation;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 
-namespace Profiles.API.Interceptors;
+namespace Profiles.Api.Interceptors;
 
 public class GrpcExceptionInterceptor : Interceptor
 {
@@ -30,6 +31,11 @@ public class GrpcExceptionInterceptor : Interceptor
         {
             var details = string.Join("; ", ex.Errors.Select(e => e.ErrorMessage));
             throw new RpcException(new Status(StatusCode.InvalidArgument, details));
+        }
+        catch (DomainException ex)
+        {
+            _logger.LogWarning(ex, "Domain invariant violated in gRPC method {Method}", context.Method);
+            throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
         }
         catch (Exception ex) when (ex is FormatException or ArgumentException)
         {

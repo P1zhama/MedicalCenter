@@ -1,6 +1,7 @@
+using Common.Api.Interceptors;
 using Microsoft.EntityFrameworkCore;
-using Profiles.API.Interceptors;
-using Profiles.API.Services;
+using Profiles.Api.Interceptors;
+using Profiles.Api.Services;
 using Profiles.Application;
 using Profiles.Infrastructure;
 using Serilog;
@@ -31,6 +32,7 @@ try
 
     builder.Services.AddGrpc(options =>
     {
+        options.Interceptors.Add<CorrelationIdInterceptor>();
         options.Interceptors.Add<UserContextInterceptor>();
         options.Interceptors.Add<GrpcExceptionInterceptor>();
     });
@@ -47,7 +49,7 @@ try
         var services = scope.ServiceProvider;
         try
         {
-            var context = services.GetRequiredService<Profiles.Infrastructure.Persistence.ApplicationDbContext>();
+            var context = services.GetRequiredService<Profiles.Infrastructure.Persistence.ProfilesDbContext>();
 
             if (context.Database.IsSqlServer())
             {

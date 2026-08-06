@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\Common.Api\Common.Api.csproj" />
     <ProjectReference Include="..\Profiles.Application\Profiles.Application.csproj" />
     <ProjectReference Include="..\Profiles.Infrastructure\Profiles.Infrastructure.csproj" />
   </ItemGroup>

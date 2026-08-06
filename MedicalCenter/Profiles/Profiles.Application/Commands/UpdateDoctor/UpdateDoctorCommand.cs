@@ -4,20 +4,20 @@ using MediatR;
 using Profiles.Domain.Constants;
 using Profiles.Domain.Enums;
 
-namespace Profiles.Application.Commands.CreateDoctor;
+namespace Profiles.Application.Commands.UpdateDoctor;
 
-public record CreateDoctorCommand(
+public record UpdateDoctorCommand(
+    Guid Id,
     string FirstName,
     string LastName,
     string? MiddleName,
     DateOnly DateOfBirth,
-    string Email,
     Guid SpecializationId,
     Guid OfficeId,
     int CareerStartYear,
     DoctorStatus Status,
     string? PhotoUrl
-) : IRequest<ErrorOr<Guid>>, IAuthorizedRequest
+) : IRequest<ErrorOr<Success>>, IAuthorizedRequest
 {
-    public string RequiredPermission => Permissions.CreateDoctor;
+    public string RequiredPermission => Permissions.EditDoctor;
 }

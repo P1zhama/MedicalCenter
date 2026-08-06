@@ -1,9 +1,13 @@
+using Common.Abstractions.Eventing;
 using Common.Abstractions.Providers;
+using Common.Abstractions.Security;
 using ErrorOr;
 using MediatR;
+using MedicalCenter.Shared.Contracts;
 using Microsoft.Extensions.Logging;
 using Profiles.Application.Common.Interfaces;
 using Profiles.Domain;
+using Profiles.Domain.Enums;
 using Profiles.Domain.ValueObjects;
 
 namespace Profiles.Application.Commands.CreateReceptionist;
@@ -14,23 +18,32 @@ public sealed class CreateReceptionistCommandHandler
     private const string ReceptionistRole = "Receptionist";
 
     private readonly IAuthorizationServiceClient _authorizationServiceClient;
-    private readonly IReceptionistRepository _receptionistRepository;
+    private readonly IOfficeServiceClient _officeServiceClient;
+    private readonly IReceptionistCommandRepository _receptionistRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEventPublisher _eventPublisher;
+    private readonly ICurrentUserProvider _currentUserProvider;
     private readonly TimeProvider _timeProvider;
     private readonly IGuidProvider _guidProvider;
     private readonly ILogger<CreateReceptionistCommandHandler> _logger;
 
     public CreateReceptionistCommandHandler(
         IAuthorizationServiceClient authorizationServiceClient,
-        IReceptionistRepository receptionistRepository,
+        IOfficeServiceClient officeServiceClient,
+        IReceptionistCommandRepository receptionistCommandRepository,
         IUnitOfWork unitOfWork,
+        IEventPublisher eventPublisher,
+        ICurrentUserProvider currentUserProvider,
         TimeProvider timeProvider,
         IGuidProvider guidProvider,
         ILogger<CreateReceptionistCommandHandler> logger)
     {
         _authorizationServiceClient = authorizationServiceClient;
-        _receptionistRepository = receptionistRepository;
+        _officeServiceClient = officeServiceClient;
+        _receptionistRepository = receptionistCommandRepository;
         _unitOfWork = unitOfWork;
+        _eventPublisher = eventPublisher;
+        _currentUserProvider = currentUserProvider;
         _timeProvider = timeProvider;
         _guidProvider = guidProvider;
         _logger = logger;
@@ -42,17 +55,21 @@ public sealed class CreateReceptionistCommandHandler
         if (nameResult.IsError)
             return nameResult.Errors;
 
-        Guid.TryParse(request.CreatedBy, out var createdBy);
+        if (!await _officeServiceClient.IsOfficeActiveAsync(request.OfficeId, cancellationToken))
+            return Error.Validation("Receptionist.OfficeId", "Please, choose the office");
+
         var now = _timeProvider.GetUtcNow();
+        var createdBy = _currentUserProvider.User?.Id ?? Guid.Empty;
 
         var accountId = await _authorizationServiceClient.CreateWorkerAccountAsync(
-            request.Email, ReceptionistRole, request.CreatedBy, cancellationToken);
+            request.Email, ReceptionistRole, createdBy, cancellationToken);
 
         var receptionistResult = Receptionist.Create(
             _guidProvider.NewGuid(),
             accountId,
             nameResult.Value,
             request.OfficeId,
+            ReceptionistStatus.Active,
             request.PhotoUrl,
             createdBy,
             now);
@@ -66,7 +83,17 @@ public sealed class CreateReceptionistCommandHandler
         try
         {
             await _receptionistRepository.AddAsync(receptionistResult.Value, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            await _eventPublisher.PublishAsync(
+                new ProfileLinkedToAccountEvent(accountId, receptionistResult.Value.Id, now.UtcDateTime),
+                cancellationToken);
+
+            if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+            {
+                await CompensateAsync(accountId);
+
+                return Error.Conflict("Receptionist.ConcurrencyConflict", "Receptionist was modified by another operation. Please retry.");
+            }
         }
         catch (Exception exception)
         {

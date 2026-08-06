@@ -1,6 +1,6 @@
+using Common.Abstractions.Security;
 using ErrorOr;
 using MediatR;
-using Profiles.Application.Common.Security;
 using Profiles.Domain.Constants;
 
 namespace Profiles.Application.Commands.CreatePatientByReceptionist;

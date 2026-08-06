@@ -1,6 +1,6 @@
+using Common.Abstractions.Security;
 using ErrorOr;
 using MediatR;
-using Profiles.Application.Common.Security;
 using Profiles.Domain.Constants;
 
 namespace Profiles.Application.Commands.CreateReceptionist;
@@ -11,8 +11,7 @@ public record CreateReceptionistCommand(
     string? MiddleName,
     string Email,
     Guid OfficeId,
-    string? PhotoUrl,
-    string CreatedBy
+    string? PhotoUrl
 ) : IRequest<ErrorOr<Guid>>, IAuthorizedRequest
 {
     public string RequiredPermission => Permissions.CreateReceptionist;

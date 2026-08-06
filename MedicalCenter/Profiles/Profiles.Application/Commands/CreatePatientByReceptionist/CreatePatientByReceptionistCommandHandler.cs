@@ -10,18 +10,18 @@ namespace Profiles.Application.Commands.CreatePatientByReceptionist;
 public sealed class CreatePatientByReceptionistCommandHandler
     : IRequestHandler<CreatePatientByReceptionistCommand, ErrorOr<Guid>>
 {
-    private readonly IPatientRepository _patientRepository;
+    private readonly IPatientCommandRepository _patientRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly TimeProvider _timeProvider;
     private readonly IGuidProvider _guidProvider;
 
     public CreatePatientByReceptionistCommandHandler(
-        IPatientRepository patientRepository,
+        IPatientCommandRepository patientCommandRepository,
         IUnitOfWork unitOfWork,
         TimeProvider timeProvider,
         IGuidProvider guidProvider)
     {
-        _patientRepository = patientRepository;
+        _patientRepository = patientCommandRepository;
         _unitOfWork = unitOfWork;
         _timeProvider = timeProvider;
         _guidProvider = guidProvider;
@@ -51,7 +51,9 @@ public sealed class CreatePatientByReceptionistCommandHandler
             return patientResult.Errors;
 
         await _patientRepository.AddAsync(patientResult.Value, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+            return Error.Conflict("Patient.ConcurrencyConflict", "Patient was modified by another operation. Please retry.");
 
         return patientResult.Value.Id;
     }

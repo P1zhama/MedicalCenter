@@ -1,3 +1,4 @@
+using Common.Abstractions.Eventing;
 using Common.Abstractions.Providers;
 using ErrorOr;
 using MediatR;
@@ -12,20 +13,20 @@ namespace Profiles.Application.Commands;
 public sealed class CreatePatientProfileCommandHandler
     : IRequestHandler<CreatePatientProfileCommand, ErrorOr<ProfileCreationResult>>
 {
-    private readonly IPatientRepository _patientRepository;
+    private readonly IPatientCommandRepository _patientRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEventPublisher _eventPublisher;
     private readonly TimeProvider _timeProvider;
     private readonly IGuidProvider _guidProvider;
 
     public CreatePatientProfileCommandHandler(
-        IPatientRepository patientRepository,
+        IPatientCommandRepository patientCommandRepository,
         IUnitOfWork unitOfWork,
         IEventPublisher eventPublisher,
         TimeProvider timeProvider,
         IGuidProvider guidProvider)
     {
-        _patientRepository = patientRepository;
+        _patientRepository = patientCommandRepository;
         _unitOfWork = unitOfWork;
         _eventPublisher = eventPublisher;
         _timeProvider = timeProvider;
@@ -71,11 +72,13 @@ public sealed class CreatePatientProfileCommandHandler
             return patientResult.Errors;
 
         await _patientRepository.AddAsync(patientResult.Value, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         await _eventPublisher.PublishAsync(
             new ProfileLinkedToAccountEvent(request.AccountId, patientResult.Value.Id, now.UtcDateTime),
             cancellationToken);
+
+        if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+            return Error.Conflict("Patient.ConcurrencyConflict", "Patient was modified by another operation. Please retry.");
 
         return new ProfileCreationResult(false, null, null, patientResult.Value.Id);
     }

@@ -3,6 +3,7 @@ using ErrorOr;
 using Profiles.Domain.Enums;
 using Profiles.Domain.ValueObjects;
 
+
 namespace Profiles.Domain;
 
 public sealed class Doctor : AggregateRoot<Guid>
@@ -91,7 +92,71 @@ public sealed class Doctor : AggregateRoot<Guid>
             new AuditInfo(createdBy, createdAt, null, null));
     }
 
+    public bool IsActive => Status != DoctorStatus.Inactive;
+
     public int ExperienceYears(int currentYear) => currentYear - CareerStartYear + 1;
+
+    public ErrorOr<StatusTransition> Update(
+        PersonName name,
+        DateOnly dateOfBirth,
+        Guid specializationId,
+        Guid officeId,
+        int careerStartYear,
+        DoctorStatus status,
+        string? photoUrl,
+        Guid updatedBy,
+        DateTimeOffset at)
+    {
+        if (specializationId == Guid.Empty)
+            return Error.Validation("Doctor.SpecializationId", "Please, choose the specialisation");
+
+        if (officeId == Guid.Empty)
+            return Error.Validation("Doctor.OfficeId", "Please, choose the office");
+
+        var today = DateOnly.FromDateTime(at.UtcDateTime);
+
+        if (dateOfBirth > today)
+            return Error.Validation("Doctor.DateOfBirth", "Date of birth must not be in the future.");
+
+        if (careerStartYear < 1900 || careerStartYear > today.Year)
+            return Error.Validation("Doctor.CareerStartYear", "Career start year is out of range.");
+
+        var transition = DetectTransition(status);
+
+        Name = name;
+        DateOfBirth = dateOfBirth;
+        SpecializationId = specializationId;
+        OfficeId = officeId;
+        CareerStartYear = careerStartYear;
+        Status = status;
+        PhotoUrl = photoUrl;
+        Audit = Audit.WithUpdate(updatedBy, at);
+        Version++;
+
+        return transition;
+    }
+
+    public StatusTransition ChangeStatus(DoctorStatus status, Guid updatedBy, DateTimeOffset at)
+    {
+        var transition = DetectTransition(status);
+
+        Status = status;
+        Audit = Audit.WithUpdate(updatedBy, at);
+        Version++;
+
+        return transition;
+    }
+
+    private StatusTransition DetectTransition(DoctorStatus status)
+    {
+        if (IsActive && status == DoctorStatus.Inactive)
+            return StatusTransition.Deactivated;
+
+        if (!IsActive && status != DoctorStatus.Inactive)
+            return StatusTransition.Reactivated;
+
+        return StatusTransition.None;
+    }
 
     public static Doctor Restore(
         Guid id,

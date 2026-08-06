@@ -26,10 +26,12 @@ public sealed class PersonName : ValueObject
         if (string.IsNullOrWhiteSpace(lastName))
             return Error.Validation("PersonName.LastName", "Please, enter the last name");
 
+        var normalizedMiddleName = TextNormalization.CollapseWhitespace(middleName);
+
         return new PersonName(
-            firstName.Trim(),
-            lastName.Trim(),
-            string.IsNullOrWhiteSpace(middleName) ? null : middleName.Trim());
+            TextNormalization.CollapseWhitespace(firstName),
+            TextNormalization.CollapseWhitespace(lastName),
+            normalizedMiddleName.Length == 0 ? null : normalizedMiddleName);
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()

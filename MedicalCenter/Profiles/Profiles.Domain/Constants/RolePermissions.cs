@@ -10,10 +10,22 @@ public static class RolePermissions
             [Roles.Receptionist] = new HashSet<string>(StringComparer.Ordinal)
             {
                 Permissions.CreateDoctor,
+                Permissions.EditDoctor,
+                Permissions.ChangeDoctorStatus,
+                Permissions.ViewDoctors,
                 Permissions.CreateReceptionist,
-                Permissions.CreatePatient
+                Permissions.EditReceptionist,
+                Permissions.DeleteReceptionist,
+                Permissions.ViewReceptionists,
+                Permissions.CreatePatient,
+                Permissions.EditPatient,
+                Permissions.DeletePatient,
+                Permissions.ViewPatients
             },
-            [Roles.Doctor] = Empty,
+            [Roles.Doctor] = new HashSet<string>(StringComparer.Ordinal)
+            {
+                Permissions.ViewPatients
+            },
             [Roles.Patient] = Empty
         };
 

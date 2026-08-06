@@ -12,11 +12,11 @@ public static class PatientMatcher
     public static Patient? FindBestMatch(PersonName name, DateOnly dateOfBirth, IEnumerable<Patient> candidates)
     {
         Patient? bestMatch = null;
-        var bestScore = 0;
+        int bestScore = 0;
 
-        foreach (var candidate in candidates)
+        foreach (Patient candidate in candidates)
         {
-            var score = Score(name, dateOfBirth, candidate);
+            int score = Score(name, dateOfBirth, candidate);
 
             if (score >= MatchThreshold && score > bestScore)
             {
@@ -30,7 +30,7 @@ public static class PatientMatcher
 
     private static int Score(PersonName name, DateOnly dateOfBirth, Patient candidate)
     {
-        var score = 0;
+        int score = 0;
 
         if (Matches(candidate.Name.FirstName, name.FirstName))
             score += NameWeight;

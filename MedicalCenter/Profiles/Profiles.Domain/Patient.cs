@@ -62,6 +62,29 @@ public sealed class Patient : AggregateRoot<Guid>
             new AuditInfo(createdBy, createdAt, null, null));
     }
 
+    public ErrorOr<Success> Update(
+        PersonName name,
+        DateOnly dateOfBirth,
+        string? phoneNumber,
+        string? photoUrl,
+        Guid updatedBy,
+        DateTimeOffset at)
+    {
+        var today = DateOnly.FromDateTime(at.UtcDateTime);
+
+        if (dateOfBirth > today)
+            return Error.Validation("Patient.DateOfBirth", "Date of birth must not be in the future.");
+
+        Name = name;
+        DateOfBirth = dateOfBirth;
+        PhoneNumber = phoneNumber;
+        PhotoUrl = photoUrl;
+        Audit = Audit.WithUpdate(updatedBy, at);
+        Version++;
+
+        return Result.Success;
+    }
+
     public ErrorOr<Success> LinkToAccount(Guid accountId, DateTimeOffset at)
     {
         if (accountId == Guid.Empty)

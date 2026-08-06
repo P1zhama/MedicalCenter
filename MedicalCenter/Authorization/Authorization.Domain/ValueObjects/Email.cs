@@ -17,7 +17,7 @@ public sealed partial class Email : ValueObject
         if (string.IsNullOrWhiteSpace(value))
             return Error.Validation("Email.Empty", "Email must not be empty.");
 
-        value = value.Trim();
+        value = value.Trim().ToLowerInvariant();
 
         if (value.Length > MaxLength)
             return Error.Validation("Email.TooLong", $"Email must not exceed {MaxLength} characters.");

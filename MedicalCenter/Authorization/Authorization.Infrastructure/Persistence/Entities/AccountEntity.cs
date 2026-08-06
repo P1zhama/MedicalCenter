@@ -16,6 +16,8 @@ public class AccountEntity
 
     public DateTimeOffset? EmailConfirmationTokenExpiresAt { get; set; }
 
+    public Guid? ProfileId { get; set; }
+
     public long Version { get; set; }
 
     public Guid CreatedBy { get; set; }

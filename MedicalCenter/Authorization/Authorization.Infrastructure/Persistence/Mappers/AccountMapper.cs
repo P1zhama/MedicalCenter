@@ -17,6 +17,7 @@ public static class AccountMapper
         EmailConfirmedAt = account.EmailConfirmedAt,
         EmailConfirmationTokenHash = account.EmailConfirmationTokenHash,
         EmailConfirmationTokenExpiresAt = account.EmailConfirmationTokenExpiresAt,
+        ProfileId = account.ProfileId,
         Version = account.Version,
         CreatedBy = account.Audit.CreatedBy,
         CreatedAt = account.Audit.CreatedAt,
@@ -53,6 +54,7 @@ public static class AccountMapper
             entity.EmailConfirmedAt,
             entity.EmailConfirmationTokenHash,
             entity.EmailConfirmationTokenExpiresAt,
+            entity.ProfileId,
             entity.Version,
             new AuditInfo(entity.CreatedBy, entity.CreatedAt, entity.UpdatedBy, entity.UpdatedAt),
             claims);

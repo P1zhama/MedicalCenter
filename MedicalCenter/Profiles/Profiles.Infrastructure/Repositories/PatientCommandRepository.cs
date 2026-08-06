@@ -2,15 +2,16 @@ using Microsoft.EntityFrameworkCore;
 using Profiles.Application.Common.Interfaces;
 using Profiles.Domain;
 using Profiles.Infrastructure.Persistence;
+using Profiles.Infrastructure.Persistence.Entities;
 using Profiles.Infrastructure.Persistence.Mappers;
 
 namespace Profiles.Infrastructure.Repositories;
 
-public class PatientRepository : IPatientRepository
+public sealed class PatientCommandRepository : IPatientCommandRepository
 {
-    private readonly ApplicationDbContext _context;
+    private readonly ProfilesDbContext _context;
 
-    public PatientRepository(ApplicationDbContext context)
+    public PatientCommandRepository(ProfilesDbContext context)
     {
         _context = context;
     }
@@ -18,6 +19,7 @@ public class PatientRepository : IPatientRepository
     public async Task<Patient?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await _context.Patients
+            .AsNoTracking()
             .FirstOrDefaultAsync(patient => patient.Id == id, cancellationToken);
 
         return entity?.ToDomain();
@@ -42,12 +44,16 @@ public class PatientRepository : IPatientRepository
         await _context.Patients.AddAsync(patient.ToEntity(), cancellationToken);
     }
 
-    public async Task UpdateAsync(Patient patient, CancellationToken cancellationToken = default)
+    public void Update(Patient patient, long expectedVersion)
     {
-        var tracked = await _context.Patients.FindAsync([patient.Id], cancellationToken);
-        if (tracked is null)
-            throw new InvalidOperationException($"Patient {patient.Id} must be loaded before update.");
+        var entry = _context.Patients.Attach(patient.ToEntity());
 
-        _context.Entry(tracked).CurrentValues.SetValues(patient.ToEntity());
+        entry.State = EntityState.Modified;
+        entry.Property(entity => entity.Version).OriginalValue = expectedVersion;
+    }
+
+    public void Remove(Guid id)
+    {
+        _context.Patients.Remove(new PatientEntity { Id = id });
     }
 }

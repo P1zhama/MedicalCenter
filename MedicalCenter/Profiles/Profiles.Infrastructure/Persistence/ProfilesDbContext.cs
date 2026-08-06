@@ -1,13 +1,13 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Profiles.Domain;
 using Profiles.Infrastructure.Persistence.Entities;
 using System.Reflection;
 
 namespace Profiles.Infrastructure.Persistence;
 
-public class ApplicationDbContext : DbContext
+public class ProfilesDbContext : DbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    public ProfilesDbContext(DbContextOptions<ProfilesDbContext> options)
         : base(options)
     {
     }
@@ -20,8 +20,12 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+
+        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 }

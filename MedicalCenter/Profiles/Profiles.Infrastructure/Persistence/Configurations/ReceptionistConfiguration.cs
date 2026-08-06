@@ -34,6 +34,11 @@ public class ReceptionistConfiguration : IEntityTypeConfiguration<ReceptionistEn
             .HasColumnName("office_id")
             .IsRequired();
 
+        builder.Property(r => r.Status)
+            .HasColumnName("status")
+            .IsRequired()
+            .HasMaxLength(30);
+
         builder.Property(r => r.PhotoUrl)
             .HasColumnName("photo_url")
             .HasMaxLength(500);
@@ -59,5 +64,6 @@ public class ReceptionistConfiguration : IEntityTypeConfiguration<ReceptionistEn
 
         builder.HasIndex(r => r.AccountId).IsUnique();
         builder.HasIndex(r => r.OfficeId);
+        builder.HasIndex(r => r.Status);
     }
 }

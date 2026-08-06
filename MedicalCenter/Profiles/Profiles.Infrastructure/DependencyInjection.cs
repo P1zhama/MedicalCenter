@@ -1,15 +1,15 @@
-﻿using Authorization.API.Protos;
+using Authorization.Api.Protos;
 using Common.Infrastructure;
 using MassTransit;
+using Offices.Api.Protos;
+using Services.Api.Protos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Profiles.Application.Common.Interfaces;
-using Profiles.Application.EventConsumers;
 using Profiles.Infrastructure.Messaging;
 using Profiles.Infrastructure.Persistence;
 using Profiles.Infrastructure.Repositories;
-using Profiles.Infrastructure.Security;
 using Profiles.Infrastructure.Services;
 
 namespace Profiles.Infrastructure;
@@ -20,16 +20,16 @@ public static class DependencyInjection
     {
         services.AddCommonInfrastructure();
 
-        services.AddDbContext<ApplicationDbContext>(options =>
+        services.AddDbContext<ProfilesDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-        services.AddScoped<CurrentUserProvider>();
-        services.AddScoped<ICurrentUserProvider>(provider => provider.GetRequiredService<CurrentUserProvider>());
-        services.AddScoped<IPatientRepository, PatientRepository>();
-        services.AddScoped<IDoctorRepository, DoctorRepository>();
-        services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
+        services.AddScoped<IPatientCommandRepository, PatientCommandRepository>();
+        services.AddScoped<IPatientQueryRepository, PatientQueryRepository>();
+        services.AddScoped<IDoctorCommandRepository, DoctorCommandRepository>();
+        services.AddScoped<IDoctorQueryRepository, DoctorQueryRepository>();
+        services.AddScoped<IReceptionistCommandRepository, ReceptionistCommandRepository>();
+        services.AddScoped<IReceptionistQueryRepository, ReceptionistQueryRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IEventPublisher, EventPublisher>();
 
         services.AddGrpcClient<AuthInternalService.AuthInternalServiceClient>(options =>
         {
@@ -37,9 +37,28 @@ public static class DependencyInjection
         });
         services.AddScoped<IAuthorizationServiceClient, AuthorizationServiceClient>();
 
+        services.AddGrpcClient<OfficesService.OfficesServiceClient>(options =>
+        {
+            options.Address = new Uri(configuration["GrpcClients:Offices"] ?? "http://localhost:8004");
+        });
+        services.AddScoped<IOfficeServiceClient, OfficeServiceClient>();
+
+        services.AddGrpcClient<ServicesService.ServicesServiceClient>(options =>
+        {
+            options.Address = new Uri(configuration["GrpcClients:Services"] ?? "http://localhost:8002");
+        });
+        services.AddScoped<ISpecializationServiceClient, SpecializationServiceClient>();
+
         services.AddMassTransit(x =>
         {
             x.AddConsumer<OfficeDeactivatedEventConsumer>();
+            x.AddConsumer<SpecializationDeactivatedEventConsumer>();
+
+            x.AddEntityFrameworkOutbox<ProfilesDbContext>(outbox =>
+            {
+                outbox.UseSqlServer();
+                outbox.UseBusOutbox();
+            });
 
             x.UsingRabbitMq((context, cfg) =>
             {

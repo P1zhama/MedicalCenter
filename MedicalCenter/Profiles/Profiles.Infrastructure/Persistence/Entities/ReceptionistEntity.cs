@@ -14,6 +14,8 @@ public class ReceptionistEntity
 
     public Guid OfficeId { get; set; }
 
+    public string Status { get; set; } = null!;
+
     public string? PhotoUrl { get; set; }
 
     public long Version { get; set; }

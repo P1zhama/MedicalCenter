@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\..\Authorization\Authorization.API\Protos\authInternal.proto" GrpcServices="Client" Link="Protos\authInternal.proto" />
+    <Protobuf Include="..\..\Authorization\Authorization.Api\Protos\authInternal.proto" GrpcServices="Client" Link="Protos\authInternal.proto" />
+    <Protobuf Include="..\..\Offices\Offices.Api\Protos\offices.proto" GrpcServices="Client" Link="Protos\offices.proto" />
+    <Protobuf Include="..\..\Services\Services.Api\Protos\services.proto" GrpcServices="Client" Link="Protos\services.proto" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,7 +20,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.10" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.10" />
+    <PackageReference Include="MediatR" Version="14.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
       <PrivateAssets>all</PrivateAssets>

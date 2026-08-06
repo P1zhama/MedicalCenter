@@ -3,16 +3,16 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace Profiles.Infrastructure.Persistence;
 
-public sealed class ProfilesDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+public sealed class ProfilesDbContextFactory : IDesignTimeDbContextFactory<ProfilesDbContext>
 {
     private const string DesignTimeConnectionString =
         "Server=localhost;Database=MmcProfilesDb;Trusted_Connection=True;TrustServerCertificate=True";
 
-    public ApplicationDbContext CreateDbContext(string[] args)
+    public ProfilesDbContext CreateDbContext(string[] args)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+        var optionsBuilder = new DbContextOptionsBuilder<ProfilesDbContext>();
         optionsBuilder.UseSqlServer(DesignTimeConnectionString);
 
-        return new ApplicationDbContext(optionsBuilder.Options);
+        return new ProfilesDbContext(optionsBuilder.Options);
     }
 }

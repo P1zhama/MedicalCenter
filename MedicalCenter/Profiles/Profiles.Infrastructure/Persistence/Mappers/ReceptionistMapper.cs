@@ -1,5 +1,6 @@
 using Common.Domain;
 using Profiles.Domain;
+using Profiles.Domain.Enums;
 using Profiles.Domain.ValueObjects;
 using Profiles.Infrastructure.Persistence.Entities;
 
@@ -15,6 +16,7 @@ public static class ReceptionistMapper
         MiddleName = receptionist.Name.MiddleName,
         AccountId = receptionist.AccountId,
         OfficeId = receptionist.OfficeId,
+        Status = receptionist.Status.ToString(),
         PhotoUrl = receptionist.PhotoUrl,
         Version = receptionist.Version,
         CreatedBy = receptionist.Audit.CreatedBy,
@@ -34,6 +36,7 @@ public static class ReceptionistMapper
             entity.AccountId,
             nameResult.Value,
             entity.OfficeId,
+            Enum.Parse<ReceptionistStatus>(entity.Status),
             entity.PhotoUrl,
             entity.Version,
             new AuditInfo(entity.CreatedBy, entity.CreatedAt, entity.UpdatedBy, entity.UpdatedAt));

@@ -8,5 +8,7 @@ public interface IOfficeQueryRepository
 
     Task<IReadOnlyList<OfficeListItemDto>> GetAllAsync(CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<PublicOfficeDto>> GetActiveAsync(CancellationToken cancellationToken = default);
+
     Task<bool> IsActiveAsync(Guid id, CancellationToken cancellationToken = default);
 }

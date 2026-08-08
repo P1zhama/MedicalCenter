@@ -5,6 +5,7 @@ using Offices.Api.Protos;
 using Offices.Application.Commands.ChangeOfficeStatus;
 using Offices.Application.Commands.CreateOffice;
 using Offices.Application.Commands.UpdateOffice;
+using Offices.Application.Queries.GetActiveOffices;
 using Offices.Application.Queries.GetOfficeById;
 using Offices.Application.Queries.GetOffices;
 using Offices.Application.Queries.IsOfficeActive;
@@ -93,6 +94,29 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
                 OfficeId = office.Id.ToString(),
                 Address = office.Address,
                 Status = office.Status,
+                RegistryPhoneNumber = office.RegistryPhoneNumber
+            });
+        }
+
+        return response;
+    }
+
+    public override async Task<GetActiveOfficesResponse> GetActiveOffices(GetActiveOfficesRequest request, ServerCallContext context)
+    {
+        var result = await _sender.Send(new GetActiveOfficesQuery(), context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        var response = new GetActiveOfficesResponse();
+
+        foreach (var office in result.Value)
+        {
+            response.Offices.Add(new PublicOffice
+            {
+                OfficeId = office.Id.ToString(),
+                Address = office.Address,
+                PhotoUrl = office.PhotoUrl ?? string.Empty,
                 RegistryPhoneNumber = office.RegistryPhoneNumber
             });
         }

@@ -29,6 +29,24 @@ public sealed class OfficeQueryRepository : IOfficeQueryRepository
         return documents.Select(ToListItem).ToList();
     }
 
+    public async Task<IReadOnlyList<PublicOfficeDto>> GetActiveAsync(CancellationToken cancellationToken = default)
+    {
+        var activeStatus = OfficeStatus.Active.ToString();
+
+        var documents = await _offices
+            .Find(office => office.Status == activeStatus)
+            .ToListAsync(cancellationToken);
+
+        return documents
+            .Select(document => new PublicOfficeDto(
+                document.Id,
+                FormatAddress(document),
+                document.PhotoUrl,
+                document.RegistryPhoneNumber))
+            .OrderBy(office => office.Address)
+            .ToList();
+    }
+
     public Task<bool> IsActiveAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var activeStatus = OfficeStatus.Active.ToString();

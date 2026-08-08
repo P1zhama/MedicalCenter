@@ -17,3 +17,9 @@ public record OfficeDto(
     string? OfficeNumber,
     string Status,
     string RegistryPhoneNumber);
+
+public record PublicOfficeDto(
+    Guid Id,
+    string Address,
+    string? PhotoUrl,
+    string RegistryPhoneNumber);

@@ -9,6 +9,7 @@ service OfficesService {
     rpc UpdateOffice (UpdateOfficeRequest) returns (UpdateOfficeResponse);
     rpc ChangeOfficeStatus (ChangeOfficeStatusRequest) returns (ChangeOfficeStatusResponse);
     rpc GetOffices (GetOfficesRequest) returns (GetOfficesResponse);
+    rpc GetActiveOffices (GetActiveOfficesRequest) returns (GetActiveOfficesResponse);
     rpc GetOfficeById (GetOfficeByIdRequest) returns (OfficeResponse);
     rpc IsOfficeActive (IsOfficeActiveRequest) returns (IsOfficeActiveResponse);
 }
@@ -61,6 +62,20 @@ message OfficeListItem {
 
 message GetOfficesResponse {
     repeated OfficeListItem offices = 1;
+}
+
+message GetActiveOfficesRequest {
+}
+
+message PublicOffice {
+    string office_id = 1;
+    string address = 2;
+    string photo_url = 3;
+    string registry_phone_number = 4;
+}
+
+message GetActiveOfficesResponse {
+    repeated PublicOffice offices = 1;
 }
 
 message GetOfficeByIdRequest {

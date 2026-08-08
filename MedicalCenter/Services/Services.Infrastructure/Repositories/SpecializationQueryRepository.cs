@@ -25,6 +25,20 @@ public sealed class SpecializationQueryRepository : ISpecializationQueryReposito
                 specialization.Status))
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<PublicSpecializationDto>> GetActiveAsync(CancellationToken cancellationToken = default)
+    {
+        var activeStatus = ActivityStatus.Active.ToString();
+
+        return await _context.Specializations
+            .AsNoTracking()
+            .Where(specialization => specialization.Status == activeStatus)
+            .OrderBy(specialization => specialization.Name)
+            .Select(specialization => new PublicSpecializationDto(
+                specialization.Id,
+                specialization.Name))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<SpecializationDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var specialization = await _context.Specializations

@@ -9,6 +9,7 @@ service ServicesService {
     rpc UpdateSpecialization (UpdateSpecializationRequest) returns (UpdateSpecializationResponse);
     rpc ChangeSpecializationStatus (ChangeSpecializationStatusRequest) returns (ChangeSpecializationStatusResponse);
     rpc GetSpecializations (GetSpecializationsRequest) returns (GetSpecializationsResponse);
+    rpc GetActiveSpecializations (GetActiveSpecializationsRequest) returns (GetActiveSpecializationsResponse);
     rpc GetSpecializationById (GetSpecializationByIdRequest) returns (SpecializationResponse);
     rpc IsSpecializationActive (IsSpecializationActiveRequest) returns (IsSpecializationActiveResponse);
 
@@ -65,6 +66,18 @@ message SpecializationListItem {
 
 message GetSpecializationsResponse {
     repeated SpecializationListItem specializations = 1;
+}
+
+message GetActiveSpecializationsRequest {
+}
+
+message PublicSpecialization {
+    string specialization_id = 1;
+    string name = 2;
+}
+
+message GetActiveSpecializationsResponse {
+    repeated PublicSpecialization specializations = 1;
 }
 
 message GetSpecializationByIdRequest {

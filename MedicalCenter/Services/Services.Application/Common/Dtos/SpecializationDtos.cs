@@ -10,3 +10,7 @@ public record SpecializationDto(
     string Name,
     string Status,
     IReadOnlyList<ServiceListItemDto> Services);
+
+public record PublicSpecializationDto(
+    Guid Id,
+    string Name);

@@ -9,6 +9,7 @@ using Services.Application.Commands.CreateService;
 using Services.Application.Commands.CreateSpecialization;
 using Services.Application.Commands.UpdateService;
 using Services.Application.Commands.UpdateSpecialization;
+using Services.Application.Queries.GetActiveSpecializations;
 using Services.Application.Queries.GetServiceById;
 using Services.Application.Queries.GetServiceCatalog;
 using Services.Application.Queries.GetServiceForAppointment;
@@ -104,6 +105,29 @@ public class ServicesGrpcService : ServicesService.ServicesServiceBase
                 SpecializationId = specialization.Id.ToString(),
                 Name = specialization.Name,
                 Status = specialization.Status
+            });
+        }
+
+        return response;
+    }
+
+    public override async Task<GetActiveSpecializationsResponse> GetActiveSpecializations(
+        GetActiveSpecializationsRequest request,
+        ServerCallContext context)
+    {
+        var result = await _sender.Send(new GetActiveSpecializationsQuery(), context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        var response = new GetActiveSpecializationsResponse();
+
+        foreach (var specialization in result.Value)
+        {
+            response.Specializations.Add(new PublicSpecialization
+            {
+                SpecializationId = specialization.Id.ToString(),
+                Name = specialization.Name
             });
         }
 

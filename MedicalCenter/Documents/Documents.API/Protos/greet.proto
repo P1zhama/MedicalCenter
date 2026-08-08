@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "Documents.API";
+option csharp_namespace = "Documents.Api";
 
 package greet;
 

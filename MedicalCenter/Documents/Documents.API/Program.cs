@@ -1,4 +1,4 @@
-using Documents.API.Services;
+using Documents.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

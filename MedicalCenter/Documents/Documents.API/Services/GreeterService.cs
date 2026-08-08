@@ -1,6 +1,6 @@
 using Grpc.Core;
 
-namespace Documents.API.Services
+namespace Documents.Api.Services
 {
     public class GreeterService(ILogger<GreeterService> logger) : Greeter.GreeterBase
     {

@@ -13,12 +13,14 @@ services:
       - "8000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sql-server;Database=MmcAuthDb;User Id=sa;Password=Your_Strong!Password123;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=sql-server;Database=MmcAuthDb;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True;
       - RabbitMqSettings__Host=rabbitmq
       - RabbitMqSettings__Username=guest
       - RabbitMqSettings__Password=guest
-      - JwtSettings__SecretKey=${AUTH_JWT_SECRET_KEY}
+      - JwtSettings__PrivateKey=${AUTH_JWT_PRIVATE_KEY}
       - EmailSettings__Password=${AUTH_EMAIL_PASSWORD}
+      - BootstrapAdmin__Email=${BOOTSTRAP_ADMIN_EMAIL}
+      - BootstrapAdmin__Password=${BOOTSTRAP_ADMIN_PASSWORD}
       - EmailSettings__ClientAppBaseUrl=http://localhost:5174
     networks:
       - medical-network

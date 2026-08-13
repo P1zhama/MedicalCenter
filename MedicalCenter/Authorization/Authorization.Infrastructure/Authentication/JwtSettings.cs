@@ -4,7 +4,7 @@ public sealed class JwtSettings
 {
     public const string SectionName = "JwtSettings";
 
-    public string SecretKey { get; set; } = string.Empty;
+    public string PrivateKey { get; set; } = string.Empty;
 
     public string Issuer { get; set; } = string.Empty;
 

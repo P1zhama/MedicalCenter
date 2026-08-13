@@ -1,5 +1,6 @@
 using Authorization.Application.Common.Interfaces;
 using Authorization.Infrastructure.Authentication;
+using Authorization.Infrastructure.Bootstrap;
 using Authorization.Infrastructure.Messaging;
 using Authorization.Infrastructure.Notifications;
 using Authorization.Infrastructure.Persistence;
@@ -25,6 +26,7 @@ public static class DependencyInjection
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
         services.Configure<EmailConfirmationSettings>(configuration.GetSection(EmailConfirmationSettings.SectionName));
         services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
+        services.Configure<BootstrapAdminSettings>(configuration.GetSection(BootstrapAdminSettings.SectionName));
 
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
@@ -36,6 +38,7 @@ public static class DependencyInjection
         services.AddSingleton<IEmailConfirmationTokenGenerator, EmailConfirmationTokenGenerator>();
         services.AddSingleton<IPasswordGenerator, PasswordGenerator>();
         services.AddScoped<IEmailSender, MailKitEmailSender>();
+        services.AddScoped<BootstrapAdminSeeder>();
 
         services.AddMassTransit(bus =>
         {
@@ -45,7 +48,7 @@ public static class DependencyInjection
             bus.AddConsumer<WorkerDeactivatedEventConsumer>();
             bus.AddConsumer<WorkerReactivatedEventConsumer>();
 
-            bus.AddEntityFrameworkOutbox<AuthDbContext>(outbox =>
+            bus.AddEntityFrameworkOutbox<AuthDbContext>(outbox => 
             {
                 outbox.UseSqlServer();
                 outbox.UseBusOutbox();

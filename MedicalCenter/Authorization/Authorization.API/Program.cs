@@ -3,6 +3,7 @@ using Authorization.Api.Services;
 using Authorization.Application;
 using Common.Api.Interceptors;
 using Authorization.Infrastructure;
+using Authorization.Infrastructure.Bootstrap;
 using Authorization.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -41,6 +42,9 @@ try
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
         await dbContext.Database.MigrateAsync();
+
+        var bootstrapAdminSeeder = scope.ServiceProvider.GetRequiredService<BootstrapAdminSeeder>();
+        await bootstrapAdminSeeder.SeedAsync();
     }
 
     app.UseSerilogRequestLogging();

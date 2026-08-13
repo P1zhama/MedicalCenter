@@ -1,6 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
+using System.Security.Cryptography;
 using Authorization.Application.Common.Interfaces;
 using Authorization.Application.Common.Models;
 using Authorization.Domain;
@@ -15,6 +15,7 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
     private readonly JwtSettings _settings;
     private readonly TimeProvider _timeProvider;
     private readonly IGuidProvider _guidProvider;
+    private readonly SigningCredentials _signingCredentials;
 
     public JwtTokenGenerator(
         IOptions<JwtSettings> settings,
@@ -24,6 +25,14 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         _settings = settings.Value;
         _timeProvider = timeProvider;
         _guidProvider = guidProvider;
+
+        if (string.IsNullOrWhiteSpace(_settings.PrivateKey))
+            throw new InvalidOperationException("JWT private key is not configured.");
+
+        var rsa = RSA.Create();
+        rsa.ImportPkcs8PrivateKey(Convert.FromBase64String(_settings.PrivateKey), out _);
+
+        _signingCredentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
     }
 
     public AccessToken Generate(Account account)
@@ -40,17 +49,13 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
 
         claims.AddRange(account.Claims.Select(claim => new Claim(claim.Type, claim.Value)));
 
-        var signingCredentials = new SigningCredentials(
-            new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_settings.SecretKey)),
-            SecurityAlgorithms.HmacSha256);
-
         var token = new JwtSecurityToken(
             issuer: _settings.Issuer,
             audience: _settings.Audience,
             claims: claims,
             notBefore: issuedAt.UtcDateTime,
             expires: expiresAt.UtcDateTime,
-            signingCredentials: signingCredentials);
+            signingCredentials: _signingCredentials);
 
         var value = new JwtSecurityTokenHandler().WriteToken(token);
 

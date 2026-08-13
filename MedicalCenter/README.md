@@ -13,43 +13,24 @@ Authorization на портах
       "Http": {
         "Url": "http://localhost:8000",
         "Protocols": "Http2"
-      },
-      "Https": {
-        "Url": "https://localhost:8001",
-        "Protocols": "Http2"
       }
-
 
 Services на портах
       "Http": {
         "Url": "http://localhost:8002",
         "Protocols": "Http2"
-      },
-      "Https": {
-        "Url": "https://localhost:8003",
-        "Protocols": "Http2"
       }
-
-
 
 Offices на портах
       "Http": {
         "Url": "http://localhost:8004",
-        "Protocols": "Http2"
-      },
-      "Https": {
-        "Url": "https://localhost:8005",
         "Protocols": "Http2"
       }
 
 
 Profiles на портах
       "Http": {
-        "Url": "http://localhost:8006",
-        "Protocols": "Http2"
-      },
-      "Https": {
-        "Url": "https://localhost:8007",
+        "Url": "http://localhost:8001",
         "Protocols": "Http2"
       }
 

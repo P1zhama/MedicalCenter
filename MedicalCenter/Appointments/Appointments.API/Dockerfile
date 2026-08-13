@@ -9,17 +9,17 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Appointments/Appointments.API/Appointments.API.csproj", "Appointments/Appointments.API/"]
-RUN dotnet restore "./Appointments/Appointments.API/Appointments.API.csproj"
+COPY ["Appointments/Appointments.Api/Appointments.Api.csproj", "Appointments/Appointments.Api/"]
+RUN dotnet restore "./Appointments/Appointments.Api/Appointments.Api.csproj"
 COPY . .
-WORKDIR "/src/Appointments/Appointments.API"
-RUN dotnet build "./Appointments.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Appointments/Appointments.Api"
+RUN dotnet build "./Appointments.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Appointments.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Appointments.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Appointments.API.dll"]
+ENTRYPOINT ["dotnet", "Appointments.Api.dll"]

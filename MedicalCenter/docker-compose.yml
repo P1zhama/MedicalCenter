@@ -4,13 +4,13 @@ services:
     container_name: sql-server
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "Your_Strong!Password123"
+      MSSQL_SA_PASSWORD: "${SQL_SA_PASSWORD}"
     ports:
       - "1433:1433"
     volumes:
       - mssql_data:/var/opt/mssql
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-C", "-U", "sa", "-P", "Your_Strong!Password123", "-Q", "SELECT 1"]
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-C", "-U", "sa", "-P", "${SQL_SA_PASSWORD}", "-Q", "SELECT 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,15 +34,18 @@ services:
   mongodb:
     image: mongo:7
     container_name: mongodb
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      test: >-
+        mongosh --quiet --eval "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }).ok }"
       interval: 10s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     networks:
       - medical-network
 
@@ -52,6 +55,8 @@ include:
   - path: Profiles/docker-compose.profiles.yml
     project_directory: .
   - path: Offices/docker-compose.offices.yml
+    project_directory: .
+  - path: Services/docker-compose.services.yml
     project_directory: .
   - path: Gateway/docker-compose.gateway.yml
     project_directory: .

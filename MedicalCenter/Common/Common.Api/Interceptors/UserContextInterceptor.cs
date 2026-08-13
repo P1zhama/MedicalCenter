@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using Common.Abstractions.Security;
+using Common.Api.Authentication;
 using Common.Infrastructure.Security;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
@@ -19,20 +21,26 @@ public sealed class UserContextInterceptor : Interceptor
         ServerCallContext context,
         UnaryServerMethod<TRequest, TResponse> continuation)
     {
-        var headers = context.RequestHeaders;
+        var httpContext = context.GetHttpContext();
 
-        Guid? userId = Guid.TryParse(headers.GetValue(IdentityHeaders.UserId), out var parsed) ? parsed : null;
+        if (httpContext.Items.TryGetValue(AuthFailureCodes.HttpContextItem, out var failure) && failure is string code)
+            throw new RpcException(new Status(StatusCode.Unauthenticated, code));
 
-        var roles = Split(headers.GetValue(IdentityHeaders.Roles));
-        var permissions = Split(headers.GetValue(IdentityHeaders.Permissions));
+        var principal = httpContext.User;
 
-        _currentUserProvider.Set(new CurrentUser(userId, roles, permissions));
+        if (principal.Identity?.IsAuthenticated == true)
+            _currentUserProvider.Set(ToCurrentUser(principal));
 
         return continuation(request, context);
     }
 
-    private static IReadOnlyCollection<string> Split(string? value)
-        => string.IsNullOrWhiteSpace(value)
-            ? []
-            : value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    private static CurrentUser ToCurrentUser(ClaimsPrincipal principal)
+    {
+        Guid? id = Guid.TryParse(principal.FindFirst(JwtClaimTypes.Subject)?.Value, out var parsed) ? parsed : null;
+
+        var roles = principal.FindAll(JwtClaimTypes.Role).Select(claim => claim.Value).ToArray();
+        var permissions = principal.FindAll(JwtClaimTypes.Permission).Select(claim => claim.Value).ToArray();
+
+        return new CurrentUser(id, roles, permissions);
+    }
 }

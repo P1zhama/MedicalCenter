@@ -1,3 +1,4 @@
+using Common.Api.Authentication;
 using Common.Api.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Profiles.Api.Interceptors;
@@ -29,6 +30,7 @@ try
 
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddApplication();
+    builder.Services.AddJwtAuthentication(builder.Configuration);
 
     builder.Services.AddGrpc(options =>
     {
@@ -40,6 +42,9 @@ try
     var app = builder.Build();
 
     app.UseSerilogRequestLogging();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.MapGrpcService<ProfilesGrpcService>();
     app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");

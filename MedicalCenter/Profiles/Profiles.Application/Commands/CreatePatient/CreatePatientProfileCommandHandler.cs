@@ -1,3 +1,4 @@
+using Common.Abstractions.Security;
 using Common.Abstractions.Eventing;
 using Common.Abstractions.Providers;
 using ErrorOr;
@@ -16,6 +17,7 @@ public sealed class CreatePatientProfileCommandHandler
     private readonly IPatientCommandRepository _patientRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEventPublisher _eventPublisher;
+    private readonly ICurrentUserProvider _currentUserProvider;
     private readonly TimeProvider _timeProvider;
     private readonly IGuidProvider _guidProvider;
 
@@ -23,12 +25,14 @@ public sealed class CreatePatientProfileCommandHandler
         IPatientCommandRepository patientCommandRepository,
         IUnitOfWork unitOfWork,
         IEventPublisher eventPublisher,
+        ICurrentUserProvider currentUserProvider,
         TimeProvider timeProvider,
         IGuidProvider guidProvider)
     {
         _patientRepository = patientCommandRepository;
         _unitOfWork = unitOfWork;
         _eventPublisher = eventPublisher;
+        _currentUserProvider = currentUserProvider;
         _timeProvider = timeProvider;
         _guidProvider = guidProvider;
     }
@@ -37,6 +41,10 @@ public sealed class CreatePatientProfileCommandHandler
         CreatePatientProfileCommand request,
         CancellationToken cancellationToken)
     {
+        var accountId = _currentUserProvider.User?.Id;
+        if (accountId is null)
+            return Error.Unauthorized("Auth.Unauthenticated", "Authentication is required.");
+
         var nameResult = PersonName.Create(request.FirstName, request.LastName, request.MiddleName);
         if (nameResult.IsError)
             return nameResult.Errors;
@@ -60,12 +68,12 @@ public sealed class CreatePatientProfileCommandHandler
 
         var patientResult = Patient.Create(
             _guidProvider.NewGuid(),
-            request.AccountId,
+            accountId.Value,
             nameResult.Value,
             request.DateOfBirth,
             request.PhoneNumber,
             request.PhotoUrl,
-            createdBy: request.AccountId,
+            createdBy: accountId.Value,
             now);
 
         if (patientResult.IsError)
@@ -74,7 +82,7 @@ public sealed class CreatePatientProfileCommandHandler
         await _patientRepository.AddAsync(patientResult.Value, cancellationToken);
 
         await _eventPublisher.PublishAsync(
-            new ProfileLinkedToAccountEvent(request.AccountId, patientResult.Value.Id, now.UtcDateTime),
+            new ProfileLinkedToAccountEvent(accountId.Value, patientResult.Value.Id, now.UtcDateTime),
             cancellationToken);
 
         if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))

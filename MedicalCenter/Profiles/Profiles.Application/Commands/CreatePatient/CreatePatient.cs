@@ -16,7 +16,6 @@ public record ProfileCreationResult(
     Guid? CreatedProfileId);
 
 public record CreatePatientProfileCommand(
-    Guid AccountId,
     string FirstName,
     string LastName,
     string? MiddleName,

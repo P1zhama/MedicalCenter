@@ -7,9 +7,6 @@ public class ForceCreatePatientCommandValidator : AbstractValidator<ForceCreateP
 {
     public ForceCreatePatientCommandValidator()
     {
-        RuleFor(x => x.AccountId)
-            .NotEqual(Guid.Empty);
-
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("Please, enter the first name")
             .MaximumLength(100);

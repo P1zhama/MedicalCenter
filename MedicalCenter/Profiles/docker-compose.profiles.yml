@@ -13,7 +13,7 @@ services:
       - "8001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sql-server;Database=MmcProfilesDb;User Id=sa;Password=Your_Strong!Password123;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=sql-server;Database=MmcProfilesDb;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True;
       - RabbitMqSettings__Host=rabbitmq
       - RabbitMqSettings__Username=guest
       - RabbitMqSettings__Password=guest

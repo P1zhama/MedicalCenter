@@ -37,13 +37,12 @@ service ProfilesService {
 }
 
 message CreatePatientRequest {
-    string account_id = 1;
-    string first_name = 2;
-    string last_name = 3;
-    string middle_name = 4;
-    string phone_number = 5;
-    string date_of_birth = 6;
-    string photo_url = 7;
+    string first_name = 1;
+    string last_name = 2;
+    string middle_name = 3;
+    string phone_number = 4;
+    string date_of_birth = 5;
+    string photo_url = 6;
 }
 
 message MatchedProfile {
@@ -61,21 +60,19 @@ message CreatePatientResponse {
 }
 
 message LinkExistingPatientRequest {
-    string account_id = 1;
-    string patient_id = 2;
+    string patient_id = 1;
 }
 
 message LinkExistingPatientResponse {
 }
 
 message ForceCreatePatientRequest {
-    string account_id = 1;
-    string first_name = 2;
-    string last_name = 3;
-    string middle_name = 4;
-    string phone_number = 5;
-    string date_of_birth = 6;
-    string photo_url = 7;
+    string first_name = 1;
+    string last_name = 2;
+    string middle_name = 3;
+    string phone_number = 4;
+    string date_of_birth = 5;
+    string photo_url = 6;
 }
 
 message CreatePatientByReceptionistRequest {

@@ -50,7 +50,6 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
         ServerCallContext context)
     {
         var command = new CreatePatientProfileCommand(
-            ParseGuid(request.AccountId, "account id"),
             request.FirstName,
             request.LastName,
             NullIfEmpty(request.MiddleName),
@@ -70,9 +69,7 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
         LinkExistingPatientRequest request,
         ServerCallContext context)
     {
-        var command = new LinkExistingPatientCommand(
-            ParseGuid(request.AccountId, "account id"),
-            ParseGuid(request.PatientId, "patient id"));
+        var command = new LinkExistingPatientCommand(ParseGuid(request.PatientId, "patient id"));
 
         var result = await _sender.Send(command, context.CancellationToken);
 
@@ -87,7 +84,6 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
         ServerCallContext context)
     {
         var command = new ForceCreatePatientCommand(
-            ParseGuid(request.AccountId, "account id"),
             request.FirstName,
             request.LastName,
             NullIfEmpty(request.MiddleName),

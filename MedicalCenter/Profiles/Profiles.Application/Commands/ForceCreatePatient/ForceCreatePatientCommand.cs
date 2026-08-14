@@ -4,7 +4,6 @@ using MediatR;
 namespace Profiles.Application.Commands.ForceCreatePatient;
 
 public record ForceCreatePatientCommand(
-    Guid AccountId,
     string FirstName,
     string LastName,
     string? MiddleName,

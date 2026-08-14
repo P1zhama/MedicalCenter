@@ -7,9 +7,6 @@ public class LinkExistingPatientCommandValidator : AbstractValidator<LinkExistin
 {
     public LinkExistingPatientCommandValidator()
     {
-        RuleFor(x => x.AccountId)
-            .NotEqual(Guid.Empty);
-
         RuleFor(x => x.PatientId)
             .NotEqual(Guid.Empty);
     }

@@ -1,12 +1,65 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
+using Appointments.Application;
+using Appointments.Infrastructure;
+using Appointments.Infrastructure.Persistence;
+using Common.Api.Authentication;
+using Common.Api.Interceptors;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(new CompactJsonFormatter())
+    .WriteTo.File(new CompactJsonFormatter(), "Logs/bootstrap-log-.json", rollingInterval: RollingInterval.Day)
+    .CreateBootstrapLogger();
 
-builder.Services.AddGrpc();
+try
+{
+    Log.Information("Starting Appointments Microservice...");
+    var builder = WebApplication.CreateBuilder(args);
 
-var app = builder.Build();
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services));
 
-app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+    AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
-app.Run();
+    builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddApplication();
+    builder.Services.AddJwtAuthentication(builder.Configuration);
+
+    builder.Services.AddGrpc(options =>
+    {
+        options.Interceptors.Add<CorrelationIdInterceptor>();
+        options.Interceptors.Add<UserContextInterceptor>();
+    });
+
+    var app = builder.Build();
+
+    app.UseSerilogRequestLogging();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client.");
+
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<AppointmentsDbContext>();
+        await context.Database.MigrateAsync();
+    }
+
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Appointments microservice terminated unexpectedly");
+
+    Environment.ExitCode = 1;
+}
+finally
+{
+    Log.CloseAndFlush();
+}

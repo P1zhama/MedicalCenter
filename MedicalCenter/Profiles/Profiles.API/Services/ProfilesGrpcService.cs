@@ -23,6 +23,7 @@ using Profiles.Application.Queries.GetDoctorForAppointment;
 using Profiles.Application.Queries.GetDoctorCardById;
 using Profiles.Application.Queries.GetDoctorCards;
 using Profiles.Application.Queries.GetDoctors;
+using Profiles.Application.Queries.GetDoctorsForAppointment;
 using Profiles.Application.Queries.GetDoctorsSummary;
 using Profiles.Application.Queries.GetMyDoctorProfile;
 using Profiles.Application.Queries.GetMyPatientProfile;
@@ -571,6 +572,29 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
             throw result.Errors.ToRpcException();
 
         return new PatientExistsResponse { Exists = result.Value };
+    }
+
+    public override async Task<GetDoctorsForAppointmentResponse> GetDoctorsForAppointment(
+        GetDoctorsForAppointmentRequest request,
+        ServerCallContext context)
+    {
+        var query = new GetDoctorsForAppointmentQuery(
+            ParseGuid(request.SpecializationId, "specialization id"),
+            ParseNullableGuid(request.OfficeId, "office id"));
+
+        var result = await _sender.Send(query, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        var response = new GetDoctorsForAppointmentResponse();
+
+        foreach (var id in result.Value)
+        {
+            response.DoctorIds.Add(id.ToString());
+        }
+
+        return response;
     }
 
     public override async Task<GetDoctorsSummaryResponse> GetDoctorsSummary(

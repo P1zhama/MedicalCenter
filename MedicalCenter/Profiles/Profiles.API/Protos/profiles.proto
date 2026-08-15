@@ -37,6 +37,7 @@ service ProfilesService {
 
     rpc GetDoctorForAppointment (GetDoctorForAppointmentRequest) returns (DoctorForAppointmentResponse);
     rpc PatientExists (PatientExistsRequest) returns (PatientExistsResponse);
+    rpc GetDoctorsForAppointment (GetDoctorsForAppointmentRequest) returns (GetDoctorsForAppointmentResponse);
     rpc GetDoctorsSummary (GetDoctorsSummaryRequest) returns (GetDoctorsSummaryResponse);
     rpc GetPatientsSummary (GetPatientsSummaryRequest) returns (GetPatientsSummaryResponse);
 }
@@ -58,6 +59,15 @@ message PatientExistsRequest {
 
 message PatientExistsResponse {
     bool exists = 1;
+}
+
+message GetDoctorsForAppointmentRequest {
+    string specialization_id = 1;
+    string office_id = 2;
+}
+
+message GetDoctorsForAppointmentResponse {
+    repeated string doctor_ids = 1;
 }
 
 message DoctorSummary {

@@ -33,6 +33,20 @@ public sealed class ServiceQueryRepository : IServiceQueryRepository
                 specialization.Name))
             .FirstOrDefaultAsync(cancellationToken)!;
 
+    public async Task<IReadOnlyList<ServiceSummaryDto>> GetSummariesAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0)
+            return [];
+
+        return await _context.Services
+            .AsNoTracking()
+            .Where(service => ids.Contains(service.Id))
+            .Select(service => new ServiceSummaryDto(service.Id, service.Name))
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<ServiceForAppointmentDto?> GetForAppointmentAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var activeStatus = ActivityStatus.Active.ToString();

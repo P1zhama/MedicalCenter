@@ -18,6 +18,10 @@ public record ServiceDto(
     Guid SpecializationId,
     string SpecializationName);
 
+public record ServiceSummaryDto(
+    Guid Id,
+    string Name);
+
 public record ServiceForAppointmentDto(
     Guid Id,
     string Name,

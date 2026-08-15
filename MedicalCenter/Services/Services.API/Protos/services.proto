@@ -19,6 +19,20 @@ service ServicesService {
     rpc GetServiceById (GetServiceByIdRequest) returns (ServiceResponse);
     rpc GetServiceCatalog (GetServiceCatalogRequest) returns (GetServiceCatalogResponse);
     rpc GetServiceForAppointment (GetServiceForAppointmentRequest) returns (ServiceForAppointmentResponse);
+    rpc GetServicesSummary (GetServicesSummaryRequest) returns (GetServicesSummaryResponse);
+}
+
+message ServiceSummary {
+    string service_id = 1;
+    string name = 2;
+}
+
+message GetServicesSummaryRequest {
+    repeated string service_ids = 1;
+}
+
+message GetServicesSummaryResponse {
+    repeated ServiceSummary services = 1;
 }
 
 message NewServiceItem {

@@ -13,6 +13,7 @@ using Services.Application.Queries.GetActiveSpecializations;
 using Services.Application.Queries.GetServiceById;
 using Services.Application.Queries.GetServiceCatalog;
 using Services.Application.Queries.GetServiceForAppointment;
+using Services.Application.Queries.GetServicesSummary;
 using Services.Application.Queries.GetSpecializationById;
 using Services.Application.Queries.GetSpecializations;
 using Services.Application.Queries.IsSpecializationActive;
@@ -333,6 +334,31 @@ public class ServicesGrpcService : ServicesService.ServicesServiceBase
             TimeSlotMinutes = service.TimeSlotMinutes,
             IsActive = service.IsActive
         };
+    }
+
+    public override async Task<GetServicesSummaryResponse> GetServicesSummary(
+        GetServicesSummaryRequest request,
+        ServerCallContext context)
+    {
+        var ids = request.ServiceIds.Select(id => ParseGuid(id, "service id")).ToList();
+
+        var result = await _sender.Send(new GetServicesSummaryQuery(ids), context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        var response = new GetServicesSummaryResponse();
+
+        foreach (var service in result.Value)
+        {
+            response.Services.Add(new ServiceSummary
+            {
+                ServiceId = service.Id.ToString(),
+                Name = service.Name
+            });
+        }
+
+        return response;
     }
 
     private static Guid ParseGuid(string value, string fieldName)

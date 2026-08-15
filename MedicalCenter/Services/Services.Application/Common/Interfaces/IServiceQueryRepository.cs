@@ -9,4 +9,8 @@ public interface IServiceQueryRepository
     Task<ServiceCatalogDto> GetActiveCatalogAsync(CancellationToken cancellationToken = default);
 
     Task<ServiceForAppointmentDto?> GetForAppointmentAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ServiceSummaryDto>> GetSummariesAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken = default);
 }

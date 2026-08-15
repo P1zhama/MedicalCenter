@@ -33,6 +33,13 @@ public record OfficeListItemWebResponse(
     string RegistryPhoneNumber
 );
 
+public record PublicOfficeWebResponse(
+    string Id,
+    string Address,
+    string PhotoUrl,
+    string RegistryPhoneNumber
+);
+
 public record OfficeWebResponse(
     string Id,
     string PhotoUrl,

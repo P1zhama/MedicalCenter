@@ -1,5 +1,4 @@
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
-USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
@@ -8,17 +7,16 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Gateway/Gateway.Api/Gateway.Api.csproj", "Gateway/Gateway.Api/"]
-RUN dotnet restore "./Gateway/Gateway.Api/Gateway.Api.csproj"
 COPY . .
+RUN dotnet restore "./Gateway/Gateway.Api/Gateway.API.csproj"
 WORKDIR "/src/Gateway/Gateway.Api"
-RUN dotnet build "./Gateway.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./Gateway.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Gateway.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Gateway.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Gateway.Api.dll"]
+ENTRYPOINT ["dotnet", "Gateway.API.dll"]

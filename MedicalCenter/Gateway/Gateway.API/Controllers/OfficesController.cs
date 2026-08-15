@@ -1,15 +1,14 @@
 using Gateway.Api.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Offices.Api.Protos;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Gateway.Api.Controllers;
 
 [ApiController]
 [Route("api/offices")]
-[Authorize]
 public class OfficesController : ControllerBase
 {
     private readonly OfficesService.OfficesServiceClient _officesClient;
@@ -29,6 +28,22 @@ public class OfficesController : ControllerBase
         {
             offices.Add(new OfficeListItemWebResponse(o.OfficeId, o.Address, o.Status, o.RegistryPhoneNumber));
         }
+
+        return Ok(offices);
+    }
+
+    [HttpGet("active")]
+    public async Task<IActionResult> GetActiveOffices()
+    {
+        var response = await _officesClient.GetActiveOfficesAsync(new GetActiveOfficesRequest());
+
+        var offices = response.Offices
+            .Select(office => new PublicOfficeWebResponse(
+                office.OfficeId,
+                office.Address,
+                office.PhotoUrl,
+                office.RegistryPhoneNumber))
+            .ToList();
 
         return Ok(offices);
     }

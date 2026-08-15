@@ -2,10 +2,9 @@ using Authorization.Api.Protos;
 using Gateway.Api.ErrorHandling;
 using Gateway.Api.Interceptors;
 using Gateway.Api.Middleware;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Hosting;
 using Offices.Api.Protos;
 using Polly;
 using Polly.CircuitBreaker;
@@ -15,9 +14,9 @@ using Profiles.Api.Protos;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
+using Services.Api.Protos;
 using System;
 using System.Net.Http;
-using System.Text;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -71,36 +70,13 @@ try
 
     builder.Services.AddGrpcClient<OfficesService.OfficesServiceClient>(options =>
     {
-        options.Address = new Uri(builder.Configuration["GrpcClients:Offices"] ?? "http://localhost:8002");
+        options.Address = new Uri(builder.Configuration["GrpcClients:Offices"] ?? "http://localhost:8004");
     }).AddInterceptor<CorrelationIdClientInterceptor>().AddInterceptor<IdentityForwardingInterceptor>();
 
-    var jwtSection = builder.Configuration.GetSection("JwtSettings");
-    var jwtSecretKey = jwtSection["SecretKey"];
-
-    const string RoleClaimType = "role";
-    const string SubjectClaimType = "sub";
-
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
-        {
-            options.MapInboundClaims = false;
-
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSecretKey ?? string.Empty)),
-                ValidateIssuer = true,
-                ValidIssuer = jwtSection["Issuer"],
-                ValidateAudience = true,
-                ValidAudience = jwtSection["Audience"],
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero,
-                RoleClaimType = RoleClaimType,
-                NameClaimType = SubjectClaimType
-            };
-        });
-
-    builder.Services.AddAuthorization();
+    builder.Services.AddGrpcClient<ServicesService.ServicesServiceClient>(options =>
+    {
+        options.Address = new Uri(builder.Configuration["GrpcClients:Services"] ?? "http://localhost:8002");
+    }).AddInterceptor<CorrelationIdClientInterceptor>().AddInterceptor<IdentityForwardingInterceptor>();
 
     var proxyBuilder = builder.Services.AddReverseProxy();
     proxyBuilder.LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
@@ -132,14 +108,12 @@ try
     app.UseExceptionHandler();
     app.UseSerilogRequestLogging();
 
-    app.UseCors(AllowedOriginsPolicy);
-
     app.UseRouting();
 
-    app.UseHttpsRedirection();
+    app.UseCors(AllowedOriginsPolicy);
 
-    app.UseAuthentication();
-    app.UseAuthorization();
+    if (!app.Environment.IsDevelopment())
+        app.UseHttpsRedirection();
 
     app.MapReverseProxy(proxyPipeline =>
     {
@@ -157,7 +131,7 @@ try
                     await next(context), context.RequestAborted);
             }
             else
-            {
+            { 
                 await next(context);
             }
         });

@@ -96,6 +96,21 @@ public sealed class DoctorQueryRepository : IDoctorQueryRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Guid>> GetAtWorkIdsAsync(
+        Guid specializationId,
+        Guid? officeId,
+        CancellationToken cancellationToken = default)
+    {
+        var query = AtWorkOnly().Where(doctor => doctor.SpecializationId == specializationId);
+
+        if (officeId.HasValue)
+            query = query.Where(doctor => doctor.OfficeId == officeId.Value);
+
+        return await query
+            .Select(doctor => doctor.Id)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<DoctorSummaryDto>> GetSummariesAsync(
         IReadOnlyCollection<Guid> ids,
         CancellationToken cancellationToken = default)

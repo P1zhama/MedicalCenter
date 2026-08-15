@@ -24,6 +24,11 @@ public interface IDoctorQueryRepository
 
     Task<DoctorForAppointmentDto?> GetForAppointmentAsync(Guid id, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<Guid>> GetAtWorkIdsAsync(
+        Guid specializationId,
+        Guid? officeId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<DoctorSummaryDto>> GetSummariesAsync(
         IReadOnlyCollection<Guid> ids,
         CancellationToken cancellationToken = default);

@@ -52,6 +52,8 @@ try
 catch (Exception ex)
 {
     Log.Fatal(ex, "Offices microservice terminated unexpectedly");
+
+    Environment.ExitCode = 1;
 }
 finally
 {

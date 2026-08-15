@@ -72,6 +72,8 @@ try
 catch (Exception ex)
 {
     Log.Fatal(ex, "Profiles microservice terminated unexpectedly");
+
+    Environment.ExitCode = 1;
 }
 finally
 {

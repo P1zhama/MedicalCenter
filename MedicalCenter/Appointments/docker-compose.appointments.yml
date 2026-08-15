@@ -1,0 +1,24 @@
+services:
+  appointments-api:
+    build:
+      context: .
+      dockerfile: Appointments/Appointments.Api/Dockerfile
+    container_name: appointments-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8006:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=MmcAppointmentsDb;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - RabbitMqSettings__Host=rabbitmq
+      - RabbitMqSettings__Username=guest
+      - RabbitMqSettings__Password=guest
+      - GrpcClients__Profiles=http://profiles-api:8080
+      - GrpcClients__Services=http://services-api:8080
+      - GrpcClients__Offices=http://offices-api:8080
+    networks:
+      - medical-network

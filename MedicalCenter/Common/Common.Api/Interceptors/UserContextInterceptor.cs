@@ -38,9 +38,13 @@ public sealed class UserContextInterceptor : Interceptor
     {
         Guid? id = Guid.TryParse(principal.FindFirst(JwtClaimTypes.Subject)?.Value, out var parsed) ? parsed : null;
 
+        Guid? profileId = Guid.TryParse(principal.FindFirst(JwtClaimTypes.ProfileId)?.Value, out var parsedProfile)
+            ? parsedProfile
+            : null;
+
         var roles = principal.FindAll(JwtClaimTypes.Role).Select(claim => claim.Value).ToArray();
         var permissions = principal.FindAll(JwtClaimTypes.Permission).Select(claim => claim.Value).ToArray();
 
-        return new CurrentUser(id, roles, permissions);
+        return new CurrentUser(id, profileId, roles, permissions);
     }
 }

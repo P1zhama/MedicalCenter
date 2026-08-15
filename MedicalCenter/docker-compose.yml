@@ -17,6 +17,25 @@ services:
     networks:
       - medical-network
 
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_DB: MmcAppointmentsDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d MmcAppointmentsDb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medical-network
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -58,12 +77,15 @@ include:
     project_directory: .
   - path: Services/docker-compose.services.yml
     project_directory: .
+  - path: Appointments/docker-compose.appointments.yml
+    project_directory: .
   - path: Gateway/docker-compose.gateway.yml
     project_directory: .
 
 volumes:
   mssql_data:
   mongo_data:
+  postgres_data:
 
 networks:
   medical-network:

@@ -34,6 +34,61 @@ service ProfilesService {
     rpc UpdateReceptionist (UpdateReceptionistRequest) returns (UpdateReceptionistResponse);
     rpc UpdateMyReceptionistProfile (UpdateMyReceptionistProfileRequest) returns (UpdateReceptionistResponse);
     rpc DeleteReceptionist (DeleteReceptionistRequest) returns (DeleteReceptionistResponse);
+
+    rpc GetDoctorForAppointment (GetDoctorForAppointmentRequest) returns (DoctorForAppointmentResponse);
+    rpc PatientExists (PatientExistsRequest) returns (PatientExistsResponse);
+    rpc GetDoctorsSummary (GetDoctorsSummaryRequest) returns (GetDoctorsSummaryResponse);
+    rpc GetPatientsSummary (GetPatientsSummaryRequest) returns (GetPatientsSummaryResponse);
+}
+
+message GetDoctorForAppointmentRequest {
+    string doctor_id = 1;
+}
+
+message DoctorForAppointmentResponse {
+    string doctor_id = 1;
+    string specialization_id = 2;
+    string office_id = 3;
+    bool is_at_work = 4;
+}
+
+message PatientExistsRequest {
+    string patient_id = 1;
+}
+
+message PatientExistsResponse {
+    bool exists = 1;
+}
+
+message DoctorSummary {
+    string doctor_id = 1;
+    string first_name = 2;
+    string last_name = 3;
+    string middle_name = 4;
+}
+
+message GetDoctorsSummaryRequest {
+    repeated string doctor_ids = 1;
+}
+
+message GetDoctorsSummaryResponse {
+    repeated DoctorSummary doctors = 1;
+}
+
+message PatientSummary {
+    string patient_id = 1;
+    string first_name = 2;
+    string last_name = 3;
+    string middle_name = 4;
+    string phone_number = 5;
+}
+
+message GetPatientsSummaryRequest {
+    repeated string patient_ids = 1;
+}
+
+message GetPatientsSummaryResponse {
+    repeated PatientSummary patients = 1;
 }
 
 message CreatePatientRequest {

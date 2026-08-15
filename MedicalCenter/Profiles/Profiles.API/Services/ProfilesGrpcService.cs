@@ -19,16 +19,20 @@ using Profiles.Application.Commands.UpdatePatient;
 using Profiles.Application.Commands.UpdateReceptionist;
 using Profiles.Application.Common.Dtos;
 using Profiles.Application.Queries.GetDoctorById;
+using Profiles.Application.Queries.GetDoctorForAppointment;
 using Profiles.Application.Queries.GetDoctorCardById;
 using Profiles.Application.Queries.GetDoctorCards;
 using Profiles.Application.Queries.GetDoctors;
+using Profiles.Application.Queries.GetDoctorsSummary;
 using Profiles.Application.Queries.GetMyDoctorProfile;
 using Profiles.Application.Queries.GetMyPatientProfile;
 using Profiles.Application.Queries.GetMyReceptionistProfile;
 using Profiles.Application.Queries.GetPatientById;
 using Profiles.Application.Queries.GetPatients;
+using Profiles.Application.Queries.GetPatientsSummary;
 using Profiles.Application.Queries.GetReceptionistById;
 using Profiles.Application.Queries.GetReceptionists;
+using Profiles.Application.Queries.PatientExists;
 using Profiles.Domain.Enums;
 using System.Globalization;
 
@@ -533,6 +537,95 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
             throw result.Errors.ToRpcException();
 
         return new DeleteReceptionistResponse();
+    }
+
+    public override async Task<DoctorForAppointmentResponse> GetDoctorForAppointment(
+        GetDoctorForAppointmentRequest request,
+        ServerCallContext context)
+    {
+        var query = new GetDoctorForAppointmentQuery(ParseGuid(request.DoctorId, "doctor id"));
+
+        var result = await _sender.Send(query, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new DoctorForAppointmentResponse
+        {
+            DoctorId = result.Value.Id.ToString(),
+            SpecializationId = result.Value.SpecializationId.ToString(),
+            OfficeId = result.Value.OfficeId.ToString(),
+            IsAtWork = result.Value.IsAtWork
+        };
+    }
+
+    public override async Task<PatientExistsResponse> PatientExists(
+        PatientExistsRequest request,
+        ServerCallContext context)
+    {
+        var query = new PatientExistsQuery(ParseGuid(request.PatientId, "patient id"));
+
+        var result = await _sender.Send(query, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new PatientExistsResponse { Exists = result.Value };
+    }
+
+    public override async Task<GetDoctorsSummaryResponse> GetDoctorsSummary(
+        GetDoctorsSummaryRequest request,
+        ServerCallContext context)
+    {
+        var ids = request.DoctorIds.Select(id => ParseGuid(id, "doctor id")).ToList();
+
+        var result = await _sender.Send(new GetDoctorsSummaryQuery(ids), context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        var response = new GetDoctorsSummaryResponse();
+
+        foreach (var doctor in result.Value)
+        {
+            response.Doctors.Add(new DoctorSummary
+            {
+                DoctorId = doctor.Id.ToString(),
+                FirstName = doctor.FirstName,
+                LastName = doctor.LastName,
+                MiddleName = doctor.MiddleName ?? string.Empty
+            });
+        }
+
+        return response;
+    }
+
+    public override async Task<GetPatientsSummaryResponse> GetPatientsSummary(
+        GetPatientsSummaryRequest request,
+        ServerCallContext context)
+    {
+        var ids = request.PatientIds.Select(id => ParseGuid(id, "patient id")).ToList();
+
+        var result = await _sender.Send(new GetPatientsSummaryQuery(ids), context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        var response = new GetPatientsSummaryResponse();
+
+        foreach (var patient in result.Value)
+        {
+            response.Patients.Add(new PatientSummary
+            {
+                PatientId = patient.Id.ToString(),
+                FirstName = patient.FirstName,
+                LastName = patient.LastName,
+                MiddleName = patient.MiddleName ?? string.Empty,
+                PhoneNumber = patient.PhoneNumber ?? string.Empty
+            });
+        }
+
+        return response;
     }
 
     private static DoctorCard ToDoctorCard(DoctorCardDto doctor) => new()

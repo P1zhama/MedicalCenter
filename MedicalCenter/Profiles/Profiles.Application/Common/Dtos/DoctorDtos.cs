@@ -5,6 +5,18 @@ public record DoctorFilter(
     Guid? SpecializationId,
     Guid? OfficeId);
 
+public record DoctorForAppointmentDto(
+    Guid Id,
+    Guid SpecializationId,
+    Guid OfficeId,
+    bool IsAtWork);
+
+public record DoctorSummaryDto(
+    Guid Id,
+    string FirstName,
+    string LastName,
+    string? MiddleName);
+
 public record DoctorCardDto(
     Guid Id,
     string? PhotoUrl,

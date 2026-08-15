@@ -21,4 +21,10 @@ public interface IDoctorQueryRepository
     Task<DoctorDto?> GetByIdAsync(Guid id, int currentYear, CancellationToken cancellationToken = default);
 
     Task<DoctorDto?> GetByAccountIdAsync(Guid accountId, int currentYear, CancellationToken cancellationToken = default);
+
+    Task<DoctorForAppointmentDto?> GetForAppointmentAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<DoctorSummaryDto>> GetSummariesAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken = default);
 }

@@ -14,6 +14,30 @@ public sealed class PatientQueryRepository : IPatientQueryRepository
         _context = context;
     }
 
+    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+        => _context.Patients
+            .AsNoTracking()
+            .AnyAsync(patient => patient.Id == id, cancellationToken);
+
+    public async Task<IReadOnlyList<PatientSummaryDto>> GetSummariesAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0)
+            return [];
+
+        return await _context.Patients
+            .AsNoTracking()
+            .Where(patient => ids.Contains(patient.Id))
+            .Select(patient => new PatientSummaryDto(
+                patient.Id,
+                patient.FirstName,
+                patient.LastName,
+                patient.MiddleName,
+                patient.PhoneNumber))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<PatientListItemDto>> SearchAsync(
         string? fullNameSearch,
         CancellationToken cancellationToken = default)

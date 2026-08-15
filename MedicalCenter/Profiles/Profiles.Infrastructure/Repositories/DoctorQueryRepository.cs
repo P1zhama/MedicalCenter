@@ -79,6 +79,41 @@ public sealed class DoctorQueryRepository : IDoctorQueryRepository
         => Project(_context.Doctors.AsNoTracking().Where(doctor => doctor.AccountId == accountId), currentYear)
             .FirstOrDefaultAsync(cancellationToken)!;
 
+    public async Task<DoctorForAppointmentDto?> GetForAppointmentAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var atWork = DoctorStatus.AtWork.ToString();
+
+        return await _context.Doctors
+            .AsNoTracking()
+            .Where(doctor => doctor.Id == id)
+            .Select(doctor => new DoctorForAppointmentDto(
+                doctor.Id,
+                doctor.SpecializationId,
+                doctor.OfficeId,
+                doctor.Status == atWork))
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<DoctorSummaryDto>> GetSummariesAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0)
+            return [];
+
+        return await _context.Doctors
+            .AsNoTracking()
+            .Where(doctor => ids.Contains(doctor.Id))
+            .Select(doctor => new DoctorSummaryDto(
+                doctor.Id,
+                doctor.FirstName,
+                doctor.LastName,
+                doctor.MiddleName))
+            .ToListAsync(cancellationToken);
+    }
+
     private IQueryable<DoctorEntity> AtWorkOnly()
     {
         var atWork = DoctorStatus.AtWork.ToString();

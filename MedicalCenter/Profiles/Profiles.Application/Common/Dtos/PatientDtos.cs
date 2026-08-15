@@ -7,6 +7,13 @@ public record PatientListItemDto(
     string? MiddleName,
     string? PhoneNumber);
 
+public record PatientSummaryDto(
+    Guid Id,
+    string FirstName,
+    string LastName,
+    string? MiddleName,
+    string? PhoneNumber);
+
 public record PatientDto(
     Guid Id,
     string? PhotoUrl,

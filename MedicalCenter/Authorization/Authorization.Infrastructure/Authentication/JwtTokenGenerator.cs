@@ -4,6 +4,7 @@ using Authorization.Application.Common.Interfaces;
 using Authorization.Application.Common.Models;
 using Authorization.Domain;
 using Common.Abstractions.Providers;
+using Common.Abstractions.Security;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -41,6 +42,9 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         };
 
         claims.AddRange(account.Claims.Select(claim => new Claim(claim.Type, claim.Value)));
+
+        if (account.HasProfile)
+            claims.Add(new Claim(JwtClaimTypes.ProfileId, account.ProfileId!.Value.ToString()));
 
         var token = new JwtSecurityToken(
             issuer: _settings.Issuer,

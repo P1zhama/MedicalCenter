@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using Authorization.Application.Common.Interfaces;
 using Authorization.Application.Common.Models;
 using Authorization.Domain;
@@ -13,26 +12,20 @@ namespace Authorization.Infrastructure.Authentication;
 public sealed class JwtTokenGenerator : IJwtTokenGenerator
 {
     private readonly JwtSettings _settings;
+    private readonly SigningCredentials _signingCredentials;
     private readonly TimeProvider _timeProvider;
     private readonly IGuidProvider _guidProvider;
-    private readonly SigningCredentials _signingCredentials;
 
     public JwtTokenGenerator(
         IOptions<JwtSettings> settings,
+        SigningCredentials signingCredentials,
         TimeProvider timeProvider,
         IGuidProvider guidProvider)
     {
         _settings = settings.Value;
+        _signingCredentials = signingCredentials;
         _timeProvider = timeProvider;
         _guidProvider = guidProvider;
-
-        if (string.IsNullOrWhiteSpace(_settings.PrivateKey))
-            throw new InvalidOperationException("JWT private key is not configured.");
-
-        var rsa = RSA.Create();
-        rsa.ImportPkcs8PrivateKey(Convert.FromBase64String(_settings.PrivateKey), out _);
-
-        _signingCredentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
     }
 
     public AccessToken Generate(Account account)

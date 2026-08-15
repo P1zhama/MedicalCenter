@@ -6,11 +6,13 @@ using Authorization.Infrastructure.Notifications;
 using Authorization.Infrastructure.Persistence;
 using Authorization.Infrastructure.Repositories;
 using Authorization.Infrastructure.Services;
+using System.Security.Cryptography;
 using Common.Infrastructure;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Authorization.Infrastructure;
 
@@ -23,7 +25,11 @@ public static class DependencyInjection
         services.AddDbContext<AuthDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
+        var jwtSettings = configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
+            ?? throw new InvalidOperationException($"Section '{JwtSettings.SectionName}' is missing.");
+
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
+        services.AddSingleton(CreateSigningCredentials(jwtSettings.PrivateKey));
         services.Configure<EmailConfirmationSettings>(configuration.GetSection(EmailConfirmationSettings.SectionName));
         services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
         services.Configure<BootstrapAdminSettings>(configuration.GetSection(BootstrapAdminSettings.SectionName));
@@ -69,5 +75,16 @@ public static class DependencyInjection
         });
 
         return services;
+    }
+
+    private static SigningCredentials CreateSigningCredentials(string privateKey)
+    {
+        if (string.IsNullOrWhiteSpace(privateKey))
+            throw new InvalidOperationException("JWT private key is not configured.");
+
+        var rsa = RSA.Create();
+        rsa.ImportPkcs8PrivateKey(Convert.FromBase64String(privateKey), out _);
+
+        return new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
     }
 }

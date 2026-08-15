@@ -58,6 +58,8 @@ try
 catch (Exception ex)
 {
     Log.Fatal(ex, "Authorization microservice terminated unexpectedly");
+
+    Environment.ExitCode = 1;
 }
 finally
 {

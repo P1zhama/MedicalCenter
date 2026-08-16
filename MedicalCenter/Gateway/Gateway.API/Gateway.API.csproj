@@ -12,6 +12,7 @@
 		<Protobuf Include="..\..\Profiles\Profiles.Api\Protos\profiles.proto" GrpcServices="Client" Link="Protos\profiles.proto" />
 		<Protobuf Include="..\..\Offices\Offices.Api\Protos\offices.proto" GrpcServices="Client" Link="Protos\offices.proto" />
 		<Protobuf Include="..\..\Services\Services.Api\Protos\services.proto" GrpcServices="Client" Link="Protos\services.proto" />
+		<Protobuf Include="..\..\Appointments\Appointments.Api\Protos\appointments.proto" GrpcServices="Client" Link="Protos\appointments.proto" />
 	</ItemGroup>
 
 	<ItemGroup>

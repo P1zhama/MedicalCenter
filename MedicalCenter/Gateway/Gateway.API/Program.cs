@@ -1,3 +1,4 @@
+using Appointments.Api.Protos;
 using Authorization.Api.Protos;
 using Gateway.Api.ErrorHandling;
 using Gateway.Api.Interceptors;
@@ -78,6 +79,11 @@ try
         options.Address = new Uri(builder.Configuration["GrpcClients:Services"] ?? "http://localhost:8002");
     }).AddInterceptor<CorrelationIdClientInterceptor>().AddInterceptor<IdentityForwardingInterceptor>();
 
+    builder.Services.AddGrpcClient<AppointmentsService.AppointmentsServiceClient>(options =>
+    {
+        options.Address = new Uri(builder.Configuration["GrpcClients:Appointments"] ?? "http://localhost:8006");
+    }).AddInterceptor<CorrelationIdClientInterceptor>().AddInterceptor<IdentityForwardingInterceptor>();
+
     var proxyBuilder = builder.Services.AddReverseProxy();
     proxyBuilder.LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
@@ -144,6 +150,8 @@ try
 catch (Exception ex)
 {
     Log.Fatal(ex, "Gateway API terminated unexpectedly");
+
+    Environment.ExitCode = 1;
 }
 finally
 {

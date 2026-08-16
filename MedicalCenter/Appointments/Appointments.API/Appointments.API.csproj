@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Protobuf Include="Protos\appointments.proto" GrpcServices="Server" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.64.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
       <PrivateAssets>all</PrivateAssets>
@@ -26,11 +30,6 @@
     <ProjectReference Include="..\..\Common\Common.Api\Common.Api.csproj" />
     <ProjectReference Include="..\Appointments.Application\Appointments.Application.csproj" />
     <ProjectReference Include="..\Appointments.Infrastructure\Appointments.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Protos\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

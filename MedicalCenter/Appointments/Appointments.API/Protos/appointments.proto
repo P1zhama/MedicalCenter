@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option csharp_namespace = "Appointments.Api.Protos";
+
+package appointments;
+
+service AppointmentsService {
+    rpc GetAvailableSlots (GetAvailableSlotsRequest) returns (GetAvailableSlotsResponse);
+}
+
+message GetAvailableSlotsRequest {
+    string date = 1;
+    string service_id = 2;
+    string doctor_id = 3;
+    string office_id = 4;
+}
+
+message AvailableSlot {
+    string start_time = 1;
+    repeated string doctor_ids = 2;
+}
+
+message GetAvailableSlotsResponse {
+    repeated AvailableSlot slots = 1;
+}

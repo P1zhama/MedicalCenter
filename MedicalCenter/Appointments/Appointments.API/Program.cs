@@ -1,6 +1,8 @@
 using Appointments.Application;
 using Appointments.Infrastructure;
 using Appointments.Infrastructure.Persistence;
+using Appointments.Api.Interceptors;
+using Appointments.Api.Services;
 using Common.Api.Authentication;
 using Common.Api.Interceptors;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +36,7 @@ try
     {
         options.Interceptors.Add<CorrelationIdInterceptor>();
         options.Interceptors.Add<UserContextInterceptor>();
+        options.Interceptors.Add<GrpcExceptionInterceptor>();
     });
 
     var app = builder.Build();
@@ -43,6 +46,7 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
+    app.MapGrpcService<AppointmentsGrpcService>();
     app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client.");
 
     using (var scope = app.Services.CreateScope())

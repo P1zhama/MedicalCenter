@@ -1,5 +1,6 @@
 using Appointments.Application.Common.Dtos;
 using Appointments.Application.Common.Interfaces;
+using Appointments.Application.Common.Services;
 using Appointments.Application.Common.Settings;
 using Appointments.Domain.Scheduling;
 using ErrorOr;
@@ -18,7 +19,7 @@ public sealed class GetAvailableSlotsQueryHandler
     private readonly IDoctorDirectoryClient _doctorDirectoryClient;
     private readonly WorkingSchedule _schedule;
     private readonly WorkingHoursSettings _settings;
-    private readonly TimeProvider _timeProvider;
+    private readonly ClinicClock _clock;
 
     public GetAvailableSlotsQueryHandler(
         IAppointmentQueryRepository repository,
@@ -26,22 +27,21 @@ public sealed class GetAvailableSlotsQueryHandler
         IDoctorDirectoryClient doctorDirectoryClient,
         WorkingSchedule schedule,
         IOptions<WorkingHoursSettings> settings,
-        TimeProvider timeProvider)
+        ClinicClock clock)
     {
         _repository = repository;
         _serviceCatalogClient = serviceCatalogClient;
         _doctorDirectoryClient = doctorDirectoryClient;
         _schedule = schedule;
         _settings = settings.Value;
-        _timeProvider = timeProvider;
+        _clock = clock;
     }
 
     public async Task<ErrorOr<IReadOnlyList<AvailableSlotDto>>> Handle(
         GetAvailableSlotsQuery request,
         CancellationToken cancellationToken)
     {
-        var now = _timeProvider.GetUtcNow();
-        var today = DateOnly.FromDateTime(now.UtcDateTime);
+        var today = _clock.Today;
 
         if (request.Date < today)
             return Error.Validation("Slots.DateInPast", "Please, select the date");
@@ -76,7 +76,7 @@ public sealed class GetAvailableSlotsQueryHandler
             .ToDictionary(group => group.Key, group => group.ToList());
 
         var earliestStart = request.Date == today
-            ? TimeOnly.FromDateTime(now.UtcDateTime)
+            ? _clock.CurrentTime
             : (TimeOnly?)null;
 
         var slots = new List<AvailableSlotDto>();

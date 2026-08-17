@@ -4,6 +4,8 @@ public sealed class WorkingHoursSettings
 {
     public const string SectionName = "WorkingHours";
 
+    public string TimeZone { get; set; } = string.Empty;
+
     public TimeOnly Start { get; set; }
 
     public TimeOnly End { get; set; }

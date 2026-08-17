@@ -1,4 +1,5 @@
 using Appointments.Application.Common.Interfaces;
+using Appointments.Application.Common.Services;
 using Appointments.Application.Common.Settings;
 using Appointments.Domain.Scheduling;
 using Appointments.Infrastructure.Clients;
@@ -27,8 +28,11 @@ public static class DependencyInjection
         var workingHours = configuration.GetSection(WorkingHoursSettings.SectionName).Get<WorkingHoursSettings>()
             ?? throw new InvalidOperationException($"Section '{WorkingHoursSettings.SectionName}' is missing.");
 
+        var clinicTimeZone = ResolveTimeZone(workingHours.TimeZone);
+
         services.Configure<WorkingHoursSettings>(configuration.GetSection(WorkingHoursSettings.SectionName));
         services.AddSingleton(CreateWorkingSchedule(workingHours));
+        services.AddSingleton(provider => new ClinicClock(provider.GetRequiredService<TimeProvider>(), clinicTimeZone));
 
         services.AddScoped<IAppointmentCommandRepository, AppointmentCommandRepository>();
         services.AddScoped<IAppointmentQueryRepository, AppointmentQueryRepository>();
@@ -73,6 +77,14 @@ public static class DependencyInjection
         });
 
         return services;
+    }
+
+    private static TimeZoneInfo ResolveTimeZone(string timeZoneId)
+    {
+        if (string.IsNullOrWhiteSpace(timeZoneId))
+            throw new InvalidOperationException("Clinic time zone is not configured.");
+
+        return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
     }
 
     private static WorkingSchedule CreateWorkingSchedule(WorkingHoursSettings settings)

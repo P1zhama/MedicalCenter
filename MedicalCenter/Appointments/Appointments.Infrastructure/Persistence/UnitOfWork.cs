@@ -1,11 +1,14 @@
 using Appointments.Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace Appointments.Infrastructure.Persistence;
 
 public sealed class UnitOfWork : IUnitOfWork
 {
+    private const string ExclusionViolation = "23P01";
+
     private readonly AppointmentsDbContext _context;
     private readonly ILogger<UnitOfWork> _logger;
 
@@ -15,13 +18,13 @@ public sealed class UnitOfWork : IUnitOfWork
         _logger = logger;
     }
 
-    public async Task<bool> TrySaveChangesAsync(CancellationToken cancellationToken = default)
+    public async Task<SaveOutcome> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             await _context.SaveChangesAsync(cancellationToken);
 
-            return true;
+            return SaveOutcome.Success;
         }
         catch (DbUpdateConcurrencyException exception)
         {
@@ -30,7 +33,14 @@ public sealed class UnitOfWork : IUnitOfWork
                 "Concurrency conflict while saving changes; {EntryCount} entry(ies) were modified by another operation.",
                 exception.Entries.Count);
 
-            return false;
+            return SaveOutcome.ConcurrencyConflict;
+        }
+        catch (DbUpdateException exception)
+            when (exception.InnerException is PostgresException { SqlState: ExclusionViolation })
+        {
+            _logger.LogWarning(exception, "Appointment slot was taken by a concurrent request.");
+
+            return SaveOutcome.SlotTaken;
         }
     }
 }

@@ -31,3 +31,22 @@ public record RescheduleAppointmentWebRequest(
 );
 
 public record CreatedAppointmentWebResponse(string AppointmentId);
+
+public record AppointmentListItemWebResponse(
+    string Id,
+    string Date,
+    string StartTime,
+    string EndTime,
+    string DoctorId,
+    string DoctorFirstName,
+    string DoctorLastName,
+    string DoctorMiddleName,
+    string PatientId,
+    string PatientFirstName,
+    string PatientLastName,
+    string PatientMiddleName,
+    string PatientPhoneNumber,
+    string ServiceId,
+    string ServiceName,
+    string Status
+);

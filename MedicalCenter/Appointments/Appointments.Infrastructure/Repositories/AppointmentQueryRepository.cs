@@ -35,6 +35,9 @@ public sealed class AppointmentQueryRepository : IAppointmentQueryRepository
             appointment.OfficeId,
             appointment.Status));
 
+    public Task<AppointmentRowDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        => Project(NotCancelled().Where(appointment => appointment.Id == id)).FirstOrDefaultAsync(cancellationToken)!;
+
     public async Task<IReadOnlyList<AppointmentRowDto>> SearchAsync(
         AppointmentFilter filter,
         CancellationToken cancellationToken = default)

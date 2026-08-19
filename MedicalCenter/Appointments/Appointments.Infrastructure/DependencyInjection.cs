@@ -36,6 +36,8 @@ public static class DependencyInjection
 
         services.AddScoped<IAppointmentCommandRepository, AppointmentCommandRepository>();
         services.AddScoped<IAppointmentQueryRepository, AppointmentQueryRepository>();
+        services.AddScoped<IAppointmentResultCommandRepository, AppointmentResultCommandRepository>();
+        services.AddScoped<IAppointmentResultQueryRepository, AppointmentResultQueryRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddHttpContextAccessor();

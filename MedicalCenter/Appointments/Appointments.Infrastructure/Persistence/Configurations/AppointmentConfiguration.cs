@@ -68,10 +68,6 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<AppointmentEnti
         builder.Property(appointment => appointment.UpdatedAt)
             .HasColumnName("updated_at");
 
-        builder.HasIndex(appointment => new { appointment.DoctorId, appointment.Date, appointment.StartTime })
-            .IsUnique()
-            .HasFilter("status <> 'Cancelled'");
-
         builder.HasIndex(appointment => new { appointment.DoctorId, appointment.Date });
         builder.HasIndex(appointment => new { appointment.PatientId, appointment.Date });
     }

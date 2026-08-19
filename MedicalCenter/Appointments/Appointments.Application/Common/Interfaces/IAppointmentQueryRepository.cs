@@ -8,4 +8,12 @@ public interface IAppointmentQueryRepository
         DateOnly date,
         IReadOnlyCollection<Guid> doctorIds,
         CancellationToken cancellationToken = default);
+
+    Task<bool> HasOverlapAsync(
+        Guid doctorId,
+        DateOnly date,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        Guid? excludingAppointmentId,
+        CancellationToken cancellationToken = default);
 }

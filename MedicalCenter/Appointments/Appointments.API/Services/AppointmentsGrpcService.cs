@@ -5,8 +5,11 @@ using Appointments.Application.Commands.ApproveAppointment;
 using Appointments.Application.Commands.CancelAppointment;
 using Appointments.Application.Commands.CreateAppointment;
 using Appointments.Application.Commands.CreateAppointmentByReceptionist;
+using Appointments.Application.Commands.CreateAppointmentResult;
+using Appointments.Application.Commands.UpdateAppointmentResult;
 using Appointments.Application.Commands.RescheduleAppointment;
 using Appointments.Application.Common.Dtos;
+using Appointments.Application.Queries.GetAppointmentResult;
 using Appointments.Application.Queries.GetAppointments;
 using Appointments.Application.Queries.GetAvailableSlots;
 using Appointments.Application.Queries.GetDoctorSchedule;
@@ -200,6 +203,83 @@ public class AppointmentsGrpcService : AppointmentsService.AppointmentsServiceBa
         var query = new GetPatientAppointmentsQuery(ParseGuid(request.PatientId, "patient id"));
 
         return ToListResponse(await _sender.Send(query, context.CancellationToken));
+    }
+
+    public override async Task<CreateAppointmentResultResponse> CreateAppointmentResult(
+        SaveAppointmentResultRequest request,
+        ServerCallContext context)
+    {
+        var command = new CreateAppointmentResultCommand(
+            ParseGuid(request.AppointmentId, "appointment id"),
+            request.Complaints,
+            request.Conclusion,
+            request.Recommendations,
+            NullIfEmpty(request.Diagnosis));
+
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new CreateAppointmentResultResponse { ResultId = result.Value.ToString() };
+    }
+
+    public override async Task<UpdateAppointmentResultResponse> UpdateAppointmentResult(
+        SaveAppointmentResultRequest request,
+        ServerCallContext context)
+    {
+        var command = new UpdateAppointmentResultCommand(
+            ParseGuid(request.AppointmentId, "appointment id"),
+            request.Complaints,
+            request.Conclusion,
+            request.Recommendations,
+            NullIfEmpty(request.Diagnosis));
+
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new UpdateAppointmentResultResponse();
+    }
+
+    public override async Task<AppointmentResultResponse> GetAppointmentResult(
+        GetAppointmentResultRequest request,
+        ServerCallContext context)
+    {
+        var query = new GetAppointmentResultQuery(ParseGuid(request.AppointmentId, "appointment id"));
+
+        var result = await _sender.Send(query, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        var value = result.Value;
+
+        return new AppointmentResultResponse
+        {
+            ResultId = value.Id?.ToString() ?? string.Empty,
+            AppointmentId = value.AppointmentId.ToString(),
+            Date = value.Date.ToString(DateFormat, CultureInfo.InvariantCulture),
+            StartTime = value.StartTime.ToString(TimeFormat, CultureInfo.InvariantCulture),
+            EndTime = value.EndTime.ToString(TimeFormat, CultureInfo.InvariantCulture),
+            PatientId = value.PatientId.ToString(),
+            PatientFirstName = value.PatientFirstName,
+            PatientLastName = value.PatientLastName,
+            PatientMiddleName = value.PatientMiddleName ?? string.Empty,
+            PatientDateOfBirth = value.PatientDateOfBirth.ToString(DateFormat, CultureInfo.InvariantCulture),
+            DoctorId = value.DoctorId.ToString(),
+            DoctorFirstName = value.DoctorFirstName,
+            DoctorLastName = value.DoctorLastName,
+            DoctorMiddleName = value.DoctorMiddleName ?? string.Empty,
+            SpecializationName = value.SpecializationName,
+            ServiceId = value.ServiceId.ToString(),
+            ServiceName = value.ServiceName,
+            Complaints = value.Complaints ?? string.Empty,
+            Conclusion = value.Conclusion ?? string.Empty,
+            Recommendations = value.Recommendations ?? string.Empty,
+            Diagnosis = value.Diagnosis ?? string.Empty
+        };
     }
 
     private static AppointmentListResponse ToListResponse(ErrorOr<IReadOnlyList<AppointmentListItemDto>> result)

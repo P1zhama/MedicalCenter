@@ -40,10 +40,12 @@ public sealed class ServiceQueryRepository : IServiceQueryRepository
         if (ids.Count == 0)
             return [];
 
-        return await _context.Services
-            .AsNoTracking()
-            .Where(service => ids.Contains(service.Id))
-            .Select(service => new ServiceSummaryDto(service.Id, service.Name))
+        return await (
+            from service in _context.Services.AsNoTracking()
+            join specialization in _context.Specializations.AsNoTracking()
+                on service.SpecializationId equals specialization.Id
+            where ids.Contains(service.Id)
+            select new ServiceSummaryDto(service.Id, service.Name, specialization.Name))
             .ToListAsync(cancellationToken);
     }
 

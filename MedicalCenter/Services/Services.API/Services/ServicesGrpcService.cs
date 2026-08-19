@@ -354,7 +354,8 @@ public class ServicesGrpcService : ServicesService.ServicesServiceBase
             response.Services.Add(new ServiceSummary
             {
                 ServiceId = service.Id.ToString(),
-                Name = service.Name
+                Name = service.Name,
+                SpecializationName = service.SpecializationName
             });
         }
 

@@ -25,6 +25,7 @@ service ServicesService {
 message ServiceSummary {
     string service_id = 1;
     string name = 2;
+    string specialization_name = 3;
 }
 
 message GetServicesSummaryRequest {

@@ -20,7 +20,8 @@ public record ServiceDto(
 
 public record ServiceSummaryDto(
     Guid Id,
-    string Name);
+    string Name,
+    string SpecializationName);
 
 public record ServiceForAppointmentDto(
     Guid Id,

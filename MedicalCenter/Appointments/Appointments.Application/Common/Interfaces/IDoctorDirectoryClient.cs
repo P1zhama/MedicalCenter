@@ -10,4 +10,8 @@ public interface IDoctorDirectoryClient
         Guid specializationId,
         Guid? officeId,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<DoctorSummaryDto>> GetSummariesAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken = default);
 }

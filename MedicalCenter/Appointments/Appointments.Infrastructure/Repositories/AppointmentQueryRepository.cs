@@ -2,6 +2,7 @@ using Appointments.Application.Common.Dtos;
 using Appointments.Application.Common.Interfaces;
 using Appointments.Domain.Enums;
 using Appointments.Infrastructure.Persistence;
+using Appointments.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Appointments.Infrastructure.Repositories;
@@ -13,6 +14,80 @@ public sealed class AppointmentQueryRepository : IAppointmentQueryRepository
     public AppointmentQueryRepository(AppointmentsDbContext context)
     {
         _context = context;
+    }
+
+    private IQueryable<AppointmentEntity> NotCancelled()
+    {
+        var cancelled = AppointmentStatus.Cancelled.ToString();
+
+        return _context.Appointments.AsNoTracking().Where(appointment => appointment.Status != cancelled);
+    }
+
+    private static IQueryable<AppointmentRowDto> Project(IQueryable<AppointmentEntity> query)
+        => query.Select(appointment => new AppointmentRowDto(
+            appointment.Id,
+            appointment.Date,
+            appointment.StartTime,
+            appointment.EndTime,
+            appointment.DoctorId,
+            appointment.PatientId,
+            appointment.ServiceId,
+            appointment.OfficeId,
+            appointment.Status));
+
+    public async Task<IReadOnlyList<AppointmentRowDto>> SearchAsync(
+        AppointmentFilter filter,
+        CancellationToken cancellationToken = default)
+    {
+        var query = NotCancelled().Where(appointment => appointment.Date == filter.Date);
+
+        if (filter.DoctorId.HasValue)
+            query = query.Where(appointment => appointment.DoctorId == filter.DoctorId.Value);
+
+        if (filter.ServiceId.HasValue)
+            query = query.Where(appointment => appointment.ServiceId == filter.ServiceId.Value);
+
+        if (filter.OfficeId.HasValue)
+            query = query.Where(appointment => appointment.OfficeId == filter.OfficeId.Value);
+
+        if (!string.IsNullOrWhiteSpace(filter.Status))
+            query = query.Where(appointment => appointment.Status == filter.Status);
+
+        return await Project(query.OrderBy(appointment => appointment.StartTime)).ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<AppointmentRowDto>> GetByDoctorAndDateAsync(
+        Guid doctorId,
+        DateOnly date,
+        CancellationToken cancellationToken = default)
+        => await Project(NotCancelled()
+                .Where(appointment => appointment.DoctorId == doctorId && appointment.Date == date)
+                .OrderBy(appointment => appointment.StartTime))
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<AppointmentRowDto>> GetByPatientAsync(
+        Guid patientId,
+        CancellationToken cancellationToken = default)
+        => await Project(NotCancelled()
+                .Where(appointment => appointment.PatientId == patientId)
+                .OrderByDescending(appointment => appointment.Date)
+                .ThenBy(appointment => appointment.StartTime))
+            .ToListAsync(cancellationToken);
+
+    public Task<bool> HasApprovedWithPatientAsync(
+        Guid doctorId,
+        Guid patientId,
+        CancellationToken cancellationToken = default)
+    {
+        var approved = AppointmentStatus.Approved.ToString();
+
+        return _context.Appointments
+            .AsNoTracking()
+            .AnyAsync(
+                appointment => appointment.DoctorId == doctorId
+                    && appointment.PatientId == patientId
+                    && appointment.Status == approved,
+                cancellationToken);
     }
 
     public Task<bool> HasOverlapAsync(

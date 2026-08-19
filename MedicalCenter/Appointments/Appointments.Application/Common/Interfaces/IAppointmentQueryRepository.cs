@@ -9,6 +9,24 @@ public interface IAppointmentQueryRepository
         IReadOnlyCollection<Guid> doctorIds,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<AppointmentRowDto>> SearchAsync(
+        AppointmentFilter filter,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<AppointmentRowDto>> GetByDoctorAndDateAsync(
+        Guid doctorId,
+        DateOnly date,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<AppointmentRowDto>> GetByPatientAsync(
+        Guid patientId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> HasApprovedWithPatientAsync(
+        Guid doctorId,
+        Guid patientId,
+        CancellationToken cancellationToken = default);
+
     Task<bool> HasOverlapAsync(
         Guid doctorId,
         DateOnly date,

@@ -29,11 +29,13 @@ public record PatientSummaryDto(
     string FirstName,
     string LastName,
     string? MiddleName,
-    string? PhoneNumber);
+    string? PhoneNumber,
+    DateOnly DateOfBirth);
 
 public record ServiceSummaryDto(
     Guid Id,
-    string Name);
+    string Name,
+    string SpecializationName);
 
 public record AppointmentListItemDto(
     Guid Id,

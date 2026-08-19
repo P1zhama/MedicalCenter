@@ -13,6 +13,8 @@ public class AppointmentsDbContext : DbContext
 
     public DbSet<AppointmentEntity> Appointments => Set<AppointmentEntity>();
 
+    public DbSet<AppointmentResultEntity> AppointmentResults => Set<AppointmentResultEntity>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

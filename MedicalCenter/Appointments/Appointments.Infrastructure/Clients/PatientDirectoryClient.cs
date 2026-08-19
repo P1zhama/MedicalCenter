@@ -1,3 +1,4 @@
+using System.Globalization;
 using Appointments.Application.Common.Dtos;
 using Appointments.Application.Common.Interfaces;
 using Profiles.Api.Protos;
@@ -31,9 +32,15 @@ public sealed class PatientDirectoryClient : IPatientDirectoryClient
                 patient.FirstName,
                 patient.LastName,
                 string.IsNullOrEmpty(patient.MiddleName) ? null : patient.MiddleName,
-                string.IsNullOrEmpty(patient.PhoneNumber) ? null : patient.PhoneNumber))
+                string.IsNullOrEmpty(patient.PhoneNumber) ? null : patient.PhoneNumber,
+                ParseDate(patient.DateOfBirth)))
             .ToList();
     }
+
+    private static DateOnly ParseDate(string value)
+        => DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
+            ? date
+            : default;
 
     public async Task<bool> ExistsAsync(Guid patientId, CancellationToken cancellationToken = default)
     {

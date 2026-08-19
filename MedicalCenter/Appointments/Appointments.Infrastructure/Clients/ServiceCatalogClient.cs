@@ -27,7 +27,10 @@ public sealed class ServiceCatalogClient : IServiceCatalogClient
         var response = await _client.GetServicesSummaryAsync(request, cancellationToken: cancellationToken);
 
         return response.Services
-            .Select(service => new ServiceSummaryDto(Guid.Parse(service.ServiceId), service.Name))
+            .Select(service => new ServiceSummaryDto(
+                Guid.Parse(service.ServiceId),
+                service.Name,
+                service.SpecializationName))
             .ToList();
     }
 

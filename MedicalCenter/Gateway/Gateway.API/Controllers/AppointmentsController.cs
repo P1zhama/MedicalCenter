@@ -38,4 +38,80 @@ public class AppointmentsController : ControllerBase
 
         return Ok(slots);
     }
+
+    [HttpPost("me")]
+    public async Task<IActionResult> CreateMyAppointment([FromBody] CreateAppointmentWebRequest request)
+    {
+        var response = await _appointmentsClient.CreateAppointmentAsync(new CreateAppointmentRequest
+        {
+            ServiceId = request.ServiceId,
+            DoctorId = request.DoctorId,
+            OfficeId = request.OfficeId,
+            Date = request.Date,
+            StartTime = request.StartTime
+        });
+
+        return Ok(new CreatedAppointmentWebResponse(response.AppointmentId));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateAppointment([FromBody] CreateAppointmentByReceptionistWebRequest request)
+    {
+        var response = await _appointmentsClient.CreateAppointmentByReceptionistAsync(
+            new CreateAppointmentByReceptionistRequest
+            {
+                PatientId = request.PatientId,
+                ServiceId = request.ServiceId,
+                DoctorId = request.DoctorId,
+                OfficeId = request.OfficeId,
+                Date = request.Date,
+                StartTime = request.StartTime
+            });
+
+        return Ok(new CreatedAppointmentWebResponse(response.AppointmentId));
+    }
+
+    [HttpPut("me/{id}")]
+    public async Task<IActionResult> RescheduleMyAppointment(string id, [FromBody] RescheduleAppointmentWebRequest request)
+    {
+        await _appointmentsClient.RescheduleMyAppointmentAsync(new RescheduleAppointmentRequest
+        {
+            AppointmentId = id,
+            DoctorId = request.DoctorId,
+            Date = request.Date,
+            StartTime = request.StartTime
+        });
+
+        return Ok();
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> RescheduleAppointment(string id, [FromBody] RescheduleAppointmentWebRequest request)
+    {
+        await _appointmentsClient.RescheduleAppointmentAsync(new RescheduleAppointmentRequest
+        {
+            AppointmentId = id,
+            DoctorId = request.DoctorId,
+            Date = request.Date,
+            StartTime = request.StartTime
+        });
+
+        return Ok();
+    }
+
+    [HttpPatch("{id}/approve")]
+    public async Task<IActionResult> ApproveAppointment(string id)
+    {
+        await _appointmentsClient.ApproveAppointmentAsync(new ApproveAppointmentRequest { AppointmentId = id });
+
+        return Ok();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> CancelAppointment(string id)
+    {
+        await _appointmentsClient.CancelAppointmentAsync(new CancelAppointmentRequest { AppointmentId = id });
+
+        return NoContent();
+    }
 }

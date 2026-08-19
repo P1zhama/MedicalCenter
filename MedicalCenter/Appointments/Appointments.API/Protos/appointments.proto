@@ -6,6 +6,58 @@ package appointments;
 
 service AppointmentsService {
     rpc GetAvailableSlots (GetAvailableSlotsRequest) returns (GetAvailableSlotsResponse);
+
+    rpc CreateAppointment (CreateAppointmentRequest) returns (CreateAppointmentResponse);
+    rpc CreateAppointmentByReceptionist (CreateAppointmentByReceptionistRequest) returns (CreateAppointmentResponse);
+    rpc RescheduleAppointment (RescheduleAppointmentRequest) returns (RescheduleAppointmentResponse);
+    rpc RescheduleMyAppointment (RescheduleAppointmentRequest) returns (RescheduleAppointmentResponse);
+    rpc ApproveAppointment (ApproveAppointmentRequest) returns (ApproveAppointmentResponse);
+    rpc CancelAppointment (CancelAppointmentRequest) returns (CancelAppointmentResponse);
+}
+
+message CreateAppointmentRequest {
+    string service_id = 1;
+    string doctor_id = 2;
+    string office_id = 3;
+    string date = 4;
+    string start_time = 5;
+}
+
+message CreateAppointmentByReceptionistRequest {
+    string patient_id = 1;
+    string service_id = 2;
+    string doctor_id = 3;
+    string office_id = 4;
+    string date = 5;
+    string start_time = 6;
+}
+
+message CreateAppointmentResponse {
+    string appointment_id = 1;
+}
+
+message RescheduleAppointmentRequest {
+    string appointment_id = 1;
+    string doctor_id = 2;
+    string date = 3;
+    string start_time = 4;
+}
+
+message RescheduleAppointmentResponse {
+}
+
+message ApproveAppointmentRequest {
+    string appointment_id = 1;
+}
+
+message ApproveAppointmentResponse {
+}
+
+message CancelAppointmentRequest {
+    string appointment_id = 1;
+}
+
+message CancelAppointmentResponse {
 }
 
 message GetAvailableSlotsRequest {

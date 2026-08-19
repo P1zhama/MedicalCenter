@@ -1,6 +1,11 @@
 using System.Globalization;
 using Appointments.Api.ErrorMapping;
 using Appointments.Api.Protos;
+using Appointments.Application.Commands.ApproveAppointment;
+using Appointments.Application.Commands.CancelAppointment;
+using Appointments.Application.Commands.CreateAppointment;
+using Appointments.Application.Commands.CreateAppointmentByReceptionist;
+using Appointments.Application.Commands.RescheduleAppointment;
 using Appointments.Application.Queries.GetAvailableSlots;
 using Grpc.Core;
 using MediatR;
@@ -50,6 +55,114 @@ public class AppointmentsGrpcService : AppointmentsService.AppointmentsServiceBa
 
         return response;
     }
+
+    public override async Task<CreateAppointmentResponse> CreateAppointment(
+        CreateAppointmentRequest request,
+        ServerCallContext context)
+    {
+        var command = new CreateAppointmentCommand(
+            ParseGuid(request.ServiceId, "service id"),
+            ParseGuid(request.DoctorId, "doctor id"),
+            ParseGuid(request.OfficeId, "office id"),
+            ParseDate(request.Date),
+            ParseTime(request.StartTime));
+
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new CreateAppointmentResponse { AppointmentId = result.Value.ToString() };
+    }
+
+    public override async Task<CreateAppointmentResponse> CreateAppointmentByReceptionist(
+        CreateAppointmentByReceptionistRequest request,
+        ServerCallContext context)
+    {
+        var command = new CreateAppointmentByReceptionistCommand(
+            ParseGuid(request.PatientId, "patient id"),
+            ParseGuid(request.ServiceId, "service id"),
+            ParseGuid(request.DoctorId, "doctor id"),
+            ParseGuid(request.OfficeId, "office id"),
+            ParseDate(request.Date),
+            ParseTime(request.StartTime));
+
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new CreateAppointmentResponse { AppointmentId = result.Value.ToString() };
+    }
+
+    public override async Task<RescheduleAppointmentResponse> RescheduleAppointment(
+        RescheduleAppointmentRequest request,
+        ServerCallContext context)
+    {
+        var command = new RescheduleAppointmentCommand(
+            ParseGuid(request.AppointmentId, "appointment id"),
+            ParseGuid(request.DoctorId, "doctor id"),
+            ParseDate(request.Date),
+            ParseTime(request.StartTime));
+
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new RescheduleAppointmentResponse();
+    }
+
+    public override async Task<RescheduleAppointmentResponse> RescheduleMyAppointment(
+        RescheduleAppointmentRequest request,
+        ServerCallContext context)
+    {
+        var command = new RescheduleMyAppointmentCommand(
+            ParseGuid(request.AppointmentId, "appointment id"),
+            ParseGuid(request.DoctorId, "doctor id"),
+            ParseDate(request.Date),
+            ParseTime(request.StartTime));
+
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new RescheduleAppointmentResponse();
+    }
+
+    public override async Task<ApproveAppointmentResponse> ApproveAppointment(
+        ApproveAppointmentRequest request,
+        ServerCallContext context)
+    {
+        var command = new ApproveAppointmentCommand(ParseGuid(request.AppointmentId, "appointment id"));
+
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new ApproveAppointmentResponse();
+    }
+
+    public override async Task<CancelAppointmentResponse> CancelAppointment(
+        CancelAppointmentRequest request,
+        ServerCallContext context)
+    {
+        var command = new CancelAppointmentCommand(ParseGuid(request.AppointmentId, "appointment id"));
+
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new CancelAppointmentResponse();
+    }
+
+    private static TimeOnly ParseTime(string value)
+        => TimeOnly.TryParseExact(value, TimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time)
+            ? time
+            : throw new RpcException(new Status(StatusCode.InvalidArgument, "Please, select the time slot"));
 
     private static Guid ParseGuid(string value, string fieldName)
         => Guid.TryParse(value, out var id)

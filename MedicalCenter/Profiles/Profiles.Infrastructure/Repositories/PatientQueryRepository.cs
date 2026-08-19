@@ -34,7 +34,8 @@ public sealed class PatientQueryRepository : IPatientQueryRepository
                 patient.FirstName,
                 patient.LastName,
                 patient.MiddleName,
-                patient.PhoneNumber))
+                patient.PhoneNumber,
+                patient.DateOfBirth))
             .ToListAsync(cancellationToken);
     }
 

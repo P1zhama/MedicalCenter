@@ -12,7 +12,8 @@ public record PatientSummaryDto(
     string FirstName,
     string LastName,
     string? MiddleName,
-    string? PhoneNumber);
+    string? PhoneNumber,
+    DateOnly DateOfBirth);
 
 public record PatientDto(
     Guid Id,

@@ -645,7 +645,8 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
                 FirstName = patient.FirstName,
                 LastName = patient.LastName,
                 MiddleName = patient.MiddleName ?? string.Empty,
-                PhoneNumber = patient.PhoneNumber ?? string.Empty
+                PhoneNumber = patient.PhoneNumber ?? string.Empty,
+                DateOfBirth = FormatDate(patient.DateOfBirth)
             });
         }
 

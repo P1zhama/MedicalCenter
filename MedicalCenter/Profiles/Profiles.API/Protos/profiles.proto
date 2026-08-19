@@ -91,6 +91,7 @@ message PatientSummary {
     string last_name = 3;
     string middle_name = 4;
     string phone_number = 5;
+    string date_of_birth = 6;
 }
 
 message GetPatientsSummaryRequest {

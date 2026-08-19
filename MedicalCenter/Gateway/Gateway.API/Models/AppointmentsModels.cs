@@ -32,6 +32,39 @@ public record RescheduleAppointmentWebRequest(
 
 public record CreatedAppointmentWebResponse(string AppointmentId);
 
+public record SaveAppointmentResultWebRequest(
+    string Complaints,
+    string Conclusion,
+    string Recommendations,
+    string Diagnosis
+);
+
+public record CreatedAppointmentResultWebResponse(string ResultId);
+
+public record AppointmentResultWebResponse(
+    string ResultId,
+    string AppointmentId,
+    string Date,
+    string StartTime,
+    string EndTime,
+    string PatientId,
+    string PatientFirstName,
+    string PatientLastName,
+    string PatientMiddleName,
+    string PatientDateOfBirth,
+    string DoctorId,
+    string DoctorFirstName,
+    string DoctorLastName,
+    string DoctorMiddleName,
+    string SpecializationName,
+    string ServiceId,
+    string ServiceName,
+    string Complaints,
+    string Conclusion,
+    string Recommendations,
+    string Diagnosis
+);
+
 public record AppointmentListItemWebResponse(
     string Id,
     string Date,

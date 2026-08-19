@@ -162,6 +162,50 @@ public class AppointmentsController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("{id}/result")]
+    public async Task<IActionResult> GetAppointmentResult(string id)
+    {
+        var r = await _appointmentsClient.GetAppointmentResultAsync(
+            new GetAppointmentResultRequest { AppointmentId = id });
+
+        return Ok(new AppointmentResultWebResponse(
+            r.ResultId, r.AppointmentId, r.Date, r.StartTime, r.EndTime,
+            r.PatientId, r.PatientFirstName, r.PatientLastName, r.PatientMiddleName, r.PatientDateOfBirth,
+            r.DoctorId, r.DoctorFirstName, r.DoctorLastName, r.DoctorMiddleName, r.SpecializationName,
+            r.ServiceId, r.ServiceName,
+            r.Complaints, r.Conclusion, r.Recommendations, r.Diagnosis));
+    }
+
+    [HttpPost("{id}/result")]
+    public async Task<IActionResult> CreateAppointmentResult(string id, [FromBody] SaveAppointmentResultWebRequest request)
+    {
+        var response = await _appointmentsClient.CreateAppointmentResultAsync(new SaveAppointmentResultRequest
+        {
+            AppointmentId = id,
+            Complaints = request.Complaints,
+            Conclusion = request.Conclusion,
+            Recommendations = request.Recommendations,
+            Diagnosis = request.Diagnosis ?? string.Empty
+        });
+
+        return Ok(new CreatedAppointmentResultWebResponse(response.ResultId));
+    }
+
+    [HttpPut("{id}/result")]
+    public async Task<IActionResult> UpdateAppointmentResult(string id, [FromBody] SaveAppointmentResultWebRequest request)
+    {
+        await _appointmentsClient.UpdateAppointmentResultAsync(new SaveAppointmentResultRequest
+        {
+            AppointmentId = id,
+            Complaints = request.Complaints,
+            Conclusion = request.Conclusion,
+            Recommendations = request.Recommendations,
+            Diagnosis = request.Diagnosis ?? string.Empty
+        });
+
+        return Ok();
+    }
+
     private static List<AppointmentListItemWebResponse> ToWebResponse(AppointmentListResponse response)
         => response.Appointments
             .Select(item => new AppointmentListItemWebResponse(

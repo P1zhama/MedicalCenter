@@ -12,6 +12,8 @@ public static class Permissions
 
     public const string ViewDoctorSchedule = "appointments:view-schedule";
 
+    public const string ViewPatientHistory = "appointments:view-patient-history";
+
     public const string RescheduleOwnAppointment = "appointments:reschedule-own";
 
     public const string RescheduleAppointment = "appointments:reschedule";

@@ -18,6 +18,7 @@ public static class RolePermissions
             [Roles.Doctor] = new HashSet<string>(StringComparer.Ordinal)
             {
                 Permissions.ViewDoctorSchedule,
+                Permissions.ViewPatientHistory,
                 Permissions.ViewResults,
                 Permissions.ManageResults
             },

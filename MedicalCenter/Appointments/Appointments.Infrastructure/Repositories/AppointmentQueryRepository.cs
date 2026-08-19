@@ -15,6 +15,31 @@ public sealed class AppointmentQueryRepository : IAppointmentQueryRepository
         _context = context;
     }
 
+    public Task<bool> HasOverlapAsync(
+        Guid doctorId,
+        DateOnly date,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        Guid? excludingAppointmentId,
+        CancellationToken cancellationToken = default)
+    {
+        var cancelled = AppointmentStatus.Cancelled.ToString();
+
+        var query = _context.Appointments
+            .AsNoTracking()
+            .Where(appointment =>
+                appointment.DoctorId == doctorId
+                && appointment.Date == date
+                && appointment.Status != cancelled
+                && appointment.StartTime < endTime
+                && startTime < appointment.EndTime);
+
+        if (excludingAppointmentId.HasValue)
+            query = query.Where(appointment => appointment.Id != excludingAppointmentId.Value);
+
+        return query.AnyAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<BusyIntervalDto>> GetBusyIntervalsAsync(
         DateOnly date,
         IReadOnlyCollection<Guid> doctorIds,

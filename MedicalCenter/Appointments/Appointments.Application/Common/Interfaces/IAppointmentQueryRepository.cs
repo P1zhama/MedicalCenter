@@ -9,6 +9,8 @@ public interface IAppointmentQueryRepository
         IReadOnlyCollection<Guid> doctorIds,
         CancellationToken cancellationToken = default);
 
+    Task<AppointmentRowDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<AppointmentRowDto>> SearchAsync(
         AppointmentFilter filter,
         CancellationToken cancellationToken = default);

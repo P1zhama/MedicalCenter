@@ -6,8 +6,14 @@ using Appointments.Application.Commands.CancelAppointment;
 using Appointments.Application.Commands.CreateAppointment;
 using Appointments.Application.Commands.CreateAppointmentByReceptionist;
 using Appointments.Application.Commands.RescheduleAppointment;
+using Appointments.Application.Common.Dtos;
+using Appointments.Application.Queries.GetAppointments;
 using Appointments.Application.Queries.GetAvailableSlots;
+using Appointments.Application.Queries.GetDoctorSchedule;
+using Appointments.Application.Queries.GetMyAppointments;
+using Appointments.Application.Queries.GetPatientAppointments;
 using Grpc.Core;
+using ErrorOr;
 using MediatR;
 
 namespace Appointments.Api.Services;
@@ -158,6 +164,78 @@ public class AppointmentsGrpcService : AppointmentsService.AppointmentsServiceBa
 
         return new CancelAppointmentResponse();
     }
+
+    public override async Task<AppointmentListResponse> GetAppointments(
+        GetAppointmentsRequest request,
+        ServerCallContext context)
+    {
+        var query = new GetAppointmentsQuery(
+            ParseDate(request.Date),
+            ParseNullableGuid(request.DoctorId, "doctor id"),
+            ParseNullableGuid(request.ServiceId, "service id"),
+            ParseNullableGuid(request.OfficeId, "office id"),
+            NullIfEmpty(request.Status));
+
+        return ToListResponse(await _sender.Send(query, context.CancellationToken));
+    }
+
+    public override async Task<AppointmentListResponse> GetDoctorSchedule(
+        GetDoctorScheduleRequest request,
+        ServerCallContext context)
+    {
+        var query = new GetDoctorScheduleQuery(ParseDate(request.Date));
+
+        return ToListResponse(await _sender.Send(query, context.CancellationToken));
+    }
+
+    public override async Task<AppointmentListResponse> GetMyAppointments(
+        GetMyAppointmentsRequest request,
+        ServerCallContext context)
+        => ToListResponse(await _sender.Send(new GetMyAppointmentsQuery(), context.CancellationToken));
+
+    public override async Task<AppointmentListResponse> GetPatientAppointments(
+        GetPatientAppointmentsRequest request,
+        ServerCallContext context)
+    {
+        var query = new GetPatientAppointmentsQuery(ParseGuid(request.PatientId, "patient id"));
+
+        return ToListResponse(await _sender.Send(query, context.CancellationToken));
+    }
+
+    private static AppointmentListResponse ToListResponse(ErrorOr<IReadOnlyList<AppointmentListItemDto>> result)
+    {
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        var response = new AppointmentListResponse();
+
+        foreach (var item in result.Value)
+        {
+            response.Appointments.Add(new AppointmentListItem
+            {
+                AppointmentId = item.Id.ToString(),
+                Date = item.Date.ToString(DateFormat, CultureInfo.InvariantCulture),
+                StartTime = item.StartTime.ToString(TimeFormat, CultureInfo.InvariantCulture),
+                EndTime = item.EndTime.ToString(TimeFormat, CultureInfo.InvariantCulture),
+                DoctorId = item.DoctorId.ToString(),
+                DoctorFirstName = item.DoctorFirstName,
+                DoctorLastName = item.DoctorLastName,
+                DoctorMiddleName = item.DoctorMiddleName ?? string.Empty,
+                PatientId = item.PatientId.ToString(),
+                PatientFirstName = item.PatientFirstName ?? string.Empty,
+                PatientLastName = item.PatientLastName ?? string.Empty,
+                PatientMiddleName = item.PatientMiddleName ?? string.Empty,
+                PatientPhoneNumber = item.PatientPhoneNumber ?? string.Empty,
+                ServiceId = item.ServiceId.ToString(),
+                ServiceName = item.ServiceName,
+                Status = item.Status
+            });
+        }
+
+        return response;
+    }
+
+    private static string? NullIfEmpty(string value) => string.IsNullOrEmpty(value) ? null : value;
 
     private static TimeOnly ParseTime(string value)
         => TimeOnly.TryParseExact(value, TimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time)

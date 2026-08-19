@@ -36,6 +36,27 @@ public sealed class DoctorDirectoryClient : IDoctorDirectoryClient
         }
     }
 
+    public async Task<IReadOnlyList<DoctorSummaryDto>> GetSummariesAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0)
+            return [];
+
+        var request = new GetDoctorsSummaryRequest();
+        request.DoctorIds.AddRange(ids.Select(id => id.ToString()));
+
+        var response = await _client.GetDoctorsSummaryAsync(request, cancellationToken: cancellationToken);
+
+        return response.Doctors
+            .Select(doctor => new DoctorSummaryDto(
+                Guid.Parse(doctor.DoctorId),
+                doctor.FirstName,
+                doctor.LastName,
+                string.IsNullOrEmpty(doctor.MiddleName) ? null : doctor.MiddleName))
+            .ToList();
+    }
+
     public async Task<IReadOnlyList<Guid>> GetAtWorkDoctorIdsAsync(
         Guid specializationId,
         Guid? officeId,

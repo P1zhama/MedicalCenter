@@ -14,6 +14,23 @@ public sealed class ServiceCatalogClient : IServiceCatalogClient
         _client = client;
     }
 
+    public async Task<IReadOnlyList<ServiceSummaryDto>> GetSummariesAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0)
+            return [];
+
+        var request = new GetServicesSummaryRequest();
+        request.ServiceIds.AddRange(ids.Select(id => id.ToString()));
+
+        var response = await _client.GetServicesSummaryAsync(request, cancellationToken: cancellationToken);
+
+        return response.Services
+            .Select(service => new ServiceSummaryDto(Guid.Parse(service.ServiceId), service.Name))
+            .ToList();
+    }
+
     public async Task<ServiceForAppointmentDto?> GetServiceAsync(
         Guid serviceId,
         CancellationToken cancellationToken = default)

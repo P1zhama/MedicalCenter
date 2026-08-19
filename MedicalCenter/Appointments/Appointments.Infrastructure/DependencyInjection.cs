@@ -53,6 +53,7 @@ public static class DependencyInjection
 
         services.AddScoped<IDoctorDirectoryClient, DoctorDirectoryClient>();
         services.AddScoped<IServiceCatalogClient, ServiceCatalogClient>();
+        services.AddScoped<IPatientDirectoryClient, PatientDirectoryClient>();
 
         services.AddMassTransit(bus =>
         {

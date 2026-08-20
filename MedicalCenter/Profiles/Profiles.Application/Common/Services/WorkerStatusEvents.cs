@@ -5,10 +5,14 @@ namespace Profiles.Application.Common.Services;
 
 public static class WorkerStatusEvents
 {
-    public static object? ForTransition(StatusTransition transition, Guid accountId, DateTimeOffset now)
+    public static object? ForTransition(
+        StatusTransition transition,
+        Guid accountId,
+        Guid profileId,
+        DateTimeOffset now)
         => transition switch
         {
-            StatusTransition.Deactivated => new WorkerDeactivatedEvent(accountId, now.UtcDateTime),
+            StatusTransition.Deactivated => new WorkerDeactivatedEvent(accountId, profileId, now.UtcDateTime),
             StatusTransition.Reactivated => new WorkerReactivatedEvent(accountId, now.UtcDateTime),
             _ => null
         };

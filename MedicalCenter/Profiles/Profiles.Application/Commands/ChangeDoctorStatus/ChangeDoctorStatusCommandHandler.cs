@@ -42,7 +42,7 @@ public sealed class ChangeDoctorStatusCommandHandler : IRequestHandler<ChangeDoc
         var transition = doctor.ChangeStatus(request.Status, updatedBy, now);
         _doctorRepository.Update(doctor, expectedVersion);
 
-        var integrationEvent = WorkerStatusEvents.ForTransition(transition, doctor.AccountId, now);
+        var integrationEvent = WorkerStatusEvents.ForTransition(transition, doctor.AccountId, doctor.Id, now);
         if (integrationEvent is not null)
             await _eventPublisher.PublishAsync(integrationEvent, cancellationToken);
 

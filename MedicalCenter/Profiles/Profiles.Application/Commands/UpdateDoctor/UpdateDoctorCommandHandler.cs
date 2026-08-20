@@ -78,7 +78,7 @@ public sealed class UpdateDoctorCommandHandler : IRequestHandler<UpdateDoctorCom
 
         _doctorRepository.Update(doctor, expectedVersion);
 
-        var integrationEvent = WorkerStatusEvents.ForTransition(updateResult.Value, doctor.AccountId, now);
+        var integrationEvent = WorkerStatusEvents.ForTransition(updateResult.Value, doctor.AccountId, doctor.Id, now);
         if (integrationEvent is not null)
             await _eventPublisher.PublishAsync(integrationEvent, cancellationToken);
 

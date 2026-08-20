@@ -69,7 +69,7 @@ public sealed class UpdateReceptionistCommandHandler
 
         _receptionistRepository.Update(receptionist, expectedVersion);
 
-        var integrationEvent = WorkerStatusEvents.ForTransition(updateResult.Value, receptionist.AccountId, now);
+        var integrationEvent = WorkerStatusEvents.ForTransition(updateResult.Value, receptionist.AccountId, receptionist.Id, now);
         if (integrationEvent is not null)
             await _eventPublisher.PublishAsync(integrationEvent, cancellationToken);
 

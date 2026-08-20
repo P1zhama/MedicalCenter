@@ -58,7 +58,7 @@ public sealed class WorkerDeactivation
             _doctorRepository.Update(doctor, expectedVersion);
 
             if (transition == StatusTransition.Deactivated)
-                yield return new WorkerDeactivatedEvent(doctor.AccountId, now.UtcDateTime);
+                yield return new WorkerDeactivatedEvent(doctor.AccountId, doctor.Id, now.UtcDateTime);
         }
     }
 
@@ -75,7 +75,7 @@ public sealed class WorkerDeactivation
             _receptionistRepository.Update(receptionist, expectedVersion);
 
             if (transition == StatusTransition.Deactivated)
-                yield return new WorkerDeactivatedEvent(receptionist.AccountId, now.UtcDateTime);
+                yield return new WorkerDeactivatedEvent(receptionist.AccountId, receptionist.Id, now.UtcDateTime);
         }
     }
 }

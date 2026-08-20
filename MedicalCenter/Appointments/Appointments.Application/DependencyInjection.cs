@@ -19,6 +19,7 @@ public static class DependencyInjection
 
         services.AddScoped<AppointmentSlotValidator>();
         services.AddScoped<AppointmentDetailsResolver>();
+        services.AddScoped<AppointmentCancellation>();
 
 
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));

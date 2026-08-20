@@ -4,6 +4,7 @@ using Appointments.Application.Common.Settings;
 using Appointments.Domain.Scheduling;
 using Appointments.Infrastructure.Clients;
 using Appointments.Infrastructure.Interceptors;
+using Appointments.Infrastructure.Messaging;
 using Appointments.Infrastructure.Persistence;
 using Appointments.Infrastructure.Repositories;
 using Common.Infrastructure;
@@ -59,6 +60,9 @@ public static class DependencyInjection
 
         services.AddMassTransit(bus =>
         {
+            bus.AddConsumer<WorkerDeactivatedEventConsumer>();
+            bus.AddConsumer<ServiceDeactivatedEventConsumer>();
+
             bus.AddEntityFrameworkOutbox<AppointmentsDbContext>(outbox =>
             {
                 outbox.UsePostgres();

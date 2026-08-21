@@ -1,5 +1,7 @@
+using Appointments.Api.Protos;
 using Authorization.Api.Protos;
 using Common.Infrastructure;
+using Common.Infrastructure.Interceptors;
 using MassTransit;
 using Offices.Api.Protos;
 using Services.Api.Protos;
@@ -49,6 +51,15 @@ public static class DependencyInjection
             options.Address = new Uri(configuration["GrpcClients:Services"] ?? "http://localhost:8002");
         });
         services.AddScoped<ISpecializationServiceClient, SpecializationServiceClient>();
+
+        services.AddHttpContextAccessor();
+        services.AddTransient<TokenForwardingInterceptor>();
+
+        services.AddGrpcClient<AppointmentsService.AppointmentsServiceClient>(options =>
+        {
+            options.Address = new Uri(configuration["GrpcClients:Appointments"] ?? "http://localhost:8006");
+        }).AddInterceptor<TokenForwardingInterceptor>();
+        services.AddScoped<IAppointmentServiceClient, AppointmentServiceClient>();
 
         services.AddMassTransit(x =>
         {

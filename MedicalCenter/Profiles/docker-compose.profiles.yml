@@ -20,5 +20,6 @@ services:
       - GrpcClients__Authorization=http://authorization-api:8080
       - GrpcClients__Offices=http://offices-api:8080
       - GrpcClients__Services=http://services-api:8080
+      - GrpcClients__Appointments=http://appointments-api:8080
     networks:
       - medical-network

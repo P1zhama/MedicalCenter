@@ -62,6 +62,14 @@ public record PatientWebResponse(
     bool IsLinkedToAccount
 );
 
+public record CreateMyReceptionistWebRequest(
+    string FirstName,
+    string LastName,
+    string MiddleName,
+    string OfficeId,
+    string PhotoUrl
+);
+
 public record CreateDoctorWebRequest(
     string FirstName,
     string LastName,

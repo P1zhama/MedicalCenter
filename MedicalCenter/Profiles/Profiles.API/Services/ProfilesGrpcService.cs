@@ -6,6 +6,7 @@ using Profiles.Application.Commands;
 using Profiles.Application.Commands.ChangeDoctorStatus;
 using Profiles.Application.Commands.CreateDoctor;
 using Profiles.Application.Commands.CreatePatientByReceptionist;
+using Profiles.Application.Commands.CreateMyReceptionistProfile;
 using Profiles.Application.Commands.CreateReceptionist;
 using Profiles.Application.Commands.DeletePatient;
 using Profiles.Application.Commands.DeleteReceptionist;
@@ -156,6 +157,25 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
             request.LastName,
             NullIfEmpty(request.MiddleName),
             request.Email,
+            ParseGuid(request.OfficeId, "office id"),
+            NullIfEmpty(request.PhotoUrl));
+
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new CreateReceptionistResponse { ReceptionistId = result.Value.ToString() };
+    }
+
+    public override async Task<CreateReceptionistResponse> CreateMyReceptionistProfile(
+        CreateMyReceptionistRequest request,
+        ServerCallContext context)
+    {
+        var command = new CreateMyReceptionistProfileCommand(
+            request.FirstName,
+            request.LastName,
+            NullIfEmpty(request.MiddleName),
             ParseGuid(request.OfficeId, "office id"),
             NullIfEmpty(request.PhotoUrl));
 

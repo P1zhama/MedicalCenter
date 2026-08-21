@@ -307,6 +307,21 @@ public class ProfilesController : ControllerBase
         return Ok(new CreatedProfileWebResponse(response.ReceptionistId));
     }
 
+    [HttpPost("receptionists/me")]
+    public async Task<IActionResult> CreateMyReceptionistProfile([FromBody] CreateMyReceptionistWebRequest request)
+    {
+        var response = await _profilesClient.CreateMyReceptionistProfileAsync(new CreateMyReceptionistRequest
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            MiddleName = request.MiddleName ?? string.Empty,
+            OfficeId = request.OfficeId,
+            PhotoUrl = request.PhotoUrl ?? string.Empty
+        });
+
+        return Ok(new CreatedProfileWebResponse(response.ReceptionistId));
+    }
+
     [HttpGet("receptionists")]
     public async Task<IActionResult> GetReceptionists()
     {

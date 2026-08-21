@@ -3,7 +3,7 @@ using Common.Infrastructure;
 using Documents.Application.Common.Interfaces;
 using Documents.Application.Common.Settings;
 using Documents.Infrastructure.Clients;
-using Documents.Infrastructure.Interceptors;
+using Common.Infrastructure.Interceptors;
 using Documents.Infrastructure.Maintenance;
 using Profiles.Api.Protos;
 using Documents.Infrastructure.Pdf;

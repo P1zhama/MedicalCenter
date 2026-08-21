@@ -1,6 +1,7 @@
 using Authorization.Api.Interceptors;
 using Authorization.Api.Services;
 using Authorization.Application;
+using Common.Api.Authentication;
 using Common.Api.Interceptors;
 using Authorization.Infrastructure;
 using Authorization.Infrastructure.Bootstrap;
@@ -29,10 +30,12 @@ try
 
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddApplication();
+    builder.Services.AddJwtAuthentication(builder.Configuration);
 
     builder.Services.AddGrpc(options =>
     {
         options.Interceptors.Add<CorrelationIdInterceptor>();
+        options.Interceptors.Add<OptionalUserContextInterceptor>();
         options.Interceptors.Add<GrpcExceptionInterceptor>();
     });
 
@@ -48,6 +51,9 @@ try
     }
 
     app.UseSerilogRequestLogging();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.MapGrpcService<AuthGrpcService>();
     app.MapGrpcService<AuthInternalGrpcService>();

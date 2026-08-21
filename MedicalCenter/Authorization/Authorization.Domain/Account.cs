@@ -181,6 +181,18 @@ public sealed class Account : AggregateRoot<Guid>
         return Result.Success;
     }
 
+    public ErrorOr<Success> ChangePassword(string newPasswordHash, DateTimeOffset now)
+    {
+        if (string.IsNullOrWhiteSpace(newPasswordHash))
+            return Error.Validation("Account.PasswordHash", "Password hash must not be empty.");
+
+        PasswordHash = newPasswordHash;
+        Audit = Audit.WithUpdate(Id, now);
+        Version++;
+
+        return Result.Success;
+    }
+
     public ErrorOr<Success> Deactivate(Guid updatedBy, DateTimeOffset at)
     {
         if (Status == AccountStatus.Deactivated)

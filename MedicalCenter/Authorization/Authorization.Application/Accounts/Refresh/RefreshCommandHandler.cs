@@ -62,6 +62,15 @@ public sealed class RefreshCommandHandler
 
         if (storedToken.IsRevoked)
         {
+            if (storedToken.ReplacedByTokenId is null)
+            {
+                _logger.LogInformation(
+                    "Refresh rejected for account {AccountId}: token was revoked explicitly",
+                    storedToken.AccountId);
+
+                return InvalidToken;
+            }
+
             _logger.LogWarning(
                 "Refresh token reuse detected for account {AccountId}; revoking all active refresh tokens",
                 storedToken.AccountId);

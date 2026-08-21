@@ -1,5 +1,6 @@
 using Authorization.Api.ErrorMapping;
 using Authorization.Api.Protos;
+using Authorization.Application.Accounts.ChangePassword;
 using Authorization.Application.Accounts.ConfirmEmail;
 using Authorization.Application.Accounts.Refresh;
 using Authorization.Application.Accounts.SignIn;
@@ -42,6 +43,30 @@ public sealed class AuthGrpcService : AuthService.AuthServiceBase
             throw result.Errors.ToRpcException();
 
         return new SignInResponse
+        {
+            AccountId = result.Value.AccountId.ToString(),
+            AccessToken = result.Value.AccessToken,
+            AccessTokenExpiresAt = Timestamp.FromDateTimeOffset(result.Value.AccessTokenExpiresAt),
+            RefreshToken = result.Value.RefreshToken,
+            RefreshTokenExpiresAt = Timestamp.FromDateTimeOffset(result.Value.RefreshTokenExpiresAt)
+        };
+    }
+
+    public override async Task<ChangePasswordResponse> ChangePassword(
+        ChangePasswordRequest request,
+        ServerCallContext context)
+    {
+        var command = new ChangePasswordCommand(
+            request.CurrentPassword,
+            request.NewPassword,
+            request.ConfirmNewPassword);
+
+        var result = await _sender.Send(command, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new ChangePasswordResponse
         {
             AccountId = result.Value.AccountId.ToString(),
             AccessToken = result.Value.AccessToken,

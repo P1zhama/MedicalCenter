@@ -12,6 +12,21 @@ service AuthService {
     rpc ConfirmEmail (ConfirmEmailRequest) returns (ConfirmEmailResponse);
     rpc Refresh (RefreshRequest) returns (RefreshResponse);
     rpc SignOut (SignOutRequest) returns (SignOutResponse);
+    rpc ChangePassword (ChangePasswordRequest) returns (ChangePasswordResponse);
+}
+
+message ChangePasswordRequest {
+    string current_password = 1;
+    string new_password = 2;
+    string confirm_new_password = 3;
+}
+
+message ChangePasswordResponse {
+    string account_id = 1;
+    string access_token = 2;
+    google.protobuf.Timestamp access_token_expires_at = 3;
+    string refresh_token = 4;
+    google.protobuf.Timestamp refresh_token_expires_at = 5;
 }
 
 message SignUpRequest {

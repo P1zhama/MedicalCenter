@@ -3,7 +3,7 @@ using Appointments.Application.Common.Services;
 using Appointments.Application.Common.Settings;
 using Appointments.Domain.Scheduling;
 using Appointments.Infrastructure.Clients;
-using Appointments.Infrastructure.Interceptors;
+using Common.Infrastructure.Interceptors;
 using Appointments.Infrastructure.Messaging;
 using Appointments.Infrastructure.Persistence;
 using Appointments.Infrastructure.Repositories;

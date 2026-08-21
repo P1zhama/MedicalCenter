@@ -59,9 +59,7 @@ public sealed class GetAppointmentResultQueryHandler
         var doctorsTask = _doctorDirectoryClient.GetSummariesAsync([appointment.DoctorId], cancellationToken);
         var servicesTask = _serviceCatalogClient.GetSummariesAsync([appointment.ServiceId], cancellationToken);
 
-        var patientsTask = isPatient
-            ? Task.FromResult<IReadOnlyList<PatientSummaryDto>>([])
-            : _patientDirectoryClient.GetSummariesAsync([appointment.PatientId], cancellationToken);
+        var patientsTask = _patientDirectoryClient.GetSummariesAsync([appointment.PatientId], cancellationToken);
 
         await Task.WhenAll(doctorsTask, servicesTask, patientsTask);
 

@@ -9,10 +9,12 @@ services:
       - profiles-api
       - offices-api
       - services-api
+      - documents-api
     ports:
       - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ReverseProxy__Clusters__documents-cluster__Destinations__documents__Address=http://documents-api:8080
       - GrpcClients__Authorization=http://authorization-api:8080
       - GrpcClients__Profiles=http://profiles-api:8080
       - GrpcClients__Offices=http://offices-api:8080

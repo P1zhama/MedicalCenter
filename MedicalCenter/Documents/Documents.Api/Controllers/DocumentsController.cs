@@ -1,6 +1,7 @@
 using Documents.Api.ErrorMapping;
 using Documents.Api.Models;
 using Documents.Application.Commands.DeleteDocument;
+using Documents.Application.Commands.SendAppointmentResult;
 using Documents.Application.Commands.UploadDocument;
 using Documents.Application.Queries.GetAppointmentResultPdf;
 using Documents.Application.Queries.GetDocumentContent;
@@ -81,6 +82,16 @@ public sealed class DocumentsController : ControllerBase
         Response.Headers.CacheControl = "no-store";
 
         return File(result.Value.Content, result.Value.ContentType, result.Value.FileName);
+    }
+
+    [HttpPost("appointments/{appointmentId:guid}/result/email")]
+    public async Task<IActionResult> EmailAppointmentResult(Guid appointmentId)
+    {
+        var result = await _sender.Send(new SendAppointmentResultCommand(appointmentId));
+
+        return result.Match<IActionResult>(
+            _ => Accepted(),
+            errors => errors.ToProblem());
     }
 
     [HttpDelete("{id:guid}")]

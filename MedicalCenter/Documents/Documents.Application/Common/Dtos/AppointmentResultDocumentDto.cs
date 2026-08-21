@@ -2,6 +2,7 @@ namespace Documents.Application.Common.Dtos;
 
 public record AppointmentResultDocumentDto(
     Guid AppointmentId,
+    Guid PatientId,
     DateOnly Date,
     TimeOnly StartTime,
     TimeOnly EndTime,

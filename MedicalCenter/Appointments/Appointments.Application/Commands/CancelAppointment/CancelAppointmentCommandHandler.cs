@@ -1,4 +1,5 @@
 using Appointments.Application.Common.Interfaces;
+using Appointments.Application.Common.Services;
 using Common.Abstractions.Security;
 using ErrorOr;
 using MediatR;
@@ -10,17 +11,20 @@ public sealed class CancelAppointmentCommandHandler : IRequestHandler<CancelAppo
     private readonly IAppointmentCommandRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserProvider _currentUserProvider;
+    private readonly AppointmentNotifier _notifier;
     private readonly TimeProvider _timeProvider;
 
     public CancelAppointmentCommandHandler(
         IAppointmentCommandRepository repository,
         IUnitOfWork unitOfWork,
         ICurrentUserProvider currentUserProvider,
+        AppointmentNotifier notifier,
         TimeProvider timeProvider)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
         _currentUserProvider = currentUserProvider;
+        _notifier = notifier;
         _timeProvider = timeProvider;
     }
 
@@ -42,6 +46,8 @@ public sealed class CancelAppointmentCommandHandler : IRequestHandler<CancelAppo
         appointment.Cancel(updatedBy.Value, _timeProvider.GetUtcNow());
 
         _repository.Update(appointment, expectedVersion);
+
+        await _notifier.NotifyAsync(appointment, AppointmentNotificationKinds.Cancelled, cancellationToken);
 
         var outcome = await _unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -44,13 +44,64 @@ public sealed class MailKitEmailSender : IEmailSender
         _logger.LogInformation("Credentials email sent to {Email}", email);
     }
 
-    private async Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken cancellationToken)
+    public async Task SendAppointmentNotificationAsync(
+        string email,
+        AppointmentNotification notification,
+        CancellationToken cancellationToken = default)
+    {
+        var when = notification.AppointmentStart.ToString("dd.MM.yyyy HH:mm");
+
+        var (subject, headline) = notification.Kind switch
+        {
+            AppointmentNotificationKinds.Approved =>
+                ("Your appointment is confirmed", "Your appointment has been confirmed."),
+            AppointmentNotificationKinds.Cancelled =>
+                ("Your appointment is cancelled", "Your appointment has been cancelled."),
+            AppointmentNotificationKinds.Rescheduled =>
+                ("Your appointment is rescheduled", "Your appointment has been moved to a new time."),
+            _ => ("Your appointment has changed", "Your appointment has changed.")
+        };
+
+        var body =
+            $"<p>{headline}</p>" +
+            $"<p>Service: {notification.ServiceName}<br/>" +
+            $"Doctor: {notification.DoctorFullName}<br/>" +
+            $"Date and time: {when}</p>";
+
+        await SendAsync(email, subject, body, cancellationToken);
+
+        _logger.LogInformation("Appointment {Kind} notification sent to {Email}", notification.Kind, email);
+    }
+
+    public async Task SendAppointmentResultAsync(
+        string email,
+        string fileName,
+        byte[] content,
+        CancellationToken cancellationToken = default)
+    {
+        var body =
+            "<p>Your appointment result is attached to this message.</p>" +
+            "<p>Medical Center</p>";
+
+        var builder = new BodyBuilder { HtmlBody = body };
+
+        builder.Attachments.Add(fileName, content, ContentType.Parse("application/pdf"));
+
+        await SendAsync(email, "Your appointment result", builder.ToMessageBody(), cancellationToken);
+
+        _logger.LogInformation("Appointment result sent to {Email}", email);
+    }
+
+    private Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken cancellationToken)
+        => SendAsync(toEmail, subject, new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody(), cancellationToken);
+
+    private async Task SendAsync(string toEmail, string subject, MimeEntity body, CancellationToken cancellationToken)
     {
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(_settings.SenderName, _settings.SenderEmail));
         message.To.Add(MailboxAddress.Parse(toEmail));
         message.Subject = subject;
-        message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
+        message.Body = body;
 
         var secureSocketOptions = _settings.UseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls;
 

@@ -53,6 +53,8 @@ public static class DependencyInjection
             bus.AddConsumer<ProfileLinkedToAccountEventConsumer>();
             bus.AddConsumer<WorkerDeactivatedEventConsumer>();
             bus.AddConsumer<WorkerReactivatedEventConsumer>();
+            bus.AddConsumer<AppointmentNotificationRequestedConsumer>();
+            bus.AddConsumer<AppointmentResultEmailRequestedConsumer>();
 
             bus.AddEntityFrameworkOutbox<AuthDbContext>(outbox => 
             {

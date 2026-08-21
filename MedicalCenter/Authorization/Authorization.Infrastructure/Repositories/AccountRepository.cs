@@ -49,6 +49,16 @@ public sealed class AccountRepository : IAccountRepository
         return entity?.ToDomain();
     }
 
+    public async Task<Account?> GetByProfileIdAsync(Guid profileId, CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.Accounts
+            .AsNoTracking()
+            .Include(a => a.Claims)
+            .FirstOrDefaultAsync(a => a.ProfileId == profileId, cancellationToken);
+
+        return entity?.ToDomain();
+    }
+
     public async Task UpdateAsync(Account account, long expectedVersion, CancellationToken cancellationToken = default)
     {
         var tracked = await _context.Accounts

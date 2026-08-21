@@ -15,6 +15,7 @@ public sealed class RescheduleAppointmentCommandHandler
     private readonly AppointmentSlotValidator _slotValidator;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserProvider _currentUserProvider;
+    private readonly AppointmentNotifier _notifier;
     private readonly TimeProvider _timeProvider;
 
     public RescheduleAppointmentCommandHandler(
@@ -22,12 +23,14 @@ public sealed class RescheduleAppointmentCommandHandler
         AppointmentSlotValidator slotValidator,
         IUnitOfWork unitOfWork,
         ICurrentUserProvider currentUserProvider,
+        AppointmentNotifier notifier,
         TimeProvider timeProvider)
     {
         _repository = repository;
         _slotValidator = slotValidator;
         _unitOfWork = unitOfWork;
         _currentUserProvider = currentUserProvider;
+        _notifier = notifier;
         _timeProvider = timeProvider;
     }
 
@@ -85,6 +88,8 @@ public sealed class RescheduleAppointmentCommandHandler
         appointment.Reschedule(doctorId, date, startTime, durationResult.Value, user.Id!.Value, _timeProvider.GetUtcNow());
 
         _repository.Update(appointment, expectedVersion);
+
+        await _notifier.NotifyAsync(appointment, AppointmentNotificationKinds.Rescheduled, cancellationToken);
 
         var outcome = await _unitOfWork.SaveChangesAsync(cancellationToken);
 

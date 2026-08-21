@@ -36,6 +36,7 @@ public sealed class AppointmentResultClient : IAppointmentResultClient
     private static AppointmentResultDocumentDto Map(AppointmentResultResponse response)
         => new(
             Guid.Parse(response.AppointmentId),
+            Guid.Parse(response.PatientId),
             DateOnly.Parse(response.Date),
             TimeOnly.Parse(response.StartTime),
             TimeOnly.Parse(response.EndTime),

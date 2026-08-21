@@ -13,6 +13,8 @@ public interface IAccountRepository
 
     Task<Account?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+    Task<Account?> GetByProfileIdAsync(Guid profileId, CancellationToken cancellationToken = default);
+
     Task UpdateAsync(Account account, long expectedVersion, CancellationToken cancellationToken = default);
 
     Task<int> DeleteByIdAsync(Guid id, CancellationToken cancellationToken = default);

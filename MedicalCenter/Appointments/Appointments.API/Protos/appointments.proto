@@ -22,6 +22,8 @@ service AppointmentsService {
     rpc CreateAppointmentResult (SaveAppointmentResultRequest) returns (CreateAppointmentResultResponse);
     rpc UpdateAppointmentResult (SaveAppointmentResultRequest) returns (UpdateAppointmentResultResponse);
     rpc GetAppointmentResult (GetAppointmentResultRequest) returns (AppointmentResultResponse);
+
+    rpc HasApprovedAppointment (HasApprovedAppointmentRequest) returns (HasApprovedAppointmentResponse);
 }
 
 message SaveAppointmentResultRequest {
@@ -41,6 +43,15 @@ message UpdateAppointmentResultResponse {
 
 message GetAppointmentResultRequest {
     string appointment_id = 1;
+}
+
+message HasApprovedAppointmentRequest {
+    string doctor_id = 1;
+    string patient_id = 2;
+}
+
+message HasApprovedAppointmentResponse {
+    bool has_approved = 1;
 }
 
 message AppointmentResultResponse {

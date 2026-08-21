@@ -15,6 +15,7 @@ using Appointments.Application.Queries.GetAvailableSlots;
 using Appointments.Application.Queries.GetDoctorSchedule;
 using Appointments.Application.Queries.GetMyAppointments;
 using Appointments.Application.Queries.GetPatientAppointments;
+using Appointments.Application.Queries.HasApprovedAppointment;
 using Grpc.Core;
 using ErrorOr;
 using MediatR;
@@ -241,6 +242,22 @@ public class AppointmentsGrpcService : AppointmentsService.AppointmentsServiceBa
             throw result.Errors.ToRpcException();
 
         return new UpdateAppointmentResultResponse();
+    }
+
+    public override async Task<HasApprovedAppointmentResponse> HasApprovedAppointment(
+        HasApprovedAppointmentRequest request,
+        ServerCallContext context)
+    {
+        var query = new HasApprovedAppointmentQuery(
+            ParseGuid(request.DoctorId, "doctor id"),
+            ParseGuid(request.PatientId, "patient id"));
+
+        var result = await _sender.Send(query, context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        return new HasApprovedAppointmentResponse { HasApproved = result.Value };
     }
 
     public override async Task<AppointmentResultResponse> GetAppointmentResult(

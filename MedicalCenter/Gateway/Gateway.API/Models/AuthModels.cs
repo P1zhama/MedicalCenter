@@ -22,6 +22,12 @@ public record SignInWebResponse(
     DateTimeOffset RefreshTokenExpiresAt
 );
 
+public record ChangePasswordWebRequest(
+    string CurrentPassword,
+    string NewPassword,
+    string ConfirmNewPassword
+);
+
 public record ConfirmEmailWebRequest(
     string Token
 );

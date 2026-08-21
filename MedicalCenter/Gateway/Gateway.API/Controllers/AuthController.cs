@@ -45,6 +45,24 @@ public class AuthController : ControllerBase
             grpcResponse.RefreshTokenExpiresAt.ToDateTimeOffset()));
     }
 
+    [HttpPost("password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordWebRequest request)
+    {
+        var grpcResponse = await _authClient.ChangePasswordAsync(new ChangePasswordRequest
+        {
+            CurrentPassword = request.CurrentPassword,
+            NewPassword = request.NewPassword,
+            ConfirmNewPassword = request.ConfirmNewPassword
+        });
+
+        return Ok(new SignInWebResponse(
+            grpcResponse.AccountId,
+            grpcResponse.AccessToken,
+            grpcResponse.AccessTokenExpiresAt.ToDateTimeOffset(),
+            grpcResponse.RefreshToken,
+            grpcResponse.RefreshTokenExpiresAt.ToDateTimeOffset()));
+    }
+
     [HttpPost("confirm-email")]
     public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailWebRequest request)
     {

@@ -1,5 +1,3 @@
-using System.Security.Claims;
-using Common.Abstractions.Security;
 using Common.Api.Authentication;
 using Common.Infrastructure.Security;
 using Grpc.Core;
@@ -28,23 +26,9 @@ public sealed class UserContextInterceptor : Interceptor
 
         var principal = httpContext.User;
 
-        if (principal.Identity?.IsAuthenticated == true)
-            _currentUserProvider.Set(ToCurrentUser(principal));
+        if (principal.IsAuthenticated())
+            _currentUserProvider.Set(principal.ToCurrentUser());
 
         return continuation(request, context);
-    }
-
-    private static CurrentUser ToCurrentUser(ClaimsPrincipal principal)
-    {
-        Guid? id = Guid.TryParse(principal.FindFirst(JwtClaimTypes.Subject)?.Value, out var parsed) ? parsed : null;
-
-        Guid? profileId = Guid.TryParse(principal.FindFirst(JwtClaimTypes.ProfileId)?.Value, out var parsedProfile)
-            ? parsedProfile
-            : null;
-
-        var roles = principal.FindAll(JwtClaimTypes.Role).Select(claim => claim.Value).ToArray();
-        var permissions = principal.FindAll(JwtClaimTypes.Permission).Select(claim => claim.Value).ToArray();
-
-        return new CurrentUser(id, profileId, roles, permissions);
     }
 }

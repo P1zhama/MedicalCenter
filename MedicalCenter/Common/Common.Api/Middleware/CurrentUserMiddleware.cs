@@ -1,6 +1,4 @@
-using System.Security.Claims;
 using System.Text.Json;
-using Common.Abstractions.Security;
 using Common.Api.Authentication;
 using Common.Infrastructure.Security;
 using Microsoft.AspNetCore.Builder;
@@ -28,8 +26,8 @@ public sealed class CurrentUserMiddleware
 
         var principal = context.User;
 
-        if (principal.Identity?.IsAuthenticated == true)
-            currentUserProvider.Set(ToCurrentUser(principal));
+        if (principal.IsAuthenticated())
+            currentUserProvider.Set(principal.ToCurrentUser());
 
         await _next(context);
     }
@@ -47,20 +45,6 @@ public sealed class CurrentUserMiddleware
         };
 
         await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
-    }
-
-    private static CurrentUser ToCurrentUser(ClaimsPrincipal principal)
-    {
-        Guid? id = Guid.TryParse(principal.FindFirst(JwtClaimTypes.Subject)?.Value, out var parsed) ? parsed : null;
-
-        Guid? profileId = Guid.TryParse(principal.FindFirst(JwtClaimTypes.ProfileId)?.Value, out var parsedProfile)
-            ? parsedProfile
-            : null;
-
-        var roles = principal.FindAll(JwtClaimTypes.Role).Select(claim => claim.Value).ToArray();
-        var permissions = principal.FindAll(JwtClaimTypes.Permission).Select(claim => claim.Value).ToArray();
-
-        return new CurrentUser(id, profileId, roles, permissions);
     }
 }
 

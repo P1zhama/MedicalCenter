@@ -29,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IDoctorQueryRepository, DoctorQueryRepository>();
         services.AddScoped<IReceptionistCommandRepository, ReceptionistCommandRepository>();
         services.AddScoped<IReceptionistQueryRepository, ReceptionistQueryRepository>();
+        services.AddScoped<IPhotoReferenceRepository, PhotoReferenceRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddGrpcClient<AuthInternalService.AuthInternalServiceClient>(options =>

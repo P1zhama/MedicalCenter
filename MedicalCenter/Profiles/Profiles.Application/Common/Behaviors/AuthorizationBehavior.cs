@@ -46,7 +46,7 @@ public sealed class AuthorizationBehavior<TRequest, TResponse> : IPipelineBehavi
             return (dynamic)unauthorized;
         }
 
-        if (!HasPermission(user, authorizedRequest.RequiredPermission))
+        if (!PermissionCheck.Has(user, authorizedRequest.RequiredPermission))
         {
             _logger.LogWarning(
                 "User {UserId} denied {Permission} for {RequestName}",
@@ -64,8 +64,4 @@ public sealed class AuthorizationBehavior<TRequest, TResponse> : IPipelineBehavi
 
         return await next();
     }
-
-    private static bool HasPermission(CurrentUser user, string permission)
-        => user.Permissions.Contains(permission)
-           || user.Roles.Any(role => RolePermissions.Grants(role, permission));
 }

@@ -31,6 +31,7 @@ using Profiles.Application.Queries.GetMyReceptionistProfile;
 using Profiles.Application.Queries.GetPatientById;
 using Profiles.Application.Queries.GetPatients;
 using Profiles.Application.Queries.GetPatientsSummary;
+using Profiles.Application.Queries.GetReferencedPhotos;
 using Profiles.Application.Queries.GetReceptionistById;
 using Profiles.Application.Queries.GetReceptionists;
 using Profiles.Application.Queries.PatientExists;
@@ -649,6 +650,24 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
                 DateOfBirth = FormatDate(patient.DateOfBirth)
             });
         }
+
+        return response;
+    }
+
+    public override async Task<GetReferencedPhotosResponse> GetReferencedPhotos(
+        GetReferencedPhotosRequest request,
+        ServerCallContext context)
+    {
+        var ids = request.DocumentIds.Select(id => ParseGuid(id, "document id")).ToList();
+
+        var result = await _sender.Send(new GetReferencedPhotosQuery(ids), context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        var response = new GetReferencedPhotosResponse();
+
+        response.ReferencedIds.AddRange(result.Value.Select(id => id.ToString()));
 
         return response;
     }

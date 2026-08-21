@@ -40,6 +40,15 @@ service ProfilesService {
     rpc GetDoctorsForAppointment (GetDoctorsForAppointmentRequest) returns (GetDoctorsForAppointmentResponse);
     rpc GetDoctorsSummary (GetDoctorsSummaryRequest) returns (GetDoctorsSummaryResponse);
     rpc GetPatientsSummary (GetPatientsSummaryRequest) returns (GetPatientsSummaryResponse);
+    rpc GetReferencedPhotos (GetReferencedPhotosRequest) returns (GetReferencedPhotosResponse);
+}
+
+message GetReferencedPhotosRequest {
+    repeated string document_ids = 1;
+}
+
+message GetReferencedPhotosResponse {
+    repeated string referenced_ids = 1;
 }
 
 message GetDoctorForAppointmentRequest {

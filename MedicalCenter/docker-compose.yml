@@ -36,6 +36,26 @@ services:
     networks:
       - medical-network
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medical-network
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -79,6 +99,8 @@ include:
     project_directory: .
   - path: Appointments/docker-compose.appointments.yml
     project_directory: .
+  - path: Documents/docker-compose.documents.yml
+    project_directory: .
   - path: Gateway/docker-compose.gateway.yml
     project_directory: .
 
@@ -86,6 +108,7 @@ volumes:
   mssql_data:
   mongo_data:
   postgres_data:
+  minio_data:
 
 networks:
   medical-network:

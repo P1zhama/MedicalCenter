@@ -31,7 +31,7 @@
     <Project Path="Documents/Documents.Api/Documents.Api.csproj" Id="b270fa1b-273b-40df-b02a-e3c5f33ac23b" />
     <Project Path="Documents/Documents.Application/Documents.Application.csproj" Id="1365f39c-50ee-416c-864b-1d225b8c317e" />
     <Project Path="Documents/Documents.Domain/Documents.Domain.csproj" Id="ccb3e00e-430b-4c77-bcf9-e093255c803d" />
-    <Project Path="Documents/Documents.Infastrusture/Documents.Infrastructure.csproj" Id="843c1731-0d18-4796-9114-ef10f6de8c3d" />
+    <Project Path="Documents/Documents.Infrastructure/Documents.Infrastructure.csproj" Id="843c1731-0d18-4796-9114-ef10f6de8c3d" />
   </Folder>
   <Folder Name="/Элементы решения/Gateway/">
     <File Path="Gateway/docker-compose.gateway.yml" />

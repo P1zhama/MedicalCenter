@@ -103,6 +103,8 @@ include:
     project_directory: .
   - path: Gateway/docker-compose.gateway.yml
     project_directory: .
+  - path: ../frontend/docker-compose.frontend.yml
+    project_directory: ../frontend
 
 volumes:
   mssql_data:

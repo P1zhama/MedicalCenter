@@ -4,5 +4,6 @@ public enum DocumentKind
 {
     DoctorPhoto = 1,
     PatientPhoto = 2,
-    ReceptionistPhoto = 3
+    ReceptionistPhoto = 3,
+    OfficePhoto = 4
 }

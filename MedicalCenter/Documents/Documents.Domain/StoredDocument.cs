@@ -104,7 +104,7 @@ public sealed class StoredDocument : AggregateRoot<Guid>
         => new(id, objectKey, fileName, contentType, size, kind, visibility, ownerProfileId, version, audit);
 
     private static DocumentVisibility VisibilityFor(DocumentKind kind)
-        => kind == DocumentKind.DoctorPhoto
+        => kind is DocumentKind.DoctorPhoto or DocumentKind.OfficePhoto
             ? DocumentVisibility.Public
             : DocumentVisibility.Private;
 }

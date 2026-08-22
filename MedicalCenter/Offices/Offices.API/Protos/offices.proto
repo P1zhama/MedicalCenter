@@ -12,6 +12,15 @@ service OfficesService {
     rpc GetActiveOffices (GetActiveOfficesRequest) returns (GetActiveOfficesResponse);
     rpc GetOfficeById (GetOfficeByIdRequest) returns (OfficeResponse);
     rpc IsOfficeActive (IsOfficeActiveRequest) returns (IsOfficeActiveResponse);
+    rpc GetReferencedPhotos (GetReferencedPhotosRequest) returns (GetReferencedPhotosResponse);
+}
+
+message GetReferencedPhotosRequest {
+    repeated string document_ids = 1;
+}
+
+message GetReferencedPhotosResponse {
+    repeated string referenced_ids = 1;
 }
 
 message CreateOfficeRequest {

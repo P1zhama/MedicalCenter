@@ -8,6 +8,7 @@ using Offices.Application.Commands.UpdateOffice;
 using Offices.Application.Queries.GetActiveOffices;
 using Offices.Application.Queries.GetOfficeById;
 using Offices.Application.Queries.GetOffices;
+using Offices.Application.Queries.GetReferencedPhotos;
 using Offices.Application.Queries.IsOfficeActive;
 using Offices.Domain.Enums;
 
@@ -155,6 +156,24 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
             throw result.Errors.ToRpcException();
 
         return new IsOfficeActiveResponse { IsActive = result.Value };
+    }
+
+    public override async Task<GetReferencedPhotosResponse> GetReferencedPhotos(
+        GetReferencedPhotosRequest request,
+        ServerCallContext context)
+    {
+        var ids = request.DocumentIds.Select(ParseGuid).ToList();
+
+        var result = await _sender.Send(new GetReferencedPhotosQuery(ids), context.CancellationToken);
+
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        var response = new GetReferencedPhotosResponse();
+
+        response.ReferencedIds.AddRange(result.Value.Select(id => id.ToString()));
+
+        return response;
     }
 
     private static Guid ParseGuid(string value)

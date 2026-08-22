@@ -5,6 +5,7 @@ using Documents.Application.Common.Settings;
 using Documents.Infrastructure.Clients;
 using Common.Infrastructure.Interceptors;
 using Documents.Infrastructure.Maintenance;
+using Offices.Api.Protos;
 using Profiles.Api.Protos;
 using Documents.Infrastructure.Pdf;
 using Documents.Infrastructure.Persistence;
@@ -70,6 +71,11 @@ public static class DependencyInjection
         services.AddGrpcClient<ProfilesService.ProfilesServiceClient>(options =>
         {
             options.Address = new Uri(configuration["GrpcClients:Profiles"] ?? "http://localhost:8001");
+        }).AddInterceptor<TokenForwardingInterceptor>();
+
+        services.AddGrpcClient<OfficesService.OfficesServiceClient>(options =>
+        {
+            options.Address = new Uri(configuration["GrpcClients:Offices"] ?? "http://localhost:8004");
         }).AddInterceptor<TokenForwardingInterceptor>();
 
         services.AddScoped<IAppointmentResultClient, AppointmentResultClient>();

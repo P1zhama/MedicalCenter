@@ -1,0 +1,29 @@
+.page {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.title {
+  margin-bottom: var(--mmc-space-5);
+  color: var(--mmc-color-primary);
+  text-align: center;
+}
+
+.matchMessage {
+  margin-bottom: var(--mmc-space-4);
+  text-align: center;
+}
+
+.matchDetails {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--mmc-space-2) var(--mmc-space-4);
+  padding: var(--mmc-space-4);
+  background-color: var(--mmc-color-background);
+  border-radius: var(--mmc-radius-md);
+}
+
+.matchDetails dt {
+  font-weight: 600;
+  color: var(--mmc-color-text-muted);
+}

@@ -1,0 +1,16 @@
+.page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--mmc-space-7) 0;
+  text-align: center;
+}
+
+.page h2 {
+  margin-bottom: var(--mmc-space-5);
+  color: var(--mmc-color-primary);
+}
+
+.hint {
+  font-size: var(--mmc-font-size-md);
+  color: var(--mmc-color-text-muted);
+}

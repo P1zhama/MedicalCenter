@@ -1,0 +1,36 @@
+.page {
+  display: block;
+}
+
+.title {
+  margin-bottom: var(--mmc-space-5);
+  color: var(--mmc-color-primary);
+}
+
+.groups {
+  display: grid;
+  gap: var(--mmc-space-4);
+}
+
+.services {
+  display: grid;
+  gap: var(--mmc-space-2);
+}
+
+.service {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--mmc-space-4);
+  padding: var(--mmc-space-3);
+  border-bottom: 1px solid var(--mmc-color-border);
+}
+
+.service:last-child {
+  border-bottom: none;
+}
+
+.price {
+  font-weight: 700;
+  color: var(--mmc-color-primary);
+  white-space: nowrap;
+}

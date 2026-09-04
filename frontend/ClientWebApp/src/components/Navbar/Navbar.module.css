@@ -1,0 +1,24 @@
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mmc-space-4);
+  margin-right: var(--mmc-space-2);
+}
+
+.link {
+  color: var(--mmc-color-text-inverse);
+  font-size: var(--mmc-font-size-md);
+  font-weight: 600;
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+}
+
+.link:hover {
+  border-bottom-color: rgba(255, 255, 255, 0.6);
+}
+
+.active {
+  border-bottom-color: var(--mmc-color-text-inverse);
+}

@@ -1,0 +1,21 @@
+{
+  "name": "medical-center-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "ClientWebApp",
+    "InternalClinicPortal"
+  ],
+  "scripts": {
+    "dev:client": "npm run dev --workspace clientwebapp",
+    "dev:portal": "npm run dev --workspace internalclinicportal",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

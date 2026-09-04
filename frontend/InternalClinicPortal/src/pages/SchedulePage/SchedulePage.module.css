@@ -1,0 +1,13 @@
+.title {
+  margin-bottom: var(--mmc-space-5);
+  color: var(--mmc-color-primary);
+}
+
+.filters {
+  max-width: 260px;
+  margin-bottom: var(--mmc-space-5);
+}
+
+.inactive {
+  color: var(--mmc-color-text-muted);
+}

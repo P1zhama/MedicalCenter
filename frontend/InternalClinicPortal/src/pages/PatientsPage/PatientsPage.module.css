@@ -1,0 +1,22 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--mmc-space-4);
+  margin-bottom: var(--mmc-space-5);
+}
+
+.title {
+  color: var(--mmc-color-primary);
+}
+
+.filters {
+  max-width: 360px;
+  margin-bottom: var(--mmc-space-5);
+}
+
+.actions {
+  display: flex;
+  gap: var(--mmc-space-2);
+}

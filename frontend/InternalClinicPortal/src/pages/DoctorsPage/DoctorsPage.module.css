@@ -1,0 +1,23 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--mmc-space-4);
+  margin-bottom: var(--mmc-space-5);
+}
+
+.title {
+  color: var(--mmc-color-primary);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--mmc-space-4);
+  margin-bottom: var(--mmc-space-5);
+  padding: var(--mmc-space-4);
+  background-color: var(--mmc-color-surface);
+  border: 1px solid var(--mmc-color-border);
+  border-radius: var(--mmc-radius-lg);
+}

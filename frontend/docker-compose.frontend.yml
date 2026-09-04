@@ -1,0 +1,30 @@
+services:
+  client-web-app:
+    build:
+      context: .
+      dockerfile: ClientWebApp/Dockerfile
+    container_name: client-web-app
+    depends_on:
+      - gateway-api
+    ports:
+      - "5174:80"
+    restart: unless-stopped
+    networks:
+      - medical-network
+
+  internal-clinic-portal:
+    build:
+      context: .
+      dockerfile: InternalClinicPortal/Dockerfile
+    container_name: internal-clinic-portal
+    depends_on:
+      - gateway-api
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+    networks:
+      - medical-network
+
+networks:
+  medical-network:
+    driver: bridge

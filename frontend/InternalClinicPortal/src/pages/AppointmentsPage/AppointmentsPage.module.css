@@ -1,0 +1,53 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--mmc-space-4);
+  margin-bottom: var(--mmc-space-5);
+}
+
+.title {
+  color: var(--mmc-color-primary);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--mmc-space-4);
+  align-items: end;
+  margin-bottom: var(--mmc-space-5);
+  padding: var(--mmc-space-4);
+  background-color: var(--mmc-color-surface);
+  border: 1px solid var(--mmc-color-border);
+  border-radius: var(--mmc-radius-lg);
+}
+
+.generate {
+  padding-bottom: var(--mmc-space-4);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mmc-space-2);
+}
+
+.approvedRow {
+  background-color: var(--mmc-color-success-soft);
+}
+
+.patientField {
+  display: flex;
+  align-items: end;
+  gap: var(--mmc-space-3);
+  margin-bottom: var(--mmc-space-2);
+}
+
+.patientField > *:first-child {
+  flex: 1;
+}
+
+.patientField > *:last-child {
+  padding-bottom: var(--mmc-space-4);
+}

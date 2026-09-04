@@ -1,0 +1,16 @@
+.sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--mmc-space-3);
+  list-style: none;
+  text-align: left;
+}
+
+.sections li {
+  padding: var(--mmc-space-3) var(--mmc-space-4);
+  background-color: var(--mmc-color-primary-soft);
+  border-radius: var(--mmc-radius-md);
+  color: var(--mmc-color-primary);
+  font-size: var(--mmc-font-size-md);
+  font-weight: 600;
+}

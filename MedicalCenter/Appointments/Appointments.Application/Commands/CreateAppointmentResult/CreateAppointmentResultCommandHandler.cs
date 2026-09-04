@@ -17,6 +17,7 @@ public sealed class CreateAppointmentResultCommandHandler
     private readonly IAppointmentResultQueryRepository _resultQueryRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserProvider _currentUserProvider;
+    private readonly AppointmentResultPublisher _resultPublisher;
     private readonly ClinicClock _clock;
     private readonly TimeProvider _timeProvider;
     private readonly IGuidProvider _guidProvider;
@@ -27,6 +28,7 @@ public sealed class CreateAppointmentResultCommandHandler
         IAppointmentResultQueryRepository resultQueryRepository,
         IUnitOfWork unitOfWork,
         ICurrentUserProvider currentUserProvider,
+        AppointmentResultPublisher resultPublisher,
         ClinicClock clock,
         TimeProvider timeProvider,
         IGuidProvider guidProvider)
@@ -36,6 +38,7 @@ public sealed class CreateAppointmentResultCommandHandler
         _resultQueryRepository = resultQueryRepository;
         _unitOfWork = unitOfWork;
         _currentUserProvider = currentUserProvider;
+        _resultPublisher = resultPublisher;
         _clock = clock;
         _timeProvider = timeProvider;
         _guidProvider = guidProvider;
@@ -79,6 +82,14 @@ public sealed class CreateAppointmentResultCommandHandler
             _timeProvider.GetUtcNow());
 
         await _resultRepository.AddAsync(result, cancellationToken);
+
+        await _resultPublisher.PublishReadyAsync(
+            appointment,
+            request.Complaints,
+            request.Conclusion,
+            request.Diagnosis,
+            request.Recommendations,
+            cancellationToken);
 
         var outcome = await _unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -5,6 +5,7 @@ using Documents.Application.Common.Settings;
 using Documents.Infrastructure.Clients;
 using Common.Infrastructure.Interceptors;
 using Documents.Infrastructure.Maintenance;
+using Documents.Infrastructure.Messaging;
 using Offices.Api.Protos;
 using Profiles.Api.Protos;
 using Documents.Infrastructure.Pdf;
@@ -83,6 +84,8 @@ public static class DependencyInjection
 
         services.AddMassTransit(bus =>
         {
+            bus.AddConsumer<AppointmentResultReadyEventConsumer>();
+
             bus.AddEntityFrameworkOutbox<DocumentsDbContext>(outbox =>
             {
                 outbox.UsePostgres();

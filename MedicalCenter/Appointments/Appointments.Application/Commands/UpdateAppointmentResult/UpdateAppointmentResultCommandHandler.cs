@@ -1,4 +1,5 @@
 using Appointments.Application.Common.Interfaces;
+using Appointments.Application.Common.Services;
 using Common.Abstractions.Security;
 using ErrorOr;
 using MediatR;
@@ -12,6 +13,7 @@ public sealed class UpdateAppointmentResultCommandHandler
     private readonly IAppointmentResultCommandRepository _resultRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserProvider _currentUserProvider;
+    private readonly AppointmentResultPublisher _resultPublisher;
     private readonly TimeProvider _timeProvider;
 
     public UpdateAppointmentResultCommandHandler(
@@ -19,12 +21,14 @@ public sealed class UpdateAppointmentResultCommandHandler
         IAppointmentResultCommandRepository resultRepository,
         IUnitOfWork unitOfWork,
         ICurrentUserProvider currentUserProvider,
+        AppointmentResultPublisher resultPublisher,
         TimeProvider timeProvider)
     {
         _appointmentRepository = appointmentRepository;
         _resultRepository = resultRepository;
         _unitOfWork = unitOfWork;
         _currentUserProvider = currentUserProvider;
+        _resultPublisher = resultPublisher;
         _timeProvider = timeProvider;
     }
 
@@ -58,6 +62,14 @@ public sealed class UpdateAppointmentResultCommandHandler
             _timeProvider.GetUtcNow());
 
         _resultRepository.Update(result, expectedVersion);
+
+        await _resultPublisher.PublishReadyAsync(
+            appointment,
+            request.Complaints,
+            request.Conclusion,
+            request.Diagnosis,
+            request.Recommendations,
+            cancellationToken);
 
         var outcome = await _unitOfWork.SaveChangesAsync(cancellationToken);
 

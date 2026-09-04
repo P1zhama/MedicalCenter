@@ -1,6 +1,5 @@
 using Common.Abstractions.Security;
 using Documents.Application.Common.Dtos;
-using Documents.Application.Common.Interfaces;
 using Documents.Application.Common.Services;
 using ErrorOr;
 using MediatR;
@@ -10,17 +9,14 @@ namespace Documents.Application.Queries.GetDocumentContent;
 public sealed class GetDocumentContentQueryHandler
     : IRequestHandler<GetDocumentContentQuery, ErrorOr<DocumentContentDto>>
 {
-    private readonly IDocumentQueryRepository _repository;
-    private readonly IFileStorage _storage;
+    private readonly DocumentStorageFacade _documents;
     private readonly ICurrentUserProvider _currentUserProvider;
 
     public GetDocumentContentQueryHandler(
-        IDocumentQueryRepository repository,
-        IFileStorage storage,
+        DocumentStorageFacade documents,
         ICurrentUserProvider currentUserProvider)
     {
-        _repository = repository;
-        _storage = storage;
+        _documents = documents;
         _currentUserProvider = currentUserProvider;
     }
 
@@ -28,7 +24,7 @@ public sealed class GetDocumentContentQueryHandler
         GetDocumentContentQuery request,
         CancellationToken cancellationToken)
     {
-        var document = await _repository.GetByIdAsync(request.Id, cancellationToken);
+        var document = await _documents.FindAsync(request.Id, cancellationToken);
 
         if (document is null)
             return Error.NotFound("Document.NotFound", "Document was not found.");
@@ -42,7 +38,7 @@ public sealed class GetDocumentContentQueryHandler
                 : Error.Forbidden("Auth.Forbidden", "You are not allowed to perform this action.");
         }
 
-        var content = await _storage.OpenReadAsync(document.ObjectKey, cancellationToken);
+        var content = await _documents.OpenAsync(document, cancellationToken);
 
         return new DocumentContentDto(
             document.Id,

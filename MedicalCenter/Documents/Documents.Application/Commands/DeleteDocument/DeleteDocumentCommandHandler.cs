@@ -1,5 +1,4 @@
 using Common.Abstractions.Security;
-using Documents.Application.Common.Interfaces;
 using Documents.Application.Common.Services;
 using ErrorOr;
 using MediatR;
@@ -9,20 +8,14 @@ namespace Documents.Application.Commands.DeleteDocument;
 public sealed class DeleteDocumentCommandHandler
     : IRequestHandler<DeleteDocumentCommand, ErrorOr<Deleted>>
 {
-    private readonly IDocumentCommandRepository _repository;
-    private readonly IFileStorage _storage;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly DocumentStorageFacade _documents;
     private readonly ICurrentUserProvider _currentUserProvider;
 
     public DeleteDocumentCommandHandler(
-        IDocumentCommandRepository repository,
-        IFileStorage storage,
-        IUnitOfWork unitOfWork,
+        DocumentStorageFacade documents,
         ICurrentUserProvider currentUserProvider)
     {
-        _repository = repository;
-        _storage = storage;
-        _unitOfWork = unitOfWork;
+        _documents = documents;
         _currentUserProvider = currentUserProvider;
     }
 
@@ -35,7 +28,7 @@ public sealed class DeleteDocumentCommandHandler
         if (user is null || !user.IsAuthenticated)
             return Error.Unauthorized("Auth.Unauthenticated", "Authentication is required.");
 
-        var document = await _repository.GetByIdAsync(request.Id, cancellationToken);
+        var document = await _documents.FindAsync(request.Id, cancellationToken);
 
         if (document is null)
             return Error.NotFound("Document.NotFound", "Document was not found.");
@@ -43,10 +36,7 @@ public sealed class DeleteDocumentCommandHandler
         if (!DocumentAccessPolicy.CanDelete(document, user))
             return Error.Forbidden("Auth.Forbidden", "You are not allowed to perform this action.");
 
-        _repository.Remove(document);
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-        await _storage.DeleteAsync(document.ObjectKey, cancellationToken);
+        await _documents.RemoveAsync(document, cancellationToken);
 
         return Result.Deleted;
     }

@@ -20,15 +20,6 @@ public sealed class DocumentCommandRepository : IDocumentCommandRepository
         await _context.Documents.AddAsync(document.ToEntity(), cancellationToken);
     }
 
-    public async Task<StoredDocument?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var entity = await _context.Documents
-            .AsNoTracking()
-            .FirstOrDefaultAsync(document => document.Id == id, cancellationToken);
-
-        return entity?.ToDomain();
-    }
-
     public void Remove(StoredDocument document)
     {
         var entry = _context.Documents.Attach(document.ToEntity());

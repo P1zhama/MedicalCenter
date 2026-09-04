@@ -11,6 +11,7 @@ public static class AppointmentMapper
     {
         Id = appointment.Id,
         PatientId = appointment.PatientId,
+        PatientFullName = appointment.PatientFullName,
         DoctorId = appointment.DoctorId,
         ServiceId = appointment.ServiceId,
         OfficeId = appointment.OfficeId,
@@ -30,6 +31,7 @@ public static class AppointmentMapper
         => Appointment.Restore(
             entity.Id,
             entity.PatientId,
+            entity.PatientFullName,
             entity.DoctorId,
             entity.ServiceId,
             entity.OfficeId,

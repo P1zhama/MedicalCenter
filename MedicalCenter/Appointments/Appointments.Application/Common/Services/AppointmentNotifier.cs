@@ -13,6 +13,8 @@ public static class AppointmentNotificationKinds
     public const string Cancelled = "Cancelled";
 
     public const string Rescheduled = "Rescheduled";
+
+    public const string Reminder = "Reminder";
 }
 
 public sealed class AppointmentNotifier
@@ -68,6 +70,7 @@ public sealed class AppointmentNotifier
                         appointment.PatientId,
                         kind,
                         appointment.Date.ToDateTime(appointment.StartTime),
+                        appointment.PatientFullName,
                         FullName(doctor?.LastName, doctor?.FirstName, doctor?.MiddleName),
                         service?.Name ?? string.Empty),
                     cancellationToken);

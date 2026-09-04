@@ -4,6 +4,7 @@ using Appointments.Application.Common.Settings;
 using Appointments.Domain.Scheduling;
 using Appointments.Infrastructure.Clients;
 using Common.Infrastructure.Interceptors;
+using Appointments.Infrastructure.Maintenance;
 using Appointments.Infrastructure.Messaging;
 using Appointments.Infrastructure.Persistence;
 using Appointments.Infrastructure.Repositories;
@@ -34,6 +35,9 @@ public static class DependencyInjection
         services.Configure<WorkingHoursSettings>(configuration.GetSection(WorkingHoursSettings.SectionName));
         services.AddSingleton(CreateWorkingSchedule(workingHours));
         services.AddSingleton(provider => new ClinicClock(provider.GetRequiredService<TimeProvider>(), clinicTimeZone));
+
+        services.Configure<ReminderSettings>(configuration.GetSection(ReminderSettings.SectionName));
+        services.AddHostedService<AppointmentReminderService>();
 
         services.AddScoped<IAppointmentCommandRepository, AppointmentCommandRepository>();
         services.AddScoped<IAppointmentQueryRepository, AppointmentQueryRepository>();

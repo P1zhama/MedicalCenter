@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Appointments.Application.Common.Dtos;
 using Appointments.Application.Common.Interfaces;
 using Appointments.Domain;
 using Appointments.Domain.Enums;
@@ -72,6 +73,44 @@ public sealed class AppointmentCommandRepository : IAppointmentCommandRepository
             .ToListAsync(cancellationToken);
 
         return entities.ConvertAll(entity => entity.ToDomain());
+    }
+
+    public async Task<IReadOnlyList<AppointmentReminderDto>> GetDueRemindersAsync(
+        DateOnly date,
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        var cancelled = AppointmentStatus.Cancelled.ToString();
+
+        return await _context.Appointments
+            .AsNoTracking()
+            .Where(appointment => appointment.Date == date)
+            .Where(appointment => appointment.Status != cancelled)
+            .Where(appointment => appointment.ReminderSentAt == null)
+            .OrderBy(appointment => appointment.StartTime)
+            .Take(limit)
+            .Select(appointment => new AppointmentReminderDto(
+                appointment.Id,
+                appointment.PatientId,
+                appointment.PatientFullName,
+                appointment.DoctorId,
+                appointment.ServiceId,
+                appointment.Date,
+                appointment.StartTime,
+                appointment.Version))
+            .ToListAsync(cancellationToken);
+    }
+
+    public void MarkReminderSent(Guid appointmentId, long expectedVersion, DateTimeOffset sentAt)
+    {
+        var entry = _context.Appointments.Attach(new AppointmentEntity
+        {
+            Id = appointmentId,
+            Version = expectedVersion,
+            ReminderSentAt = sentAt
+        });
+
+        entry.Property(appointment => appointment.ReminderSentAt).IsModified = true;
     }
 
     public void Update(Appointment appointment, long expectedVersion)

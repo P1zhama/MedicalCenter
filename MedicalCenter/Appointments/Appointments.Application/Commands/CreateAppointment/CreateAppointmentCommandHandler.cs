@@ -12,6 +12,7 @@ public sealed class CreateAppointmentCommandHandler : IRequestHandler<CreateAppo
 {
     private readonly IAppointmentCommandRepository _repository;
     private readonly AppointmentSlotValidator _slotValidator;
+    private readonly IPatientDirectoryClient _patientDirectoryClient;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserProvider _currentUserProvider;
     private readonly TimeProvider _timeProvider;
@@ -20,6 +21,7 @@ public sealed class CreateAppointmentCommandHandler : IRequestHandler<CreateAppo
     public CreateAppointmentCommandHandler(
         IAppointmentCommandRepository repository,
         AppointmentSlotValidator slotValidator,
+        IPatientDirectoryClient patientDirectoryClient,
         IUnitOfWork unitOfWork,
         ICurrentUserProvider currentUserProvider,
         TimeProvider timeProvider,
@@ -27,6 +29,7 @@ public sealed class CreateAppointmentCommandHandler : IRequestHandler<CreateAppo
     {
         _repository = repository;
         _slotValidator = slotValidator;
+        _patientDirectoryClient = patientDirectoryClient;
         _unitOfWork = unitOfWork;
         _currentUserProvider = currentUserProvider;
         _timeProvider = timeProvider;
@@ -54,9 +57,13 @@ public sealed class CreateAppointmentCommandHandler : IRequestHandler<CreateAppo
         if (durationResult.IsError)
             return durationResult.Errors;
 
+        var patient = (await _patientDirectoryClient.GetSummariesAsync([user.ProfileId!.Value], cancellationToken))
+            .FirstOrDefault();
+
         var appointment = Appointment.Create(
             _guidProvider.NewGuid(),
             user.ProfileId!.Value,
+            PatientNames.Full(patient),
             request.DoctorId,
             request.ServiceId,
             request.OfficeId,

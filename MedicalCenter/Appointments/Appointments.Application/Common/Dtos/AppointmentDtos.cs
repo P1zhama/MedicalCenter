@@ -54,3 +54,13 @@ public record AppointmentListItemDto(
     Guid ServiceId,
     string ServiceName,
     string Status);
+
+public record AppointmentReminderDto(
+    Guid Id,
+    Guid PatientId,
+    string PatientFullName,
+    Guid DoctorId,
+    Guid ServiceId,
+    DateOnly Date,
+    TimeOnly StartTime,
+    long Version);

@@ -9,6 +9,7 @@ public sealed class Appointment : AggregateRoot<Guid>
     private Appointment(
         Guid id,
         Guid patientId,
+        string patientFullName,
         Guid doctorId,
         Guid serviceId,
         Guid officeId,
@@ -21,6 +22,7 @@ public sealed class Appointment : AggregateRoot<Guid>
         : base(id, version, audit)
     {
         PatientId = patientId;
+        PatientFullName = patientFullName;
         DoctorId = doctorId;
         ServiceId = serviceId;
         OfficeId = officeId;
@@ -31,6 +33,8 @@ public sealed class Appointment : AggregateRoot<Guid>
     }
 
     public Guid PatientId { get; private set; }
+
+    public string PatientFullName { get; private set; }
 
     public Guid DoctorId { get; private set; }
 
@@ -55,6 +59,7 @@ public sealed class Appointment : AggregateRoot<Guid>
     public static Appointment Create(
         Guid id,
         Guid patientId,
+        string patientFullName,
         Guid doctorId,
         Guid serviceId,
         Guid officeId,
@@ -76,6 +81,7 @@ public sealed class Appointment : AggregateRoot<Guid>
         return new Appointment(
             id,
             patientId,
+            patientFullName ?? string.Empty,
             doctorId,
             serviceId,
             officeId,
@@ -90,6 +96,7 @@ public sealed class Appointment : AggregateRoot<Guid>
     public static Appointment Restore(
         Guid id,
         Guid patientId,
+        string patientFullName,
         Guid doctorId,
         Guid serviceId,
         Guid officeId,
@@ -102,6 +109,7 @@ public sealed class Appointment : AggregateRoot<Guid>
         => new(
             id,
             patientId,
+            patientFullName ?? string.Empty,
             doctorId,
             serviceId,
             officeId,

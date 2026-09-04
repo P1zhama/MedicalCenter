@@ -6,6 +6,8 @@ public class AppointmentEntity
 
     public Guid PatientId { get; set; }
 
+    public string PatientFullName { get; set; } = string.Empty;
+
     public Guid DoctorId { get; set; }
 
     public Guid ServiceId { get; set; }
@@ -21,6 +23,8 @@ public class AppointmentEntity
     public int DurationMinutes { get; set; }
 
     public string Status { get; set; } = null!;
+
+    public DateTimeOffset? ReminderSentAt { get; set; }
 
     public long Version { get; set; }
 

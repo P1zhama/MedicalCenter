@@ -59,12 +59,15 @@ public sealed class MailKitEmailSender : IEmailSender
                 ("Your appointment is cancelled", "Your appointment has been cancelled."),
             AppointmentNotificationKinds.Rescheduled =>
                 ("Your appointment is rescheduled", "Your appointment has been moved to a new time."),
+            AppointmentNotificationKinds.Reminder =>
+                ("Reminder: your appointment is tomorrow", "This is a reminder about your appointment tomorrow."),
             _ => ("Your appointment has changed", "Your appointment has changed.")
         };
 
         var body =
             $"<p>{headline}</p>" +
-            $"<p>Service: {notification.ServiceName}<br/>" +
+            $"<p>Patient: {notification.PatientFullName}<br/>" +
+            $"Service: {notification.ServiceName}<br/>" +
             $"Doctor: {notification.DoctorFullName}<br/>" +
             $"Date and time: {when}</p>";
 

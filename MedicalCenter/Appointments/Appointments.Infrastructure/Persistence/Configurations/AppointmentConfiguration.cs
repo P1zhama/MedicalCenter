@@ -16,6 +16,15 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<AppointmentEnti
             .HasColumnName("patient_id")
             .IsRequired();
 
+        builder.Property(appointment => appointment.PatientFullName)
+            .HasColumnName("patient_full_name")
+            .IsRequired()
+            .HasMaxLength(300)
+            .HasDefaultValue(string.Empty);
+
+        builder.Property(appointment => appointment.ReminderSentAt)
+            .HasColumnName("reminder_sent_at");
+
         builder.Property(appointment => appointment.DoctorId)
             .HasColumnName("doctor_id")
             .IsRequired();

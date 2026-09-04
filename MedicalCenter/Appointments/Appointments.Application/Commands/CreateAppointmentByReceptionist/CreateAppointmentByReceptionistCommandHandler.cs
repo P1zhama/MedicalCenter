@@ -60,9 +60,13 @@ public sealed class CreateAppointmentByReceptionistCommandHandler
         if (durationResult.IsError)
             return durationResult.Errors;
 
+        var patient = (await _patientDirectoryClient.GetSummariesAsync([request.PatientId], cancellationToken))
+            .FirstOrDefault();
+
         var appointment = Appointment.Create(
             _guidProvider.NewGuid(),
             request.PatientId,
+            PatientNames.Full(patient),
             request.DoctorId,
             request.ServiceId,
             request.OfficeId,

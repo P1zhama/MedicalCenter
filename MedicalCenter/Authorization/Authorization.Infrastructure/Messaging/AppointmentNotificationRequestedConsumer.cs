@@ -45,6 +45,7 @@ public sealed class AppointmentNotificationRequestedConsumer : IConsumer<Appoint
             new AppointmentNotification(
                 message.Kind,
                 message.AppointmentStart,
+                message.PatientFullName,
                 message.DoctorFullName,
                 message.ServiceName),
             context.CancellationToken);

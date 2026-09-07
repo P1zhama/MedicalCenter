@@ -1,3 +1,4 @@
+using Common.Abstractions.Paging;
 using ErrorOr;
 using MediatR;
 using Profiles.Application.Common.Dtos;
@@ -6,7 +7,7 @@ using Profiles.Application.Common.Interfaces;
 namespace Profiles.Application.Queries.GetDoctors;
 
 public sealed class GetDoctorsQueryHandler
-    : IRequestHandler<GetDoctorsQuery, ErrorOr<IReadOnlyList<DoctorListItemDto>>>
+    : IRequestHandler<GetDoctorsQuery, ErrorOr<PagedResult<DoctorListItemDto>>>
 {
     private readonly IDoctorQueryRepository _repository;
 
@@ -15,14 +16,14 @@ public sealed class GetDoctorsQueryHandler
         _repository = repository;
     }
 
-    public async Task<ErrorOr<IReadOnlyList<DoctorListItemDto>>> Handle(
+    public async Task<ErrorOr<PagedResult<DoctorListItemDto>>> Handle(
         GetDoctorsQuery request,
         CancellationToken cancellationToken)
     {
         var filter = new DoctorFilter(request.Search, request.SpecializationId, request.OfficeId);
 
-        var doctors = await _repository.SearchAsync(filter, cancellationToken);
+        var (page, pageSize) = PageRequest.Normalize(request.Page, request.PageSize);
 
-        return ErrorOrFactory.From(doctors);
+        return await _repository.SearchAsync(filter, page, pageSize, cancellationToken);
     }
 }

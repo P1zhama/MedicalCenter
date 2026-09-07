@@ -1,11 +1,14 @@
+using Common.Abstractions.Paging;
 using Profiles.Application.Common.Dtos;
 
 namespace Profiles.Application.Common.Interfaces;
 
 public interface IPatientQueryRepository
 {
-    Task<IReadOnlyList<PatientListItemDto>> SearchAsync(
+    Task<PagedResult<PatientListItemDto>> SearchAsync(
         string? fullNameSearch,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default);
 
     Task<PatientDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

@@ -1,3 +1,4 @@
+using Common.Abstractions.Paging;
 using Appointments.Application.Common.Dtos;
 using Appointments.Application.Common.Interfaces;
 using Appointments.Domain.Enums;
@@ -68,14 +69,26 @@ public sealed class AppointmentQueryRepository : IAppointmentQueryRepository
                 .OrderBy(appointment => appointment.StartTime))
             .ToListAsync(cancellationToken);
 
-    public async Task<IReadOnlyList<AppointmentRowDto>> GetByPatientAsync(
+    public async Task<PagedResult<AppointmentRowDto>> GetByPatientAsync(
         Guid patientId,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default)
-        => await Project(NotCancelled()
-                .Where(appointment => appointment.PatientId == patientId)
+    {
+        var query = NotCancelled().Where(appointment => appointment.PatientId == patientId);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await Project(query
                 .OrderByDescending(appointment => appointment.Date)
-                .ThenBy(appointment => appointment.StartTime))
+                .ThenBy(appointment => appointment.StartTime)
+                .ThenBy(appointment => appointment.Id)
+                .Skip(PageRequest.Skip(page, pageSize))
+                .Take(pageSize))
             .ToListAsync(cancellationToken);
+
+        return new PagedResult<AppointmentRowDto>(items, page, pageSize, totalCount);
+    }
 
     public Task<bool> HasApprovedWithPatientAsync(
         Guid doctorId,

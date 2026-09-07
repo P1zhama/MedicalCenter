@@ -206,10 +206,15 @@ message PatientListItem {
 
 message GetPatientsRequest {
     string search = 1;
+    int32 page = 2;
+    int32 page_size = 3;
 }
 
 message GetPatientsResponse {
     repeated PatientListItem patients = 1;
+    int32 total_count = 2;
+    int32 page = 3;
+    int32 page_size = 4;
 }
 
 message GetPatientByIdRequest {
@@ -274,10 +279,15 @@ message GetDoctorCardsRequest {
     string search = 1;
     string specialization_id = 2;
     string office_id = 3;
+    int32 page = 4;
+    int32 page_size = 5;
 }
 
 message GetDoctorCardsResponse {
     repeated DoctorCard doctors = 1;
+    int32 total_count = 2;
+    int32 page = 3;
+    int32 page_size = 4;
 }
 
 message GetDoctorCardByIdRequest {
@@ -303,10 +313,15 @@ message GetDoctorsRequest {
     string search = 1;
     string specialization_id = 2;
     string office_id = 3;
+    int32 page = 4;
+    int32 page_size = 5;
 }
 
 message GetDoctorsResponse {
     repeated DoctorListItem doctors = 1;
+    int32 total_count = 2;
+    int32 page = 3;
+    int32 page_size = 4;
 }
 
 message GetDoctorByIdRequest {

@@ -1,12 +1,15 @@
+using Common.Abstractions.Paging;
 using Profiles.Application.Common.Dtos;
 
 namespace Profiles.Application.Common.Interfaces;
 
 public interface IDoctorQueryRepository
 {
-    Task<IReadOnlyList<DoctorCardDto>> GetActiveCardsAsync(
+    Task<PagedResult<DoctorCardDto>> GetActiveCardsAsync(
         DoctorFilter filter,
         int currentYear,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default);
 
     Task<DoctorCardDto?> GetActiveCardByIdAsync(
@@ -14,8 +17,10 @@ public interface IDoctorQueryRepository
         int currentYear,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<DoctorListItemDto>> SearchAsync(
+    Task<PagedResult<DoctorListItemDto>> SearchAsync(
         DoctorFilter filter,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default);
 
     Task<DoctorDto?> GetByIdAsync(Guid id, int currentYear, CancellationToken cancellationToken = default);

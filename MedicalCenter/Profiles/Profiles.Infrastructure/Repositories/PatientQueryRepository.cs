@@ -1,3 +1,4 @@
+using Common.Abstractions.Paging;
 using Microsoft.EntityFrameworkCore;
 using Profiles.Application.Common.Dtos;
 using Profiles.Application.Common.Interfaces;
@@ -39,8 +40,10 @@ public sealed class PatientQueryRepository : IPatientQueryRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<PatientListItemDto>> SearchAsync(
+    public async Task<PagedResult<PatientListItemDto>> SearchAsync(
         string? fullNameSearch,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default)
     {
         var query = _context.Patients.AsNoTracking();
@@ -55,9 +58,14 @@ public sealed class PatientQueryRepository : IPatientQueryRepository
                 || (patient.MiddleName != null && EF.Functions.Like(patient.MiddleName, $"%{search}%")));
         }
 
-        return await query
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
             .OrderBy(patient => patient.LastName)
             .ThenBy(patient => patient.FirstName)
+            .ThenBy(patient => patient.Id)
+            .Skip(PageRequest.Skip(page, pageSize))
+            .Take(pageSize)
             .Select(patient => new PatientListItemDto(
                 patient.Id,
                 patient.FirstName,
@@ -65,6 +73,8 @@ public sealed class PatientQueryRepository : IPatientQueryRepository
                 patient.MiddleName,
                 patient.PhoneNumber))
             .ToListAsync(cancellationToken);
+
+        return new PagedResult<PatientListItemDto>(items, page, pageSize, totalCount);
     }
 
     public Task<PatientDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

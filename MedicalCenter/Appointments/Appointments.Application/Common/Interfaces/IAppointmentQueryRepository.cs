@@ -1,3 +1,4 @@
+using Common.Abstractions.Paging;
 using Appointments.Application.Common.Dtos;
 
 namespace Appointments.Application.Common.Interfaces;
@@ -20,8 +21,10 @@ public interface IAppointmentQueryRepository
         DateOnly date,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<AppointmentRowDto>> GetByPatientAsync(
+    Task<PagedResult<AppointmentRowDto>> GetByPatientAsync(
         Guid patientId,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default);
 
     Task<bool> HasApprovedWithPatientAsync(

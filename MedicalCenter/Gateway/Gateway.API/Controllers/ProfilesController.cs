@@ -75,11 +75,16 @@ public class ProfilesController : ControllerBase
     }
 
     [HttpGet("patients")]
-    public async Task<IActionResult> GetPatients([FromQuery] string? search)
+    public async Task<IActionResult> GetPatients(
+        [FromQuery] string? search,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
     {
         var response = await _profilesClient.GetPatientsAsync(new GetPatientsRequest
         {
-            Search = search ?? string.Empty
+            Search = search ?? string.Empty,
+            Page = page,
+            PageSize = pageSize
         });
 
         var patients = response.Patients
@@ -91,7 +96,11 @@ public class ProfilesController : ControllerBase
                 patient.PhoneNumber))
             .ToList();
 
-        return Ok(patients);
+        return Ok(new PagedWebResponse<PatientListItemWebResponse>(
+            patients,
+            response.Page,
+            response.PageSize,
+            response.TotalCount));
     }
 
     [HttpGet("patients/me")]
@@ -175,18 +184,26 @@ public class ProfilesController : ControllerBase
     public async Task<IActionResult> GetDoctorCards(
         [FromQuery] string? search,
         [FromQuery] string? specializationId,
-        [FromQuery] string? officeId)
+        [FromQuery] string? officeId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
     {
         var response = await _profilesClient.GetDoctorCardsAsync(new GetDoctorCardsRequest
         {
             Search = search ?? string.Empty,
             SpecializationId = specializationId ?? string.Empty,
-            OfficeId = officeId ?? string.Empty
+            OfficeId = officeId ?? string.Empty,
+            Page = page,
+            PageSize = pageSize
         });
 
         var doctors = response.Doctors.Select(ToDoctorCardWebResponse).ToList();
 
-        return Ok(doctors);
+        return Ok(new PagedWebResponse<DoctorCardWebResponse>(
+            doctors,
+            response.Page,
+            response.PageSize,
+            response.TotalCount));
     }
 
     [HttpGet("doctors/cards/{id}")]
@@ -201,13 +218,17 @@ public class ProfilesController : ControllerBase
     public async Task<IActionResult> GetDoctors(
         [FromQuery] string? search,
         [FromQuery] string? specializationId,
-        [FromQuery] string? officeId)
+        [FromQuery] string? officeId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
     {
         var response = await _profilesClient.GetDoctorsAsync(new GetDoctorsRequest
         {
             Search = search ?? string.Empty,
             SpecializationId = specializationId ?? string.Empty,
-            OfficeId = officeId ?? string.Empty
+            OfficeId = officeId ?? string.Empty,
+            Page = page,
+            PageSize = pageSize
         });
 
         var doctors = response.Doctors
@@ -222,7 +243,11 @@ public class ProfilesController : ControllerBase
                 doctor.Status))
             .ToList();
 
-        return Ok(doctors);
+        return Ok(new PagedWebResponse<DoctorListItemWebResponse>(
+            doctors,
+            response.Page,
+            response.PageSize,
+            response.TotalCount));
     }
 
     [HttpGet("doctors/me")]

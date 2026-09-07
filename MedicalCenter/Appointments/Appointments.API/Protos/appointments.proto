@@ -91,10 +91,14 @@ message GetDoctorScheduleRequest {
 }
 
 message GetMyAppointmentsRequest {
+    int32 page = 1;
+    int32 page_size = 2;
 }
 
 message GetPatientAppointmentsRequest {
     string patient_id = 1;
+    int32 page = 2;
+    int32 page_size = 3;
 }
 
 message AppointmentListItem {
@@ -118,6 +122,9 @@ message AppointmentListItem {
 
 message AppointmentListResponse {
     repeated AppointmentListItem appointments = 1;
+    int32 total_count = 2;
+    int32 page = 3;
+    int32 page_size = 4;
 }
 
 message CreateAppointmentRequest {

@@ -70,20 +70,33 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet("me")]
-    public async Task<IActionResult> GetMyAppointments()
+    public async Task<IActionResult> GetMyAppointments(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var response = await _appointmentsClient.GetMyAppointmentsAsync(new GetMyAppointmentsRequest());
+        var response = await _appointmentsClient.GetMyAppointmentsAsync(new GetMyAppointmentsRequest
+        {
+            Page = page,
+            PageSize = pageSize
+        });
 
-        return Ok(ToWebResponse(response));
+        return Ok(ToPagedWebResponse(response));
     }
 
     [HttpGet("patients/{patientId}")]
-    public async Task<IActionResult> GetPatientAppointments(string patientId)
+    public async Task<IActionResult> GetPatientAppointments(
+        string patientId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var response = await _appointmentsClient.GetPatientAppointmentsAsync(
-            new GetPatientAppointmentsRequest { PatientId = patientId });
+        var response = await _appointmentsClient.GetPatientAppointmentsAsync(new GetPatientAppointmentsRequest
+        {
+            PatientId = patientId,
+            Page = page,
+            PageSize = pageSize
+        });
 
-        return Ok(ToWebResponse(response));
+        return Ok(ToPagedWebResponse(response));
     }
 
     [HttpPost("me")]
@@ -205,6 +218,13 @@ public class AppointmentsController : ControllerBase
 
         return Ok();
     }
+
+    private static PagedWebResponse<AppointmentListItemWebResponse> ToPagedWebResponse(AppointmentListResponse response)
+        => new(
+            ToWebResponse(response),
+            response.Page,
+            response.PageSize,
+            response.TotalCount);
 
     private static List<AppointmentListItemWebResponse> ToWebResponse(AppointmentListResponse response)
         => response.Appointments

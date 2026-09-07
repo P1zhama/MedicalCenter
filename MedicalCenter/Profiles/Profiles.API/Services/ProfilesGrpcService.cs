@@ -191,14 +191,21 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
         GetPatientsRequest request,
         ServerCallContext context)
     {
-        var result = await _sender.Send(new GetPatientsQuery(NullIfEmpty(request.Search)), context.CancellationToken);
+        var result = await _sender.Send(
+            new GetPatientsQuery(NullIfEmpty(request.Search), request.Page, request.PageSize),
+            context.CancellationToken);
 
         if (result.IsError)
             throw result.Errors.ToRpcException();
 
-        var response = new GetPatientsResponse();
+        var response = new GetPatientsResponse
+        {
+            TotalCount = result.Value.TotalCount,
+            Page = result.Value.Page,
+            PageSize = result.Value.PageSize
+        };
 
-        foreach (var patient in result.Value)
+        foreach (var patient in result.Value.Items)
         {
             response.Patients.Add(new PatientListItem
             {
@@ -301,16 +308,23 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
         var query = new GetDoctorCardsQuery(
             NullIfEmpty(request.Search),
             ParseNullableGuid(request.SpecializationId, "specialization id"),
-            ParseNullableGuid(request.OfficeId, "office id"));
+            ParseNullableGuid(request.OfficeId, "office id"),
+            request.Page,
+            request.PageSize);
 
         var result = await _sender.Send(query, context.CancellationToken);
 
         if (result.IsError)
             throw result.Errors.ToRpcException();
 
-        var response = new GetDoctorCardsResponse();
+        var response = new GetDoctorCardsResponse
+        {
+            TotalCount = result.Value.TotalCount,
+            Page = result.Value.Page,
+            PageSize = result.Value.PageSize
+        };
 
-        foreach (var doctor in result.Value)
+        foreach (var doctor in result.Value.Items)
         {
             response.Doctors.Add(ToDoctorCard(doctor));
         }
@@ -339,16 +353,23 @@ public class ProfilesGrpcService : ProfilesService.ProfilesServiceBase
         var query = new GetDoctorsQuery(
             NullIfEmpty(request.Search),
             ParseNullableGuid(request.SpecializationId, "specialization id"),
-            ParseNullableGuid(request.OfficeId, "office id"));
+            ParseNullableGuid(request.OfficeId, "office id"),
+            request.Page,
+            request.PageSize);
 
         var result = await _sender.Send(query, context.CancellationToken);
 
         if (result.IsError)
             throw result.Errors.ToRpcException();
 
-        var response = new GetDoctorsResponse();
+        var response = new GetDoctorsResponse
+        {
+            TotalCount = result.Value.TotalCount,
+            Page = result.Value.Page,
+            PageSize = result.Value.PageSize
+        };
 
-        foreach (var doctor in result.Value)
+        foreach (var doctor in result.Value.Items)
         {
             response.Doctors.Add(new DoctorListItem
             {

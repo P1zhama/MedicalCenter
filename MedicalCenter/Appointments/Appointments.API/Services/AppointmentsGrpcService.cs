@@ -16,6 +16,7 @@ using Appointments.Application.Queries.GetDoctorSchedule;
 using Appointments.Application.Queries.GetMyAppointments;
 using Appointments.Application.Queries.GetPatientAppointments;
 using Appointments.Application.Queries.HasApprovedAppointment;
+using Common.Abstractions.Paging;
 using Grpc.Core;
 using ErrorOr;
 using MediatR;
@@ -195,15 +196,20 @@ public class AppointmentsGrpcService : AppointmentsService.AppointmentsServiceBa
     public override async Task<AppointmentListResponse> GetMyAppointments(
         GetMyAppointmentsRequest request,
         ServerCallContext context)
-        => ToListResponse(await _sender.Send(new GetMyAppointmentsQuery(), context.CancellationToken));
+        => ToPagedListResponse(await _sender.Send(
+            new GetMyAppointmentsQuery(request.Page, request.PageSize),
+            context.CancellationToken));
 
     public override async Task<AppointmentListResponse> GetPatientAppointments(
         GetPatientAppointmentsRequest request,
         ServerCallContext context)
     {
-        var query = new GetPatientAppointmentsQuery(ParseGuid(request.PatientId, "patient id"));
+        var query = new GetPatientAppointmentsQuery(
+            ParseGuid(request.PatientId, "patient id"),
+            request.Page,
+            request.PageSize);
 
-        return ToListResponse(await _sender.Send(query, context.CancellationToken));
+        return ToPagedListResponse(await _sender.Send(query, context.CancellationToken));
     }
 
     public override async Task<CreateAppointmentResultResponse> CreateAppointmentResult(
@@ -299,14 +305,33 @@ public class AppointmentsGrpcService : AppointmentsService.AppointmentsServiceBa
         };
     }
 
+    private static AppointmentListResponse ToPagedListResponse(ErrorOr<PagedResult<AppointmentListItemDto>> result)
+    {
+        if (result.IsError)
+            throw result.Errors.ToRpcException();
+
+        var response = BuildListResponse(result.Value.Items);
+
+        response.TotalCount = result.Value.TotalCount;
+        response.Page = result.Value.Page;
+        response.PageSize = result.Value.PageSize;
+
+        return response;
+    }
+
     private static AppointmentListResponse ToListResponse(ErrorOr<IReadOnlyList<AppointmentListItemDto>> result)
     {
         if (result.IsError)
             throw result.Errors.ToRpcException();
 
+        return BuildListResponse(result.Value);
+    }
+
+    private static AppointmentListResponse BuildListResponse(IReadOnlyList<AppointmentListItemDto> items)
+    {
         var response = new AppointmentListResponse();
 
-        foreach (var item in result.Value)
+        foreach (var item in items)
         {
             response.Appointments.Add(new AppointmentListItem
             {

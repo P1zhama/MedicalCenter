@@ -1,3 +1,4 @@
+using Common.Abstractions.Paging;
 using Microsoft.EntityFrameworkCore;
 using Profiles.Application.Common.Dtos;
 using Profiles.Application.Common.Interfaces;
@@ -16,13 +17,23 @@ public sealed class DoctorQueryRepository : IDoctorQueryRepository
         _context = context;
     }
 
-    public async Task<IReadOnlyList<DoctorCardDto>> GetActiveCardsAsync(
+    public async Task<PagedResult<DoctorCardDto>> GetActiveCardsAsync(
         DoctorFilter filter,
         int currentYear,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default)
-        => await ApplyFilter(AtWorkOnly(), filter)
+    {
+        var query = ApplyFilter(AtWorkOnly(), filter);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
             .OrderBy(doctor => doctor.LastName)
             .ThenBy(doctor => doctor.FirstName)
+            .ThenBy(doctor => doctor.Id)
+            .Skip(PageRequest.Skip(page, pageSize))
+            .Take(pageSize)
             .Select(doctor => new DoctorCardDto(
                 doctor.Id,
                 doctor.PhotoUrl,
@@ -33,6 +44,9 @@ public sealed class DoctorQueryRepository : IDoctorQueryRepository
                 doctor.OfficeId,
                 currentYear - doctor.CareerStartYear + 1))
             .ToListAsync(cancellationToken);
+
+        return new PagedResult<DoctorCardDto>(items, page, pageSize, totalCount);
+    }
 
     public Task<DoctorCardDto?> GetActiveCardByIdAsync(
         Guid id,
@@ -51,12 +65,22 @@ public sealed class DoctorQueryRepository : IDoctorQueryRepository
                 currentYear - doctor.CareerStartYear + 1))
             .FirstOrDefaultAsync(cancellationToken)!;
 
-    public async Task<IReadOnlyList<DoctorListItemDto>> SearchAsync(
+    public async Task<PagedResult<DoctorListItemDto>> SearchAsync(
         DoctorFilter filter,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default)
-        => await ApplyFilter(_context.Doctors.AsNoTracking(), filter)
+    {
+        var query = ApplyFilter(_context.Doctors.AsNoTracking(), filter);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
             .OrderBy(doctor => doctor.LastName)
             .ThenBy(doctor => doctor.FirstName)
+            .ThenBy(doctor => doctor.Id)
+            .Skip(PageRequest.Skip(page, pageSize))
+            .Take(pageSize)
             .Select(doctor => new DoctorListItemDto(
                 doctor.Id,
                 doctor.FirstName,
@@ -67,6 +91,9 @@ public sealed class DoctorQueryRepository : IDoctorQueryRepository
                 doctor.OfficeId,
                 doctor.Status))
             .ToListAsync(cancellationToken);
+
+        return new PagedResult<DoctorListItemDto>(items, page, pageSize, totalCount);
+    }
 
     public Task<DoctorDto?> GetByIdAsync(Guid id, int currentYear, CancellationToken cancellationToken = default)
         => Project(_context.Doctors.AsNoTracking().Where(doctor => doctor.Id == id), currentYear)

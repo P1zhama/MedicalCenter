@@ -2,13 +2,14 @@ using Appointments.Application.Common.Dtos;
 using Appointments.Application.Common.Interfaces;
 using Appointments.Application.Common.Services;
 using Common.Abstractions.Security;
+using Common.Abstractions.Paging;
 using ErrorOr;
 using MediatR;
 
 namespace Appointments.Application.Queries.GetMyAppointments;
 
 public sealed class GetMyAppointmentsQueryHandler
-    : IRequestHandler<GetMyAppointmentsQuery, ErrorOr<IReadOnlyList<AppointmentListItemDto>>>
+    : IRequestHandler<GetMyAppointmentsQuery, ErrorOr<PagedResult<AppointmentListItemDto>>>
 {
     private readonly IAppointmentQueryRepository _repository;
     private readonly AppointmentDetailsResolver _detailsResolver;
@@ -24,7 +25,7 @@ public sealed class GetMyAppointmentsQueryHandler
         _currentUserProvider = currentUserProvider;
     }
 
-    public async Task<ErrorOr<IReadOnlyList<AppointmentListItemDto>>> Handle(
+    public async Task<ErrorOr<PagedResult<AppointmentListItemDto>>> Handle(
         GetMyAppointmentsQuery request,
         CancellationToken cancellationToken)
     {
@@ -32,10 +33,12 @@ public sealed class GetMyAppointmentsQueryHandler
         if (patientId is null)
             return Error.Validation("Patient.ProfileRequired", "Please, create your profile first.");
 
-        var rows = await _repository.GetByPatientAsync(patientId.Value, cancellationToken);
+        var (page, pageSize) = PageRequest.Normalize(request.Page, request.PageSize);
 
-        var items = await _detailsResolver.ResolveAsync(rows, includePatients: false, cancellationToken);
+        var rows = await _repository.GetByPatientAsync(patientId.Value, page, pageSize, cancellationToken);
 
-        return ErrorOrFactory.From(items);
+        var items = await _detailsResolver.ResolveAsync(rows.Items, includePatients: false, cancellationToken);
+
+        return new PagedResult<AppointmentListItemDto>(items, rows.Page, rows.PageSize, rows.TotalCount);
     }
 }

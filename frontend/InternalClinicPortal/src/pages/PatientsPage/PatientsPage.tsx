@@ -4,6 +4,7 @@ import {
   Button,
   ConfirmDialog,
   Field,
+  Pagination,
   Table,
   TextInput,
   confirmMessages,
@@ -26,12 +27,13 @@ export function PatientsPage() {
   const [search, setSearch] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [deleting, setDeleting] = useState<PatientListItem | null>(null);
+  const [page, setPage] = useState(1);
 
   const debouncedSearch = useDebounce(search);
 
   const { data, isLoading, reload } = useAsync(
-    () => profilesApi.getPatients(debouncedSearch || undefined),
-    [debouncedSearch],
+    () => profilesApi.getPatients({ search: debouncedSearch || undefined, page }),
+    [debouncedSearch, page],
   );
 
   const remove = async () => {
@@ -83,7 +85,10 @@ export function PatientsPage() {
               id={id}
               value={search}
               placeholder="Enter the patient's name"
-              onValueChange={setSearch}
+              onValueChange={(value) => {
+                setSearch(value);
+                setPage(1);
+              }}
             />
           )}
         </Field>
@@ -91,11 +96,20 @@ export function PatientsPage() {
 
       <Table
         columns={columns}
-        rows={data ?? []}
+        rows={data?.items ?? []}
         rowKey={(row) => row.id}
         isLoading={isLoading}
         emptyMessage="No matches found"
       />
+
+      {data !== null ? (
+        <Pagination
+          page={data.page}
+          pageSize={data.pageSize}
+          totalCount={data.totalCount}
+          onPageChange={setPage}
+        />
+      ) : null}
 
       {isCreating ? (
         <CreatePatientModal

@@ -7,6 +7,7 @@ import {
   ConfirmDialog,
   DateInput,
   Field,
+  MAX_PAGE_SIZE,
   Select,
   StatusBadge,
   Table,
@@ -62,8 +63,14 @@ export function AppointmentsPage() {
   const [rescheduling, setRescheduling] = useState<AppointmentListItem | null>(null);
   const [cancelling, setCancelling] = useState<AppointmentListItem | null>(null);
 
-  const { data: doctors } = useAsync(() => profilesApi.getDoctors(), []);
-  const { data: patients } = useAsync(() => profilesApi.getPatients(), []);
+  const { data: doctors } = useAsync(
+    () => profilesApi.getDoctors({ pageSize: MAX_PAGE_SIZE }),
+    [],
+  );
+  const { data: patients } = useAsync(
+    () => profilesApi.getPatients({ pageSize: MAX_PAGE_SIZE }),
+    [],
+  );
 
   const { data, isLoading, reload } = useAsync(
     () =>
@@ -87,12 +94,12 @@ export function AppointmentsPage() {
     [catalog],
   );
 
-  const doctorOptions = (doctors ?? []).map((doctor) => ({
+  const doctorOptions = (doctors?.items ?? []).map((doctor) => ({
     value: doctor.id,
     label: formatFullName(doctor),
   }));
 
-  const patientOptions = (patients ?? []).map((patient) => ({
+  const patientOptions = (patients?.items ?? []).map((patient) => ({
     value: patient.id,
     label: formatFullName(patient),
   }));

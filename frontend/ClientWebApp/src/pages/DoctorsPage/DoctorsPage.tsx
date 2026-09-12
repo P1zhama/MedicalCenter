@@ -5,6 +5,7 @@ import {
   EmptyState,
   Field,
   PageSpinner,
+  Pagination,
   Select,
   TextInput,
   formatFullName,
@@ -22,18 +23,22 @@ export function DoctorsPage() {
   const [search, setSearch] = useState('');
   const [specializationId, setSpecializationId] = useState('');
   const [officeId, setOfficeId] = useState('');
+  const [page, setPage] = useState(1);
 
   const debouncedSearch = useDebounce(search);
 
-  const { data: doctors, isLoading, error } = useAsync(
+  const { data, isLoading, error } = useAsync(
     () =>
       profilesApi.getDoctorCards({
         search: debouncedSearch || undefined,
         specializationId: specializationId || undefined,
         officeId: officeId || undefined,
+        page,
       }),
-    [debouncedSearch, specializationId, officeId],
+    [debouncedSearch, specializationId, officeId, page],
   );
+
+  const doctors = data?.items ?? null;
 
   return (
     <section>
@@ -46,7 +51,10 @@ export function DoctorsPage() {
               id={id}
               value={search}
               placeholder="Enter the doctor's name"
-              onValueChange={setSearch}
+              onValueChange={(value) => {
+                setSearch(value);
+                setPage(1);
+              }}
             />
           )}
         </Field>
@@ -58,7 +66,10 @@ export function DoctorsPage() {
               value={specializationId}
               placeholder="All specializations"
               options={specializations.map((item) => ({ value: item.id, label: item.name }))}
-              onValueChange={setSpecializationId}
+              onValueChange={(value) => {
+                setSpecializationId(value);
+                setPage(1);
+              }}
             />
           )}
         </Field>
@@ -70,7 +81,10 @@ export function DoctorsPage() {
               value={officeId}
               placeholder="All offices"
               options={offices.map((item) => ({ value: item.id, label: item.address }))}
-              onValueChange={setOfficeId}
+              onValueChange={(value) => {
+                setOfficeId(value);
+                setPage(1);
+              }}
             />
           )}
         </Field>
@@ -83,6 +97,7 @@ export function DoctorsPage() {
       ) : doctors === null || doctors.length === 0 ? (
         <EmptyState message="There are no doctors matching this filtration" />
       ) : (
+        <>
         <div className={styles.cards}>
           {doctors.map((doctor) => (
             <Link key={doctor.id} to={`/doctors/${doctor.id}`} className={styles.card}>
@@ -105,6 +120,16 @@ export function DoctorsPage() {
             </Link>
           ))}
         </div>
+
+        {data !== null ? (
+          <Pagination
+            page={data.page}
+            pageSize={data.pageSize}
+            totalCount={data.totalCount}
+            onPageChange={setPage}
+          />
+        ) : null}
+        </>
       )}
     </section>
   );

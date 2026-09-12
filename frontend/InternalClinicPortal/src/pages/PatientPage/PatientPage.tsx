@@ -8,6 +8,7 @@ import {
   DateInput,
   Field,
   PageSpinner,
+  Pagination,
   PhotoUploader,
   StatusBadge,
   Table,
@@ -274,12 +275,14 @@ export function PatientPage() {
 }
 
 function PatientAppointments({ patientId }: { patientId: string }) {
+  const [page, setPage] = useState(1);
+
   const { data, isLoading } = useAsync(
-    () => appointmentsApi.getPatientAppointments(patientId),
-    [patientId],
+    () => appointmentsApi.getPatientAppointments(patientId, { page }),
+    [patientId, page],
   );
 
-  const rows = [...(data ?? [])].sort((left, right) => {
+  const rows = [...(data?.items ?? [])].sort((left, right) => {
     if (left.date !== right.date) {
       return right.date.localeCompare(left.date);
     }
@@ -314,12 +317,23 @@ function PatientAppointments({ patientId }: { patientId: string }) {
   ];
 
   return (
-    <Table
-      columns={columns}
-      rows={rows}
-      rowKey={(row) => row.id}
-      isLoading={isLoading}
-      emptyMessage="This patient has no appointments yet"
-    />
+    <>
+      <Table
+        columns={columns}
+        rows={rows}
+        rowKey={(row) => row.id}
+        isLoading={isLoading}
+        emptyMessage="This patient has no appointments yet"
+      />
+
+      {data !== null ? (
+        <Pagination
+          page={data.page}
+          pageSize={data.pageSize}
+          totalCount={data.totalCount}
+          onPageChange={setPage}
+        />
+      ) : null}
+    </>
   );
 }

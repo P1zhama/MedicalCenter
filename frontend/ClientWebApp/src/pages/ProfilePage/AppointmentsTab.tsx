@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   AppointmentModal,
   Button,
+  Pagination,
   StatusBadge,
   Table,
   appointmentsApi,
@@ -20,11 +21,15 @@ import {
 export function AppointmentsTab() {
   const toast = useToast();
   const [rescheduling, setRescheduling] = useState<AppointmentListItem | null>(null);
+  const [page, setPage] = useState(1);
 
-  const { data, isLoading, reload } = useAsync(() => appointmentsApi.getMyAppointments(), []);
+  const { data, isLoading, reload } = useAsync(
+    () => appointmentsApi.getMyAppointments({ page }),
+    [page],
+  );
 
   const appointments = useMemo(() => {
-    const rows = data ?? [];
+    const rows = data?.items ?? [];
 
     return [...rows].sort((left, right) => {
       if (left.date !== right.date) {
@@ -105,6 +110,15 @@ export function AppointmentsTab() {
         isLoading={isLoading}
         emptyMessage="You have no appointments yet"
       />
+
+      {data !== null ? (
+        <Pagination
+          page={data.page}
+          pageSize={data.pageSize}
+          totalCount={data.totalCount}
+          onPageChange={setPage}
+        />
+      ) : null}
 
       {rescheduling !== null ? (
         <AppointmentModal

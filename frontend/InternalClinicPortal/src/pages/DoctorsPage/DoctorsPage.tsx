@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   Button,
   Field,
+  Pagination,
   Select,
   Table,
   TextInput,
@@ -31,6 +32,7 @@ export function DoctorsPage() {
   const [officeId, setOfficeId] = useState('');
   const [editing, setEditing] = useState<Doctor | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [page, setPage] = useState(1);
 
   const debouncedSearch = useDebounce(search);
 
@@ -40,8 +42,9 @@ export function DoctorsPage() {
         search: debouncedSearch || undefined,
         specializationId: specializationId || undefined,
         officeId: officeId || undefined,
+        page,
       }),
-    [debouncedSearch, specializationId, officeId],
+    [debouncedSearch, specializationId, officeId, page],
   );
 
   const changeStatus = async (row: DoctorListItem, status: DoctorStatus) => {
@@ -140,11 +143,20 @@ export function DoctorsPage() {
 
       <Table
         columns={columns}
-        rows={data ?? []}
+        rows={data?.items ?? []}
         rowKey={(row) => row.id}
         isLoading={isLoading}
         emptyMessage="There are no doctors matching this filtration"
       />
+
+      {data !== null ? (
+        <Pagination
+          page={data.page}
+          pageSize={data.pageSize}
+          totalCount={data.totalCount}
+          onPageChange={setPage}
+        />
+      ) : null}
 
       {isCreating || editing !== null ? (
         <DoctorModal

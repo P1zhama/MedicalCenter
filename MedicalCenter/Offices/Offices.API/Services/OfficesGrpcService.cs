@@ -32,7 +32,7 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
             NullIfEmpty(request.OfficeNumber),
             request.RegistryPhoneNumber,
             NullIfEmpty(request.PhotoUrl),
-            ParseStatusOrDefault(request.Status));
+            ParseStatus(request.Status));
 
         var result = await _sender.Send(command, context.CancellationToken);
 
@@ -55,7 +55,7 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
             NullIfEmpty(request.OfficeNumber),
             request.RegistryPhoneNumber,
             NullIfEmpty(request.PhotoUrl),
-            ParseStatusOrDefault(request.Status));
+            ParseStatus(request.Status));
 
         var result = await _sender.Send(command, context.CancellationToken);
 
@@ -69,7 +69,7 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
     {
         var command = new ChangeOfficeStatusCommand(
             ParseGuid(request.OfficeId),
-            ParseStatusOrDefault(request.Status));
+            ParseStatus(request.Status));
 
         var result = await _sender.Send(command, context.CancellationToken);
 
@@ -181,15 +181,14 @@ public class OfficesGrpcService : OfficesService.OfficesServiceBase
             ? id
             : throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid office id format."));
 
-    private static OfficeStatus ParseStatusOrDefault(string status)
+    private static OfficeStatus ParseStatus(string status)
     {
-        if (string.IsNullOrEmpty(status))
-            return OfficeStatus.Active;
+        var name = Enum.GetNames<OfficeStatus>()
+            .FirstOrDefault(candidate => string.Equals(candidate, status, StringComparison.OrdinalIgnoreCase));
 
-        if (!Enum.TryParse<OfficeStatus>(status, ignoreCase: true, out var parsed) || !Enum.IsDefined(parsed))
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid office status."));
-
-        return parsed;
+        return name is not null
+            ? Enum.Parse<OfficeStatus>(name)
+            : throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid office status."));
     }
 
     private static string? NullIfEmpty(string value) => string.IsNullOrEmpty(value) ? null : value;

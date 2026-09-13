@@ -1,6 +1,7 @@
 using System.Reflection;
 using Appointments.Application.Common.Behaviors;
 using Appointments.Application.Common.Services;
+using Common.Application.Behaviors;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,4 +1,5 @@
 using System.Reflection;
+using Common.Application.Behaviors;
 using Documents.Application.Common.Behaviors;
 using Documents.Application.Common.Services;
 using FluentValidation;

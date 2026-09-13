@@ -3,7 +3,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Services.Application.Common.Behaviors;
+namespace Common.Application.Behaviors;
 
 public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>

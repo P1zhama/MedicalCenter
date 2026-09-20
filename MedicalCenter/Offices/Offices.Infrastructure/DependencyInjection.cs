@@ -47,8 +47,9 @@ public static class DependencyInjection
             x.UsingRabbitMq((context, cfg) =>
             {
                 var rabbitSettings = configuration.GetSection("RabbitMqSettings");
+                var port = ushort.TryParse(rabbitSettings["Port"], out var configuredPort) ? configuredPort : (ushort)5672;
 
-                cfg.Host(rabbitSettings["Host"] ?? "rabbitmq", rabbitSettings["VirtualHost"] ?? "/", h =>
+                cfg.Host(rabbitSettings["Host"] ?? "rabbitmq", port, rabbitSettings["VirtualHost"] ?? "/", h =>
                 {
                     h.Username(rabbitSettings["Username"] ?? "guest");
                     h.Password(rabbitSettings["Password"] ?? "guest");
@@ -65,13 +66,10 @@ public static class DependencyInjection
     {
         BsonSerializer.TryRegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
-        if (!BsonClassMap.IsClassMapRegistered(typeof(OfficeDocument)))
+        BsonClassMap.TryRegisterClassMap<OfficeDocument>(cm =>
         {
-            BsonClassMap.RegisterClassMap<OfficeDocument>(cm =>
-            {
-                cm.AutoMap();
-                cm.SetIgnoreExtraElements(true);
-            });
-        }
+            cm.AutoMap();
+            cm.SetIgnoreExtraElements(true);
+        });
     }
 }

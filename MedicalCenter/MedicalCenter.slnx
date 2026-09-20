@@ -44,6 +44,7 @@
     <Project Path="Offices/Offices.Application/Offices.Application.csproj" Id="a1413147-a681-47e1-a98f-ad8bb75ef3cb" />
     <Project Path="Offices/Offices.Domain/Offices.Domain.csproj" Id="0d625598-6dcc-41e5-8d03-a2b902b2c014" />
     <Project Path="Offices/Offices.Infrastructure/Offices.Infrastructure.csproj" Id="58940d0a-6698-44b2-932b-85563e9dcfc8" />
+    <Project Path="Offices/Offices.IntegrationTests/Offices.IntegrationTests.csproj" Id="e7c2a9d5-3b1f-4a6e-8c7d-2f9b1a4e6c53" />
     <Project Path="Offices/Offices.UnitTests/Offices.UnitTests.csproj" Id="b6e1f0c4-7d2a-4f8e-9c3b-5a1d7e9f2c40" />
   </Folder>
   <Folder Name="/Элементы решения/Profiles/">

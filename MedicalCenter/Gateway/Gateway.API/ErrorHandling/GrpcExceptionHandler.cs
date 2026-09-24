@@ -42,9 +42,13 @@ public sealed class GrpcExceptionHandler : IExceptionHandler
             {
                 Status = statusCode,
                 Title = ReasonPhrase(statusCode),
-                Detail = statusCode >= StatusCodes.Status500InternalServerError
-                    ? "Internal server error occurred."
-                    : rpcException.Status.Detail
+                Detail = statusCode switch
+                {
+                    StatusCodes.Status503ServiceUnavailable => "The service is temporarily unavailable. Please try again later.",
+                    StatusCodes.Status504GatewayTimeout => "The service did not respond in time. Please try again later.",
+                    >= StatusCodes.Status500InternalServerError => "Internal server error occurred.",
+                    _ => rpcException.Status.Detail
+                }
             }
         });
     }
@@ -56,6 +60,8 @@ public sealed class GrpcExceptionHandler : IExceptionHandler
         StatusCode.AlreadyExists => StatusCodes.Status409Conflict,
         StatusCode.Unauthenticated => StatusCodes.Status401Unauthorized,
         StatusCode.PermissionDenied => StatusCodes.Status403Forbidden,
+        StatusCode.Unavailable => StatusCodes.Status503ServiceUnavailable,
+        StatusCode.DeadlineExceeded => StatusCodes.Status504GatewayTimeout,
         _ => StatusCodes.Status500InternalServerError
     };
 
@@ -66,6 +72,8 @@ public sealed class GrpcExceptionHandler : IExceptionHandler
         StatusCodes.Status403Forbidden => "Forbidden",
         StatusCodes.Status404NotFound => "Not Found",
         StatusCodes.Status409Conflict => "Conflict",
+        StatusCodes.Status503ServiceUnavailable => "Service Unavailable",
+        StatusCodes.Status504GatewayTimeout => "Gateway Timeout",
         _ => "Internal Server Error"
     };
 }

@@ -9,6 +9,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     ports:
       - "8002:8080"
     environment:
@@ -17,5 +19,7 @@ services:
       - RabbitMqSettings__Host=rabbitmq
       - RabbitMqSettings__Username=guest
       - RabbitMqSettings__Password=guest
+      - Redis__ConnectionString=redis:6379
+      - "Redis__InstanceName=services:"
     networks:
       - medical-network
